@@ -1,0 +1,71 @@
+{
+  "projectName": "Kampus Hub",
+  "productVersion": "pre-MVP",
+  "currentMilestone": "3C-Bridge-B",
+  "currentMilestoneStatus": "in_progress",
+  "lastCompletedMilestone": "3C-Bridge-B2.2",
+  "nextMilestone": "3C-Bridge-B2.3",
+  "lastUpdated": "2026-07-11T13:58:00Z",
+  "database": {
+    "migrationStatus": "verified",
+    "testCount": 60,
+    "passedTests": 60,
+    "failedTests": 0,
+    "lintErrors": 0,
+    "lintWarnings": 0,
+    "schemaDiff": "empty"
+  },
+  "flutter": {
+    "testCount": 92,
+    "passedTests": 92,
+    "failedTests": 0,
+    "analyzeStatus": "clean",
+    "verificationNote": "Last verified at Bridge-B2.2 stage; rerun analyze and test after future changes"
+  },
+  "environments": {
+    "localSupabase": "verified",
+    "androidEmulator": "verified",
+    "productionSupabase": "not_deployed",
+    "ios": "not_verified"
+  },
+  "git": {
+    "branch": "main",
+    "commitAllowed": false,
+    "pushAllowed": false,
+    "workingTreeKnown": false
+  },
+  "pendingIntegrations": [
+    "flutter_onboarding",
+    "workspace_switcher",
+    "google_oauth",
+    "totp_mfa",
+    "email_invitations",
+    "production_supabase",
+    "ios_testflight"
+  ],
+  "knownIssues": [
+    "STALE_DOCUMENTATION",
+    "OAUTH_NOT_CONNECTED",
+    "MFA_REGISTRATION_INCOMPLETE",
+    "SMTP_EMAIL_NOT_INTEGRATED",
+    "IOS_NOT_VERIFIED",
+    "FLUTTER_ONBOARDING_LEGACY_RPC"
+  ],
+  "technicalDebt": [
+    "TASKS_SUPPORTERS_ARRAY",
+    "LEGACY_PROFILES_COLUMNS",
+    "LEGACY_ALLOWLIST_TABLES",
+    "FLUTTER_MODULAR_REFACTOR",
+    "REPOSITORY_ABSTRACTION",
+    "FEATURE_FLAGS_OFFLINE_CACHE",
+    "APP_LOGGER"
+  ],
+  "nextExactStep": "Implement AppLogger contract and sensitive-data redaction",
+  "prohibitedActions": [
+    "git_commit_without_user_approval",
+    "git_push_without_explicit_push_instruction",
+    "production_deployment",
+    "start_3C-C",
+    "edit_old_migrations"
+  ]
+}
