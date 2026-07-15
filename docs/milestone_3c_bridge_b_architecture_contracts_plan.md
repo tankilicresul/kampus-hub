@@ -367,17 +367,21 @@ Bridge-B3 aşamasında `auth` modülü bu mimariye taşınacaktır:
   - [NEW] `apps/mobile/test/core/retry_and_timeout_policy_test.dart`
 - **Doğrulama**: `flutter test test/core/retry_and_timeout_policy_test.dart` (38/38 PASS) ve `flutter analyze` (Clean)
 
-#### Phase 3C-Bridge-B2.3: AppLogger ve Redaction (Pending / Not Started)
+#### Phase 3C-Bridge-B2.3: AppLogger ve Redaction (Completed / Tamamlandı)
 - **Kapsam**: `AppLogger` soyutlama sözleşmesinin ve kişisel veri maskeleme mantığının kurulması.
-- **Bağımlılık**: Bridge-B2.2'nin tamamlanması.
+- **Dosyalar**:
+  - [NEW] [sensitive_data_redactor.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/logging/sensitive_data_redactor.dart)
+  - [NEW] [app_logger.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/logging/app_logger.dart)
+  - [NEW] [app_logger_and_redaction_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/core/app_logger_and_redaction_test.dart)
+- **Doğrulama**: `flutter test test/core/app_logger_and_redaction_test.dart` (52/52 PASS) ve `flutter analyze` (Clean).
 
-### Phase 3C-Bridge-B3: Auth/Device Pilot Entegrasyonu
-- **Kapsam**: `AuthRepository` arayüzü ve `SupabaseAuthRepository` kodlanması, `AuthStateNotifier` entegrasyonu.
-- **Bağımlılık**: Bridge-B2.3'ün tamamlanması.
+### Phase 3C-Bridge-B3: Auth/Device Pilot Entegrasyonu (Completed / Tamamlandı)
+- **Kapsam**: `AuthRepository` ve `DeviceSecurityRepository` arayüzleri tasarlandı, `SupabaseAuthRepository` ve `SupabaseDeviceSecurityRepository` implementasyonları veri katmanına alındı. `AuthStateNotifier` provider wiring ve repository entegrasyonu tamamlandı.
+- **Doğrulama**: `flutter test` (12/12 repository unit testleri ve 161/161 tüm test paketi PASS) ve `flutter analyze` (Clean).
 
-### Phase 3C-Bridge-B4: Dokümantasyon ve Kapanış
-- **Kapsam**: project-state.json ve CURRENT_STATE.md güncellenmesi.
-- **Bağımlılık**: Bridge-B3'ün tamamlanması.
+### Phase 3C-Bridge-B4: Dokümantasyon ve Kapanış (Completed / Tamamlandı)
+- **Kapsam**: `project-state.json`, `CURRENT_STATE.md`, `TEST_STATUS.md` ve ilgili plan/yol haritası belgelerinin güncellenmesi.
+- **Doğrulama**: Tüm Köprü-B mimari sınırları (domain, presentation, data), operation-aware retry kuralları, timeout'lar, failures ve logging test edilip doğrulandı. 161/161 Flutter testi, 60/60 pgTAP DB testi, git diff --check kontrolleri başarıyla tamamlandı. Mimari kapanış checklist'i onaylandı.
 
 ---
 

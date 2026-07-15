@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth_state_notifier.dart';
 
@@ -7,6 +8,9 @@ class DebugSimulationControls extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!kDebugMode) {
+      return const SizedBox.shrink();
+    }
     final authNotifier = ref.read(authStateProvider.notifier);
 
     return Column(

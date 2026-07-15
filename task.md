@@ -102,24 +102,49 @@
 - [x] Write 38 unit tests in `retry_and_timeout_policy_test.dart` validating all policy decisions, assertions, backoffs, and defaults.
 - [x] Run flutter analyze and ensure zero warnings or errors.
 
-##### Phase 3C-Bridge-B2.3: AppLogger and Redaction (Pending / Not Started)
-- [ ] Implement AppLogger interface contract.
-- [ ] Implement log redaction rules removing private credentials (email, tokens, passwords).
-- [ ] Write unit tests for log output and data redactions.
+##### Phase 3C-Bridge-B2.3: AppLogger and Redaction (Completed)
+- [x] Implement AppLogger interface contract.
+- [x] Implement log redaction rules removing private credentials (email, tokens, passwords).
+- [x] Write unit tests for log output and data redactions.
 
-#### Phase 3C-Bridge-B3: Auth/Device Pilot Integration (Pending / Not Started)
-- [ ] Define AuthRepository abstract interface contract in domain layer.
-- [ ] Implement SupabaseAuthRepository in data layer enclosing Supabase client calls.
-- [ ] Refactor AuthStateNotifier to depend on AuthRepository rather than raw clients.
-- [ ] Update widget and router test mock setups to verify all 20 existing regression tests PASS.
+#### Phase 3C-Bridge-B3: Auth/Device Pilot Integration (Completed)
+- [x] Define AuthRepository and DeviceSecurityRepository abstract interfaces in domain layer.
+- [x] Implement SupabaseAuthRepository and SupabaseDeviceSecurityRepository in data layer.
+- [x] Refactor AuthStateNotifier to depend on repositories rather than raw SDK clients.
+- [x] Write 12 repository unit tests verifying all contract mapping and retry logic.
+- [x] Update widget and router test mock setups to verify all 20 existing regression tests PASS.
 
-#### Phase 3C-Bridge-B4: Documentation and Verification (Pending / Not Started)
-- [ ] Update AI memory current status, roadmap, test logs, and check project-state.json parameters.
+#### Phase 3C-Bridge-B4: Documentation and Verification (Completed)
+- [x] Update AI memory current status, roadmap, test logs, and check project-state.json parameters.
 
-## Milestone 3C-C: Flutter onboarding, pending invitations, workspace creation and workspace switcher integration (Blocked - pending bridge completion)
-- [ ] Implement Flutter UI views and logic for new workspace creation.
-- [ ] Implement onboarding workspace selector logic for users without any active workspace membership.
-- [ ] Integrate workspace pending invitations accept/decline screens.
-- [ ] Implement multi-tenant workspace switcher dashboard side menu panel.
-- [ ] Configure dynamic GoRouter access redirect guards based on Riverpod providers list changes.
+#### Phase 3C-Bridge-C: Behavior-preserving Folder Refactor (Completed)
+- [x] Prepare Bridge-C behavior-preserving folder refactor plan and baseline file map.
+- [x] Refactor folder structure to feature-first layout in small, verifiable steps.
+- [x] Ensure UI, router, auth behaviors, and public APIs remain completely unchanged.
+- [x] Run flutter analyze and flutter test after each file movement.
 
+#### Phase 3C-Bridge-D: Repository Isolation (Completed)
+- [x] Prepare Bridge-D repository isolation scope and dependency-boundary inventory (Bridge-D0).
+- [x] Extract direct Supabase client calls from presentation screens and providers (Bridge-D1).
+- [x] Prepare Bridge-D2 remaining dependency-boundary scope and identify the next smallest behavior-preserving repository isolation change.
+- [x] Broaden repository abstractions across data/domain boundaries.
+- [x] Validate presentation layer decoupling through regression test suites.
+
+#### Phase 3C-Bridge-E: Feature Flags & Graceful Degradation (Completed)
+- [x] Prepare Bridge-E feature flag and graceful degradation scope and dependency inventory (Bridge-E0).
+- [x] Perform release-build bypass audit and identify key security gaps (Bridge-E1).
+- [x] Implement release fail-closed security patches for simulate=true, MFA placeholder bypass, and DebugSimulationControls (Bridge-E1B).
+- [x] Validate security behaviors and fail-closed fallbacks through final regression test suites (161/161 PASS).
+
+#### Phase 3C-Bridge-F: Documentation & Verification Closure (Completed)
+- [x] Prepare Bridge-F final documentation consistency and release-readiness verification checklist.
+- [x] Complete module READMEs and finalize modular boundaries documentation.
+- [x] Perform comprehensive test suite verification (161/161 Flutter, 60/60 db tests) and code formatting.
+
+## Milestone 3C-C: Flutter onboarding, pending invitations, workspace creation and workspace switcher integration (Completed)
+- [x] Prepare 3C-C workspace onboarding switcher scope and implementation plan.
+- [x] Implement Flutter UI views and logic for new workspace creation.
+- [x] Implement onboarding workspace selector logic for users without any active workspace membership.
+- [x] Integrate workspace pending invitations accept/decline screens.
+- [x] Implement multi-tenant workspace switcher dashboard side menu panel.
+- [x] Configure dynamic GoRouter access redirect guards based on Riverpod providers list changes.

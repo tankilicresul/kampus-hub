@@ -67,6 +67,21 @@ class RetryDecision {
 }
 
 abstract final class RetryPolicy {
+  static int maxAttemptsFor(OperationClass operationClass) {
+    switch (operationClass) {
+      case OperationClass.safeRead:
+        return 3;
+      case OperationClass.idempotentWrite:
+        return 2;
+      case OperationClass.nonIdempotentWrite:
+        return 1;
+      case OperationClass.securitySensitive:
+        return 1;
+      case OperationClass.localDeviceOperation:
+        return 1;
+    }
+  }
+
   static RetryDecision evaluate({
     required AppFailure failure,
     required RetryContext context,

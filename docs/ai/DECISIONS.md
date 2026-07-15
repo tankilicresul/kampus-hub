@@ -128,3 +128,16 @@ Bu doküman, Kampüs Hub projesinde alınan mimari kararları, bu kararların ge
 * **Decision**: Veritabanı ve Flutter kodlarının kesintisiz AI geçişlerini destekleyecek `docs/ai/` hafıza katmanı kurulmuş ve Flutter projesinin **Feature-First** Clean Architecture yapısına refaktör edilmesi planlanmıştır.
 * **Reason**: Kod kalitesini artırmak, hataları izole etmek (fault isolation) ve geliştirici hafızasını repo içinde yaşatmak.
 * **Consequences**: Bridge adında yeni bir geçiş aşaması planlanmış ve tüm geliştirme bu plana tabi tutulmuştur.
+
+---
+
+## ADR-013: Güvenlik Politikası ve Feature Flag Yalıtımı
+* **Date**: 2026-07-12
+* **Status**: Approved
+* **Context**: İstemci tarafında (Flutter) kullanılan simülasyon ve bypass yeteneklerinin release derlemelerinde güvenlik zafiyeti oluşturma riski.
+* **Decision**:
+  1. İstemci tarafındaki (client-side) feature flag'ler hiçbir güvenlik politikasını (Authentication, RLS, MFA, cihaz limiti vb.) sessizce atlayamaz veya devre dışı bırakamaz.
+  2. Biyometrik veya MFA yeteneği kullanılamıyorsa sistem güvenli fallback olarak **fail-closed** davranmalıdır (admin girişi engellenir veya biyometrik başarısızsa oturum kapatma istenir).
+  3. Geliştirici simülasyon araçları ve bypass rotaları derleme aşamasında (`kDebugMode` guard'ları ile) release paketlerinden tamamen elenir (fail-closed).
+* **Reason**: Uygulamanın güvenliğini istemci taraflı esneklik bayrakları nedeniyle riske atmamak ve derinlemesine savunma (Defense-in-depth) ilkelerine sadık kalmak.
+* **Consequences**: `AuthStateNotifier` simülasyon girişleri ve MFA placeholder geçiş butonları `kDebugMode` ile kilitlenmiş, `DebugSimulationControls` kendi build metodunda release engelleyicisine kavuşturulmuştur.

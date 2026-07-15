@@ -1,11 +1,11 @@
 {
   "projectName": "Kampus Hub",
   "productVersion": "pre-MVP",
-  "currentMilestone": "3C-Bridge-B",
-  "currentMilestoneStatus": "in_progress",
-  "lastCompletedMilestone": "3C-Bridge-B2.2",
-  "nextMilestone": "3C-Bridge-B2.3",
-  "lastUpdated": "2026-07-11T13:58:00Z",
+  "currentMilestone": "3D",
+  "currentMilestoneStatus": "planned",
+  "lastCompletedMilestone": "3C-C",
+  "nextMilestone": "3D",
+  "lastUpdated": "2026-07-15T23:30:00Z",
   "database": {
     "migrationStatus": "verified",
     "testCount": 60,
@@ -16,11 +16,11 @@
     "schemaDiff": "empty"
   },
   "flutter": {
-    "testCount": 92,
-    "passedTests": 92,
+    "testCount": 211,
+    "passedTests": 211,
     "failedTests": 0,
     "analyzeStatus": "clean",
-    "verificationNote": "Last verified at Bridge-B2.2 stage; rerun analyze and test after future changes"
+    "verificationNote": "Workspace onboarding flows and switcher widgets integration verified; 211 tests passing cleanly."
   },
   "environments": {
     "localSupabase": "verified",
@@ -35,8 +35,6 @@
     "workingTreeKnown": false
   },
   "pendingIntegrations": [
-    "flutter_onboarding",
-    "workspace_switcher",
     "google_oauth",
     "totp_mfa",
     "email_invitations",
@@ -57,15 +55,13 @@
     "LEGACY_ALLOWLIST_TABLES",
     "FLUTTER_MODULAR_REFACTOR",
     "REPOSITORY_ABSTRACTION",
-    "FEATURE_FLAGS_OFFLINE_CACHE",
-    "APP_LOGGER"
+    "FEATURE_FLAGS_OFFLINE_CACHE"
   ],
-  "nextExactStep": "Implement AppLogger contract and sensitive-data redaction",
+  "nextExactStep": "Setup Google OAuth credentials and build MFA biometric registration UI",
   "prohibitedActions": [
     "git_commit_without_user_approval",
     "git_push_without_explicit_push_instruction",
     "production_deployment",
-    "start_3C-C",
     "edit_old_migrations"
   ]
 }

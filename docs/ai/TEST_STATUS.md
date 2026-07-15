@@ -1,7 +1,7 @@
 ---
-Last updated: 2026-07-11
+Last updated: 2026-07-15
 Updated by: Antigravity
-Related milestone: 3C-Bridge-A
+Related milestone: 3C-C
 Source of truth status: authoritative
 ---
 
@@ -10,7 +10,7 @@ Source of truth status: authoritative
 Bu doküman, sistemdeki testlerin güncel çalışma durumlarını, başarı oranlarını ve doğrulama ortamlarını listeler.
 
 > [!NOTE]
-> **Açıklama**: Milestone 3C-Bridge-A sadece dokümantasyon ve yapay zekâ hafıza dosyalarının oluşturulması aşamasıdır. Herhangi bir veritabanı şeması veya Flutter/Dart kodu değiştirilmediğinden, bu aşamada yeni testler koşturulmamıştır. Yukarıdaki sonuçlar 3C-B aşamasından kalan son kararlı durumları yansıtmaktadır.
+> **Açıklama**: Milestone 3C-C (Workspace Onboarding & Switcher Entegrasyonu) aşaması kapsamında çoklu kiralama, davet kabul/ret akışları, workspace oluşturma ve aktif workspace seçici drawer arayüzü doğrulanmış; tüm testler (211/211 Flutter, 60/60 pgTAP DB), statik analizler başarıyla geçmiştir.
 
 ---
 
@@ -41,9 +41,9 @@ Tüm veritabanı şeması ve RLS kuralları local Docker ortamında başarıyla 
 * **`flutter analyze`**: **PASS**
   - Hata (Errors): 0
   - Uyarı (Warnings): 0
-  - Bilgi (Infos): 0 *(Birim testlerindeki const constructor, final variables ve super parametre uyarılarının tamamı çözülmüştür)*
-* **`flutter test`**: **PASS** (Toplam 92 testin tamamı başarıyla geçmiştir. 20 mevcut arayüz/regresyon testi + 9 AppFailure/AppResult birim testi + 25 FailureMapper birim testi + 38 Retry/Timeout Policy birim testi).
-* **Önemli Not**: Bu son doğrulama Milestone 3C-Bridge-B2.2 aşaması tamamlandıktan sonra yapılmıştır. Flutter kod tabanı üzerinde gelecekte yapılacak her değişiklikten sonra linter analizi ve testlerin yeniden koşturulması ve bu belgedeki sonuçların güncellenmesi zorunludur.
+  - Bilgi (Infos): 0
+* **`flutter test`**: **PASS** (Toplam 211 testin tamamı başarıyla geçmiştir. 20 mevcut arayüz/regresyon testi + 9 AppFailure/AppResult birim testi + 25 FailureMapper birim testi + 43 Retry/Timeout Policy birim testi + 52 AppLogger & SensitiveDataRedactor birim testi + 12 Repository birim testi (6 auth repo + 6 device security repo) + 8 MFA/Redirects regresyon testi + 12 Workspace Repository ve Notifier testi + 30 Workspace Flow ve Yönlendirme testi).
+* **Önemli Not**: Bu son doğrulama Milestone 3C-C aşaması ve eklenen 9 senaryolu entegrasyon akış testi tamamlandıktan sonra yapılmıştır. Flutter kod tabanı üzerinde gelecekte yapılacak her değişiklikten sonra linter analizi ve testlerin yeniden koşturulması ve bu belgedeki sonuçların güncellenmesi zorunludur.
 
 ---
 

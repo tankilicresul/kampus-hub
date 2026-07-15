@@ -218,10 +218,190 @@ This file tracks all technical changes, architectural decisions, database migrat
   - Executed `flutter test` resulting in **PASS** (all 92 unit, widget, and router regression tests successfully completed).
   - Executed `flutter analyze` resulting in **Clean** (0 errors, 0 warnings, 0 infos).
 
-## [Pending] Milestone 3C-Bridge-B2.3: AppLogger and Redaction
+## [2026-07-12] Milestone 3C-Bridge-B2.3: AppLogger and Redaction (Completed)
 
-- **Pending Tasks:** Implement pure `AppLogger` contract and log parameter mask rules.
+- **Action Taken:**
+  - Designed and created the core domain logging abstractions (`AppLogLevel`, `AppLogEnvironment`, `AppLogRecord`, `AppLogSink`, and `AppLogger`).
+  - Implemented `SensitiveDataRedactor` utility with nested collection, JWT, Bearer token, URL query params, and email masking rules.
+  - Implemented `SafeAppLogger` and `NoopAppLogger` implementing the `AppLogger` contract.
+  - Set environment-aware details filtering (raw error/stack trace excluded in production, redacted technical details included in development).
+  - Ensured sink write failures are safely handled via `catchError` and synchronous exceptions are caught to prevent app crashes.
+  - Created a robust test suite `apps/mobile/test/core/app_logger_and_redaction_test.dart` implementing 52 unit tests.
+- **Created Files:**
+  - [apps/mobile/lib/core/logging/sensitive_data_redactor.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/logging/sensitive_data_redactor.dart)
+  - [apps/mobile/lib/core/logging/app_logger.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/logging/app_logger.dart)
+  - [apps/mobile/test/core/app_logger_and_redaction_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/core/app_logger_and_redaction_test.dart)
+- **Test Result:**
+  - Executed `flutter test` resulting in **PASS** (all 144 unit, widget, and router regression tests successfully completed).
+  - Executed `flutter analyze` resulting in **Clean** (0 errors, 0 warnings, 0 infos).
+
+## [2026-07-12] Milestone 3C-Bridge-B3: Auth/Device Repository Pilot Integration (Completed)
+
+- **Action Taken:**
+  - Designed abstract interfaces `AuthRepository` and `DeviceSecurityRepository` to isolate business logic from SDK packages.
+  - Implemented `SupabaseAuthRepository` and `SupabaseDeviceSecurityRepository` implementing these interfaces, encapsulating raw SupabaseClient, Postgrest RPCs, and FlutterSecureStorage operations.
+  - Refactored `RetryPolicy` to offer centralized `maxAttemptsFor(OperationClass)` rules (safeRead: 3, idempotentWrite: 2, nonIdempotentWrite: 1, securitySensitive: 1, localDeviceOperation: 1 attempts) and removed local retry constants from repositories.
+  - Refactored `AuthStateNotifier` to depend solely on `AuthRepository` and `DeviceSecurityRepository` via Riverpod providers (`authRepositoryProvider`, `deviceSecurityRepositoryProvider`), eliminating raw SDK client coupling.
+  - Handled StreamSubscription lifetimes in `AuthStateNotifier` by overriding `dispose` to prevent memory leaks.
+  - Created a robust test suite `apps/mobile/test/features/auth/repositories_test.dart` containing 12 unit tests validating all repo mappings, OAuth login states, biometric storage, RPC limits, validation failures, and retry counts.
+  - Updated `apps/mobile/test/widget_and_router_test.dart` mocks to use the new repository structure, restoring 100% test pass status.
+- **Created/Modified Files:**
+  - [apps/mobile/lib/features/auth/domain/repositories/auth_repository.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/domain/repositories/auth_repository.dart) (Updated)
+  - [apps/mobile/lib/features/auth/domain/repositories/device_security_repository.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/domain/repositories/device_security_repository.dart) (Updated)
+  - [apps/mobile/lib/features/auth/data/repositories/supabase_auth_repository.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/data/repositories/supabase_auth_repository.dart) (Created in B3.2A)
+  - [apps/mobile/lib/features/auth/data/repositories/supabase_device_security_repository.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/data/repositories/supabase_device_security_repository.dart) (Created in B3.2B)
+  - [apps/mobile/lib/core/async/retry_policy.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/async/retry_policy.dart) (Updated)
+  - [apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart) (Updated)
+  - [apps/mobile/test/features/auth/repositories_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/features/auth/repositories_test.dart) (Created)
+  - [apps/mobile/test/widget_and_router_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/widget_and_router_test.dart) (Updated)
+  - [apps/mobile/test/core/retry_and_timeout_policy_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/core/retry_and_timeout_policy_test.dart) (Updated)
+- **Test Result:**
+  - Executed `flutter test` resulting in **PASS** (all 161 unit, widget, and router tests successfully completed).
+  - Executed `flutter analyze` resulting in **Clean** (0 errors, 0 warnings, 0 infos).
+
+## [2026-07-12] Milestone 3C-Bridge-B4: Documentation and Verification (Completed)
+
+- **Action Taken:**
+  - Audited domain, presentation, and data layer isolation across all core auth and device feature structures (Domain: 100% pure Dart, Presentation: zero direct SupabaseClient calls, Data: sealed repository translations).
+  - Validated central operation-aware retry policy configurations, ensuring mutational operations (nonIdempotentWrite, securitySensitive) do not trigger automatic retries.
+  - Verified environment-based SafeAppLogger filtering and SensitiveDataRedactor recursive maskings for emails, Bearer tokens, and password query parameters.
+  - Inspected stream subscription lifecycles inside presenters confirming correct cancellations in `dispose()`.
+  - Updated AI project state documents (`CURRENT_STATE.md`, `ROADMAP.md`, `TEST_STATUS.md`, `project-state.json`) and task checklists to complete Bridge-B milestones and transition to Bridge-C.
+- **Modified Files:**
+  - [docs/ai/CURRENT_STATE.md](file:///c:/Projects/kampus-hub/docs/ai/CURRENT_STATE.md) (Updated)
+  - [docs/ai/ROADMAP.md](file:///c:/Projects/kampus-hub/docs/ai/ROADMAP.md) (Updated)
+  - [docs/ai/TEST_STATUS.md](file:///c:/Projects/kampus-hub/docs/ai/TEST_STATUS.md) (Updated)
+  - [docs/ai/project-state.json](file:///c:/Projects/kampus-hub/docs/ai/project-state.json) (Updated)
+  - [docs/milestone_3c_bridge_b_architecture_contracts_plan.md](file:///c:/Projects/kampus-hub/docs/milestone_3c_bridge_b_architecture_contracts_plan.md) (Updated)
+  - [task.md](file:///c:/Projects/kampus-hub/task.md) (Updated)
+  - [walkthrough.md](file:///c:/Projects/kampus-hub/walkthrough.md) (Updated)
+  - [WORKLOG.md](file:///c:/Projects/kampus-hub/WORKLOG.md) (Updated)
+- **Test Result:**
+  - Executed final suite verification showing **PASS** (161/161 Flutter tests completed successfully).
+  - Executed static code analyzer returning **Clean** (0 warnings or issues found).
+  - Executed database pgTAP suite resulting in **PASS** (60/60 unit assertions succeeded, 0 lint warnings, 0 diff changes).
+  - Executed git hygiene check yielding clean staged and uncommitted trees (`git diff --check` succeeded).
+
+## [2026-07-12] Milestone 3C-Bridge-C: Behavior-preserving Folder Refactor (Completed)
+
+- **Action Taken:**
+  - Relocated legacy root test files `auth_test.dart` and `widget_and_router_test.dart` into the modular `test/features/auth/` directory (Bridge-C1).
+  - Relocated core design theme `lib/core/theme/app_theme.dart` to the modular configuration directory `lib/app/theme/app_theme.dart` (Bridge-C2).
+  - Relocated GoRouter navigation definitions `lib/core/router/app_router.dart` to `lib/app/router/app_router.dart` and cleaned up imports (Bridge-C3).
+  - Relocated root MaterialApp configuration `lib/app.dart` to `lib/app/app.dart` and updated `lib/main.dart` entrypoint (Bridge-C4).
+  - Performed SHA-256 hash checks before and after moves to ensure zero content change in the migrated code.
+  - Completed project-wide verification: ensured no legacy `app.dart` or `core/router/app_router.dart` references remained in the project.
+- **Modified/Moved Files:**
+  - [apps/mobile/lib/app.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/app.dart) (Deleted / Relocated to `app/app.dart`)
+  - [apps/mobile/lib/app/app.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/app/app.dart) (Created)
+  - [apps/mobile/lib/core/theme/app_theme.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/theme/app_theme.dart) (Deleted / Relocated to `app/theme/app_theme.dart`)
+  - [apps/mobile/lib/app/theme/app_theme.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/app/theme/app_theme.dart) (Created)
+  - [apps/mobile/lib/core/router/app_router.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/core/router/app_router.dart) (Deleted / Relocated to `app/router/app_router.dart`)
+  - [apps/mobile/lib/app/router/app_router.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/app/router/app_router.dart) (Created)
+  - [apps/mobile/lib/main.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/main.dart) (Updated)
+  - [apps/mobile/test/auth_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/auth_test.dart) (Deleted / Relocated to `features/auth/auth_test.dart`)
+  - [apps/mobile/test/widget_and_router_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/widget_and_router_test.dart) (Deleted / Relocated to `features/auth/widget_and_router_test.dart`)
+  - [apps/mobile/test/features/auth/auth_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/features/auth/auth_test.dart) (Created)
+  - [apps/mobile/test/features/auth/widget_and_router_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/features/auth/widget_and_router_test.dart) (Created)
+- **Test Result:**
+  - Executed all Flutter tests resulting in **PASS** (161/161 tests completed successfully).
+  - Executed static code analyzer returning **Clean** (0 warnings or issues found).
+  - Executed git hygiene check yielding clean staged and uncommitted trees (`git diff --check` succeeded).
+
 
 ## [Blocked] Milestone 3C-C: Flutter onboarding, pending invitations, workspace creation and workspace switcher integration
 
 - **Pending Tasks:** Flutter client-side screen development, onboarding switcher interface, blocked until all 3C-Bridge refactoring phases are completed.
+
+## [2026-07-12] Milestone 3C-Bridge-D: Repository Isolation (Completed)
+
+- **Action Taken (Milestone 3C-Bridge-D0 - Dependency-Boundary Inventory):**
+  - Audited and mapped all raw external infrastructure usages (`supabase_flutter`, `device_info_plus`, `flutter_secure_storage`, `uuid`, `crypto`, `Platform`) across vertical feature layers.
+- **Action Taken (Milestone 3C-Bridge-D1 - Provider Dependency Extraction):**
+  - Created new feature-scoped DI file `apps/mobile/lib/features/auth/di/auth_dependencies.dart` containing Riverpod infrastructure providers (`secureStorageProvider`, `supabaseClientProvider`, `authRepositoryProvider`, `deviceSecurityRepositoryProvider`).
+  - Decoupled `auth_state_notifier.dart` from third-party infrastructure SDK dependency imports (`supabase_flutter`, `flutter_secure_storage`, `device_info_plus`, etc.), bringing forbidden import occurrences down to 0.
+  - Retained essential state providers `authStateProvider` and `configMissingProvider` inside the presenter.
+  - Linked new DI imports in `main.dart` preserving the current composition-root logic.
+  - Performed regression verifications verifying zero behavior regressions.
+- **Action Taken (Milestone 3C-Bridge-D2 - Dependency-Boundary Verification):**
+  - Audited remaining platform and library usages (`inactivity_tracker.dart`, `constants.dart`, `failure_mapper.dart`).
+  - Confirmed `inactivity_tracker.dart` uses correct constructor injection and does not leak infrastructure types.
+  - Confirmed `constants.dart` uses `Platform.isAndroid` solely for environment settings (emulators).
+  - Confirmed `failure_mapper.dart` acts as a correct boundary adapter mapping external SDK exception types to core failures.
+  - Verified no code modifications are required in Bridge-D2, keeping the codebase clean of unnecessary abstraction overlays.
+- **Created/Modified Files:**
+  - [apps/mobile/lib/features/auth/di/auth_dependencies.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/di/auth_dependencies.dart) (Created)
+  - [apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart) (Modified)
+  - [apps/mobile/lib/main.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/main.dart) (Modified)
+- **Test Result:**
+  - Executed all Flutter tests resulting in **PASS** (161/161 tests completed successfully).
+  - Executed static code analyzer returning **Clean** (0 warnings or issues found).
+  - Executed dependency-boundary scripts (0 forbidden imports matched inside presenter).
+  - Executed git hygiene check yielding clean staged and uncommitted trees (`git diff --check` succeeded).
+
+## [2026-07-12] Milestone 3C-Bridge-E: Feature Flags & Graceful Degradation (Completed)
+
+- **Action Taken (Milestone 3C-Bridge-E0 - Feature Flag & Graceful Degradation Inventory):**
+  - Audited codebase and mapped all startup config try/catch blocks, debug simulation controls, Google OAuth paths, biometric placeholders, and MFA placeholding screens.
+  - Concluded that client-side feature flags must never bypass security policies (Authentication, RLS, active device limits, MFA).
+  - Clarified that feature flags must manage only technical capability rollouts and fail-closed fallbacks must apply.
+- **Action Taken (Milestone 3C-Bridge-E1 - Release-Build Bypass Audit):**
+  - Inspected `mfa_placeholder_screen.dart`, `debug_simulation_controls.dart`, and `auth_state_notifier.dart` to check for security bypass issues.
+  - Identified major security gaps: `signInWithGoogle(simulate: true)` was unprotected inside the notifier, the MFA bypass button was rendered in release mode, and `DebugSimulationControls` relied solely on parent-level UI gating.
+- **Action Taken (Milestone 3C-Bridge-E1B - Release Fail-Closed Security Fixes):**
+  - Modified `auth_state_notifier.dart` to return a safe `AuthStatus.unauthenticated` state and error message in production if `simulate` is requested, completely blocking OAuth fall-throughs.
+  - Wrapped the MFA placeholder bypass button in a `kDebugMode` conditional check inside `mfa_placeholder_screen.dart`, rendering only the safe `signOut` button in release.
+  - Embedded a strict `if (!kDebugMode) return const SizedBox.shrink();` compile-time guard inside `DebugSimulationControls` to guarantee full tree-shaking.
+  - Preserved the abstract `unlockBiometric` logic and local_auth integration code.
+- **Modified Files:**
+  - [apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/presentation/auth_state_notifier.dart) (Modified)
+  - [apps/mobile/lib/features/auth/presentation/screens/mfa_placeholder_screen.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/presentation/screens/mfa_placeholder_screen.dart) (Modified)
+  - [apps/mobile/lib/features/auth/presentation/screens/debug_simulation_controls.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/auth/presentation/screens/debug_simulation_controls.dart) (Modified)
+- **Test Result:**
+  - Executed all Flutter tests resulting in **PASS** (161/161 tests completed successfully).
+  - Executed static code analyzer returning **Clean** (0 warnings or issues found).
+  - Executed git hygiene check yielding clean staged and uncommitted trees (`git diff --check` succeeded).
+- **Next Steps:** Prepare Bridge-F final documentation consistency and release-readiness verification checklist.
+
+## [2026-07-12] Milestone 3C-Bridge-F: Documentation & Verification Closure (Completed)
+
+- **Action Taken:**
+  - Audited documentation consistency across `project-state.json`, `CURRENT_STATE.md`, `ROADMAP.md`, `TEST_STATUS.md`, and `task.md`.
+  - Confirmed all completed/active/blocked milestones are correctly synchronized.
+  - Verified modern paths existence and full removal of legacy `app.dart`, `core/router/app_router.dart`, and `core/theme/app_theme.dart` directories.
+  - Validated retry policies switch counts (safeRead: 3, idempotentWrite: 2, etc.) and complete DI/presenter boundary isolations.
+  - Formulated a comprehensive Release-Readiness Matrisi identifying verified platform boundaries and pending secret configurations.
+- **Modified Files:**
+  - [docs/ai/project-state.json](file:///c:/Projects/kampus-hub/docs/ai/project-state.json) (Modified)
+  - [docs/ai/CURRENT_STATE.md](file:///c:/Projects/kampus-hub/docs/ai/CURRENT_STATE.md) (Modified)
+  - [docs/ai/ROADMAP.md](file:///c:/Projects/kampus-hub/docs/ai/ROADMAP.md) (Modified)
+  - [docs/ai/TEST_STATUS.md](file:///c:/Projects/kampus-hub/docs/ai/TEST_STATUS.md) (Modified)
+  - [docs/milestone_3c_bridge_continuity_modularity_plan.md](file:///c:/Projects/kampus-hub/docs/milestone_3c_bridge_continuity_modularity_plan.md) (Modified)
+  - [task.md](file:///c:/Projects/kampus-hub/task.md) (Modified)
+  - [WORKLOG.md](file:///c:/Projects/kampus-hub/WORKLOG.md) (Modified)
+  - [walkthrough.md](file:///c:/Projects/kampus-hub/walkthrough.md) (Modified)
+- **Test Result:**
+  - Verification-only stage; no code modifications or migrations executed. Maintained Flutter tests at PASS (161/161), Linter analyzer at Clean, and Database pgTAP assertions at PASS (60/60).
+- **Next Steps:** Prepare 3C-C workspace onboarding switcher scope and implementation plan.
+
+## [2026-07-15] Milestone 3C-C: Workspace Onboarding & Switcher Integration (Completed)
+
+- **Action Taken:**
+  - Implemented the Workspace creation, onboarding checking, and invitation onboarding screens.
+  - Implemented the active workspace switcher drawer side-menu navigation panel.
+  - Integrated dynamic workspace state notifier logic managing loading, active choice selection, accepting/declining invites, and local caching.
+  - Wrote 9 flow integration tests covering single-membership auto-select, redirection checks, persistence, restoration after restart, invitation accepts/rejects, RLS overrides, and grace network error handling.
+  - Verified linter rules, removing unused imports and variables to guarantee compile-time hygiene.
+- **Created/Modified Files:**
+  - [apps/mobile/lib/features/workspace/presentation/screens/workspace_creation_screen.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/workspace/presentation/screens/workspace_creation_screen.dart) (Created)
+  - [apps/mobile/lib/features/workspace/presentation/screens/workspace_checking_screen.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/workspace/presentation/screens/workspace_checking_screen.dart) (Created)
+  - [apps/mobile/lib/features/workspace/presentation/screens/invitation_onboarding_screen.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/workspace/presentation/screens/invitation_onboarding_screen.dart) (Created)
+  - [apps/mobile/lib/features/workspace/presentation/widgets/workspace_switcher_drawer.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/workspace/presentation/widgets/workspace_switcher_drawer.dart) (Created)
+  - [apps/mobile/lib/features/workspace/presentation/workspace_state_notifier.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/features/workspace/presentation/workspace_state_notifier.dart) (Created)
+  - [apps/mobile/lib/app/router/app_router.dart](file:///c:/Projects/kampus-hub/apps/mobile/lib/app/router/app_router.dart) (Modified)
+  - [apps/mobile/test/features/workspace/workspace_flow_test.dart](file:///c:/Projects/kampus-hub/apps/mobile/test/features/workspace/workspace_flow_test.dart) (Created)
+- **Test Result:**
+  - Executed all Flutter tests resulting in **PASS** (211/211 tests completed successfully).
+  - Executed static code analyzer returning **Clean** (0 warnings or issues found).
+  - Checked database tests (60/60 pgTAP tests historically verified).
+- **Next Steps:** Prepare Milestone 3D Real OAuth & MFA enrollment setup.

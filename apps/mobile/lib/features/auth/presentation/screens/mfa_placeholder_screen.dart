@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../auth_state_notifier.dart';
 
@@ -53,31 +54,33 @@ class MfaPlaceholderScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  // Simulate verification and entry
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('MFA Doğrulandı! (Simülasyon)'),
+              if (kDebugMode) ...[
+                ElevatedButton(
+                  onPressed: () {
+                    // Simulate verification and entry
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('MFA Doğrulandı! (Simülasyon)'),
+                      ),
+                    );
+                    // Push into the dashboard
+                    ref.read(authStateProvider.notifier).completeMfaSimulation();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                  );
-                  // Push into the dashboard
-                  ref.read(authStateProvider.notifier).unlockBiometric();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6366F1),
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 56),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Text(
+                    'Doğrula ve Devam Et',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
-                child: const Text(
-                  'Doğrula ve Devam Et',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
               TextButton(
                 onPressed: () => ref.read(authStateProvider.notifier).signOut(),
                 child: const Text(

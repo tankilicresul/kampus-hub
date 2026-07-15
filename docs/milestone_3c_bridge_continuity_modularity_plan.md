@@ -211,6 +211,11 @@ lib/
 │   └── widgets/          # Ortak UI bileşenleri (Buttons, Textfields)
 └── features/             # İş özellikler modülleri (Dikey dilimler)
     ├── auth/             # Login, Google OAuth ve active device check
+    │   ├── data/
+    │   ├── di/
+    │   │   └── auth_dependencies.dart
+    │   ├── domain/
+    │   └── presentation/
     ├── onboarding/       # Workspace davetleri kabul ve yeni workspace oluşturma
     ├── workspaces/       # Workspace switcher ve ayarlar
     └── tasks/            # Görevler, subtask'ler ve checklists
@@ -389,33 +394,24 @@ Mevcut sistemi bozmadan ve kesintisiz geliştirme sağlamak için bridge aşamas
 - **Test**: Dart unit test.
 - **Rollback**: Dosyaların silinmesi.
 
-### Phase 3C-Bridge-C: Flutter Folder Refactor (No Behavior Change)
-- **Scope**: Mevcut Flutter dosyalarının, davranış değişikliği yapılmadan yeni feature-first klasör yapısına taşınması.
-- **Files**: `apps/mobile/lib/features/**/*`
-- **Risk**: Rota ve import kırılmaları.
-- **Test**: `flutter analyze` ve `flutter test` çalıştırma.
-- **Rollback**: Git checkout.
+### Phase 3C-Bridge-C: Flutter Folder Refactor (No Behavior Change) (Completed / Tamamlandı)
+- **Scope**: Mevcut Flutter dosyalarının (tema, router, testler, MaterialApp root), davranış değişikliği yapılmadan hedeflenen modüler klasör yapısına taşınması.
+- **Doğrulama**: SHA-256 doğrulandı, eski referanslar 100% temizlendi. 161/161 Flutter testi, 60/60 pgTAP DB testi, git diff --check kontrolleri başarıyla tamamlandı.
 
-### Phase 3C-Bridge-D: Repository Isolation
-- **Scope**: UI katmanındaki Supabase Client çağrılarının Repository arayüzleri arkasına taşınması.
-- **Files**: `apps/mobile/lib/features/*/domain/repositories/*`, `apps/mobile/lib/features/*/data/repositories/*`
-- **Risk**: Veri akışlarında kopmalar.
-- **Test**: widget ve router testlerini koşturma.
-- **Rollback**: Git revert.
+### Phase 3C-Bridge-D: Repository Isolation (Completed / Tamamlandı)
+- **Scope**: UI katmanındaki ve Provider'lardaki doğrudan Supabase Client çağrılarının kaldırılması ve Repository arayüzleri arkasına taşınması.
+- **Alt Aşamalar**:
+  - **Phase 3C-Bridge-D1 (Provider Dependency Extraction)**: **Completed (Tamamlandı)** (Riverpod provider'ları DI dosyasına taşındı, presentation altyapı bağımlılıkları temizlendi).
+  - **Phase 3C-Bridge-D2 (Dependency-Boundary Verification)**: **Completed (Tamamlandı)** (Kalan altyapı bağımlılıklarının analizi yapıldı, ek soyutlamaya gerek kalmadan presenter'ın tamamen yalıtıldığı tescil edildi).
+- **Doğrulama**: widget ve router testlerini koşturma, dependency-boundary envanterinin çıkarılması.
 
-### Phase 3C-Bridge-E: Feature Flags & Graceful Degradation
-- **Scope**: Feature flag altyapısının kurulması ve servis hataları için fallback mekanizmalarının eklenmesi.
-- **Files**: `apps/mobile/lib/core/config/*`
-- **Risk**: Arayüz engellemelerinde mantıksal hatalar.
-- **Test**: Test flag senaryoları.
-- **Rollback**: Flag'lerin true yapılması.
+### Phase 3C-Bridge-E: Feature Flags & Graceful Degradation (Completed / Tamamlandı)
+- **Scope**: Özellik bayrağı semantiğinin güvenlik sınırlarının analiz edilmesi ve release derlemelerindeki bypass zafiyetlerinin `kDebugMode` fail-closed guard'ları ile tamamen kapatılması.
+- **Doğrulama**: simulate=true, MFA placeholder buton geçişi ve DebugSimulationControls release modda test edilerek doğrulanmıştır. 161/161 Flutter testi başarıyla geçmiştir.
 
-### Phase 3C-Bridge-F: Documentation & Verification Closure
-- **Scope**: Tüm README'lerin oluşturulması, son testlerin koşturulması ve bridge raporunun tamamlanması.
-- **Files**: `docs/ai/TEST_STATUS.md`, `WORKLOG.md`
-- **Risk**: Yok.
-- **Test**: `npx supabase test db` & `flutter test`.
-- **Rollback**: Yok.
+### Phase 3C-Bridge-F: Documentation & Verification Closure (Completed / Tamamlandı)
+- **Scope**: Modüler sınırların ve entegre veri/hata modellerinin dokümante edilmesi, kullanılmayan dosyaların temizliği ve final release-readiness envanter tescili.
+- **Doğrulama**: git diff --check, 161/161 Flutter testleri, linter analizi ve database test durumları tescil edilmiştir.
 
 ---
 
@@ -434,6 +430,7 @@ Mevcut sistemi bozmadan ve kesintisiz geliştirme sağlamak için bridge aşamas
 - `docs/ai/project-state.json`
 - `apps/mobile/lib/core/errors/app_failure.dart`
 - `apps/mobile/lib/core/result/result.dart`
+- `apps/mobile/lib/features/auth/di/auth_dependencies.dart`
 - `features/<each_feature>/README.md`
 
 ---

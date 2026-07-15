@@ -1,7 +1,7 @@
 ---
-Last updated: 2026-07-11
+Last updated: 2026-07-12
 Updated by: Antigravity
-Related milestone: 3C-Bridge-A
+Related milestone: 3C-Bridge-C (Closed) → 3C-Bridge-D (Active)
 Source of truth status: authoritative
 ---
 
@@ -32,15 +32,14 @@ Proje kök dizini altında şu temel bileşenler yer almaktadır:
 
 ---
 
-## 2. Hedef Modüler Mobil Mimari (Target Architecture)
-* **Önemli Not**: Bu hedef yapı henüz uygulanmamıştır. Milestone 3C-Bridge-C aşamasında bu yapıya geçiş gerçekleştirilecektir.
+## 2. Mevcut Modüler Mobil Mimari (Current Modular Architecture)
+* **Not**: Bu modüler yapı Milestone 3C-Bridge-C aşaması kapsamında başarıyla uygulanmıştır.
 
-Uygulamanın dikey dilimlere (Feature-First) ve katmanlı Clean Architecture prensiplerine göre yapılandırılması planlanmıştır:
+Uygulamanın dikey dilimlere (Feature-First) ve katmanlı Clean Architecture prensiplerine göre yapılandırılması tamamlanmıştır:
 
 ```text
 lib/
 ├── app/                  # Uygulama ana yapılandırması
-│   ├── bootstrap/        # SDK ve Servis ilklendirmeleri (Supabase, Auth vb.)
 │   ├── router/           # GoRouter tanımları ve yönlendirme kuralları (guards)
 │   ├── theme/            # Ortak renk, font ve stil token'ları
 │   └── shell/            # Shell layout ve genel gezinme çubuğu (Bottom Navigation)
@@ -55,6 +54,11 @@ lib/
 │   └── widgets/          # Uygulama geneli ortak UI bileşenleri
 └── features/             # İş özellikleri (Dikey modüller)
     ├── auth/             # Login ve cihaz kısıtları yönetimi
+    │   ├── data/
+    │   ├── di/
+    │   │   └── auth_dependencies.dart
+    │   ├── domain/
+    │   └── presentation/
     ├── onboarding/       # İlk çalışma alanı kurulumu ve davet ekranları
     ├── workspaces/       # Çalışma alanı yönetimi ve switcher paneli
     └── tasks/            # Görevler, alt görevler ve kontrol listeleri

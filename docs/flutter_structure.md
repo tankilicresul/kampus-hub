@@ -9,13 +9,17 @@ This document defines the folder structure and routing table for the Kampüs Hub
 ```text
 lib/
 ├── main.dart                      # App entry point (initializes services, runs app)
-├── app.dart                       # MaterialApp configuration (routes, themes)
+├── app/                           # Root MaterialApp configuration (routes, themes)
+│   ├── app.dart                   # MaterialApp config and providers interception
+│   ├── router/                    # GoRouter definition and redirect guards
+│   └── theme/                     # Light & Dark theme definitions (Kampüs Kapında branding)
 ├── core/                          # Shared, infrastructure, and core logic
+│   ├── async/                     # OperationClass, RetryPolicy, TimeoutPolicy
 │   ├── constants/                 # App constants (colors, margins, keys)
 │   ├── errors/                    # Exception classes and custom failure handlers
-│   ├── network/                   # Supabase client wrapper & API integration
-│   ├── theme/                     # Light & Dark theme definitions (Kampüs Kapında branding)
-│   ├── utils/                     # Formatters, local storage, security wrappers
+│   ├── logging/                   # AppLogger & SensitiveDataRedactor
+│   ├── result/                    # AppResult wrapper
+│   ├── utils/                     # Formatters, inactivity trackers, and helpers
 │   └── widgets/                   # Universal UI widgets (custom buttons, status badges)
 └── features/                      # Domain-specific features
     ├── auth/                      # Google OAuth, MFA, and Biometric lock

@@ -461,4 +461,26 @@ void main() {
       expect(result.reason, 'non_idempotent_write_cannot_retry');
     });
   });
+
+  group('RetryPolicy maxAttemptsFor Tests', () {
+    test('39. safeRead == 3', () {
+      expect(RetryPolicy.maxAttemptsFor(OperationClass.safeRead), 3);
+    });
+
+    test('40. idempotentWrite == 2', () {
+      expect(RetryPolicy.maxAttemptsFor(OperationClass.idempotentWrite), 2);
+    });
+
+    test('41. nonIdempotentWrite == 1', () {
+      expect(RetryPolicy.maxAttemptsFor(OperationClass.nonIdempotentWrite), 1);
+    });
+
+    test('42. securitySensitive == 1', () {
+      expect(RetryPolicy.maxAttemptsFor(OperationClass.securitySensitive), 1);
+    });
+
+    test('43. localDeviceOperation == 1', () {
+      expect(RetryPolicy.maxAttemptsFor(OperationClass.localDeviceOperation), 1);
+    });
+  });
 }
