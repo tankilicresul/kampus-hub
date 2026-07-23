@@ -1,28 +1,28 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/app/router/app_router.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/features/auth/presentation/auth_state_notifier.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/repositories/device_security_repository.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/access_check_result.dart';
-import 'package:kampushub/features/auth/domain/models/registered_device.dart';
-import 'package:kampushub/features/auth/domain/models/device_registration_result.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_enrollment.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_factor.dart';
-import 'package:kampushub/features/workspace/presentation/workspace_state_notifier.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace_invitation.dart';
-import 'package:kampushub/features/workspace/domain/repositories/workspace_repository.dart';
-import 'package:kampushub/features/workspace/di/workspace_dependencies.dart';
-import 'package:kampushub/features/workspace/presentation/screens/workspace_checking_screen.dart';
-import 'package:kampushub/features/workspace/presentation/screens/invitation_onboarding_screen.dart';
-import 'package:kampushub/features/workspace/presentation/screens/workspace_creation_screen.dart';
-import 'package:kampushub/features/workspace/presentation/widgets/workspace_switcher_drawer.dart';
+import 'package:kapindahub/app/router/app_router.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/features/auth/presentation/auth_state_notifier.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/device_security_repository.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/access_check_result.dart';
+import 'package:kapindahub/features/auth/domain/models/registered_device.dart';
+import 'package:kapindahub/features/auth/domain/models/device_registration_result.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_enrollment.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_factor.dart';
+import 'package:kapindahub/features/workspace/presentation/workspace_state_notifier.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace_invitation.dart';
+import 'package:kapindahub/features/workspace/domain/repositories/workspace_repository.dart';
+import 'package:kapindahub/features/workspace/di/workspace_dependencies.dart';
+import 'package:kapindahub/features/workspace/presentation/screens/workspace_checking_screen.dart';
+import 'package:kapindahub/features/workspace/presentation/screens/invitation_onboarding_screen.dart';
+import 'package:kapindahub/features/workspace/presentation/screens/workspace_creation_screen.dart';
+import 'package:kapindahub/features/workspace/presentation/widgets/workspace_switcher_drawer.dart';
 
 class _MockAuthRepository implements AuthRepository {
   @override
@@ -30,7 +30,7 @@ class _MockAuthRepository implements AuthRepository {
   @override
   AuthenticatedUser? get currentUser => const AuthenticatedUser(
         id: 'user-123',
-        email: 'test@kampushub.com',
+        email: 'test@kapindahub.com',
       );
   @override
   Future<AppResult<void>> signInWithGoogle() async => const AppSuccess(null);
@@ -201,7 +201,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -239,7 +239,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -263,7 +263,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -304,7 +304,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -374,7 +374,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -408,7 +408,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -462,7 +462,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -505,7 +505,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),
@@ -531,7 +531,7 @@ void main() {
         overrides: [
           authStateProvider.overrideWith(
             (ref) => FakeAuthStateNotifier(
-              AuthState(status: AuthStatus.authenticated, email: 'test@kampushub.com', role: 'staff'),
+              AuthState(status: AuthStatus.authenticated, email: 'test@kapindahub.com', role: 'staff'),
             ),
           ),
           workspaceRepositoryProvider.overrideWithValue(mockRepo),

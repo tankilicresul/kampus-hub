@@ -1,4 +1,4 @@
-# Missing Accounts, APIs & Brand Assets Log - Kampüs Hub
+﻿# Missing Accounts, APIs & Brand Assets Log - Kapında Hub
 
 Adhering to **Rule 12**, this document tracks all missing accounts, API integrations, and brand assets. We explicitly avoid faking information. For any missing visual or system component, neutral temporary components (e.g., grays, slates, basic skeletons) will be utilized.
 

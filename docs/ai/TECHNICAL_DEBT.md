@@ -1,11 +1,11 @@
----
+﻿---
 Last updated: 2026-07-11
 Updated by: Antigravity
 Related milestone: 3C-Bridge-A
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — Technical Debt
+# Kapında Hub — Technical Debt
 
 Bu doküman, projede bilinçli olarak ertelenen teknik borçları, bunların risklerini ve çözüm planlarını içerir.
 

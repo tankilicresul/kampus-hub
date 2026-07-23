@@ -1,8 +1,8 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/core/async/operation_class.dart';
-import 'package:kampushub/core/async/retry_policy.dart';
-import 'package:kampushub/core/async/timeout_policy.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/core/async/operation_class.dart';
+import 'package:kapindahub/core/async/retry_policy.dart';
+import 'package:kapindahub/core/async/timeout_policy.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
 
 void main() {
   group('RetryContext Instantiation Tests', () {

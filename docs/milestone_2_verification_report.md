@@ -1,4 +1,4 @@
-# Milestone 2 Verification Report - Kampüs Hub
+﻿# Milestone 2 Verification Report - Kapında Hub
 
 This report documents the verification results of Milestone 2 (Database Schema, Row-Level Security, and Triggers) based on the local Supabase environment runs.
 

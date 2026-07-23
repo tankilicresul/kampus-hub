@@ -1,6 +1,6 @@
-# Kampüs Hub
+# Kapında Hub
 
-Kampüs Hub is the internal mobile application for the **Kampüs Kapında** team to manage projects, tasks, university openings, partner CRM, technical development, advertisement production, Google Drive files, Google Calendar availability, daily updates, and performance tracking.
+Kapında Hub is the internal mobile application for the **Kampüs Kapında** team to manage projects, tasks, university openings, partner CRM, technical development, advertisement production, Google Drive files, Google Calendar availability, daily updates, and performance tracking.
 
 The initial pilot will start with 10 users, scaling to support a minimum of 25 users.
 

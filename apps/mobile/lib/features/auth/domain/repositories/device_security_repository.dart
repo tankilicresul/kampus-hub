@@ -1,4 +1,4 @@
-import 'package:kampushub/core/result/app_result.dart';
+﻿import 'package:kapindahub/core/result/app_result.dart';
 import '../models/registered_device.dart';
 import '../models/device_registration_result.dart';
 

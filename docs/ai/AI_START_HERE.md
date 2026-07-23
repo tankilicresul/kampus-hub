@@ -5,14 +5,14 @@ Related milestone: 3C-Bridge-A
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — AI Start Here
+# Kapında Hub — AI Start Here
 
-Yapay zekâ asistanları ve yeni geliştiriciler için Kampüs Hub projesine giriş ve çalışma protokolü rehberidir.
+Yapay zekâ asistanları ve yeni geliştiriciler için Kapında Hub projesine giriş ve çalışma protokolü rehberidir.
 
 ---
 
 ## 1. Proje ve Ürün Tanımı
-* **Proje Adı**: Kampüs Hub
+* **Proje Adı**: Kapında Hub
 * **Ürün**: Çoklu çalışma alanı (multi-workspace/multi-tenant) destekli, saha ekipleri ve operasyon yönetimi odaklı mobil SaaS uygulaması.
 * **Mobil Teknoloji**: Flutter (Dart)
 * **Backend**: Supabase (PostgreSQL, RLS yetkilendirmesi, pgTAP testleri, RPC API'leri)

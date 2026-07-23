@@ -1,6 +1,6 @@
-# Architectural Decisions (ADR) - Kampüs Hub
+﻿# Architectural Decisions (ADR) - Kapında Hub
 
-This document defines the key architectural decisions, design choices, and technical strategies for the Kampüs Hub application.
+This document defines the key architectural decisions, design choices, and technical strategies for the Kapında Hub application.
 
 ---
 
@@ -35,7 +35,7 @@ This document defines the key architectural decisions, design choices, and techn
 
 ## 3. Storage Integration (Google Drive Linkage)
 
-- **Storage Optimization:** To avoid expensive data replication, Kampüs Hub will store files in Google Drive.
+- **Storage Optimization:** To avoid expensive data replication, Kapında Hub will store files in Google Drive.
 - **Implementation:**
   - The Supabase DB will only store URLs or Google Drive file IDs.
   - The app will prompt folder creation on Google Drive for each university with specific directory scopes (Araştırma, İşletmeler, Sözleşmeler, Menüler, Reklam Çekimleri, Yayınlanan İçerikler, Raporlar).

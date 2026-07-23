@@ -1,11 +1,11 @@
----
+﻿---
 Last updated: 2026-07-12
 Updated by: Antigravity
 Related milestone: 3C-Bridge-C (Closed) → 3C-Bridge-D (Active)
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — Architecture Map
+# Kapında Hub — Architecture Map
 
 Bu doküman, sistemin mevcut ve hedef mimari haritasını, klasör yapılarını ve veritabanı şema sınırlarını tanımlar.
 

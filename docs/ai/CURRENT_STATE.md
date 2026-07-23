@@ -1,9 +1,9 @@
----
+﻿---
 Last updated: 2026-07-23
 Updated by: Antigravity
 Related milestone: Milestones 4 & 5 (Closed / Completed)
 Source of truth status: authoritative
----# Kampüs Hub — Current State
+---# Kapında Hub — Current State
 
 Bu doküman, projenin mevcut geliştirme durumunu, test doğrulama çıktılarını ve sonraki plan adımlarını özetler.
 

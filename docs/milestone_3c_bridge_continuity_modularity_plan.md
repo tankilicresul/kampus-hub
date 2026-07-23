@@ -1,6 +1,6 @@
-# Milestone 3C-Bridge: AI Project Continuity and Modular Architecture Plan
+﻿# Milestone 3C-Bridge: AI Project Continuity and Modular Architecture Plan
 
-Bu plan belgesi, Kampüs Hub projesinin geliştirilmesinde kesintisiz yapay zekâ (AI) geçişlerini sağlamak, repo hafızasını sürdürülebilir kılmak ve mobil uygulamayı Clean Architecture prensiplerine göre modüler, hata toleranslı (fault-isolated) ve test edilebilir bir yapıya dönüştürmek için hazırlanmıştır.
+Bu plan belgesi, Kapında Hub projesinin geliştirilmesinde kesintisiz yapay zekâ (AI) geçişlerini sağlamak, repo hafızasını sürdürülebilir kılmak ve mobil uygulamayı Clean Architecture prensiplerine göre modüler, hata toleranslı (fault-isolated) ve test edilebilir bir yapıya dönüştürmek için hazırlanmıştır.
 
 ---
 

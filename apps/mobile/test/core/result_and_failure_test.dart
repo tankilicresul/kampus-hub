@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/core/result/app_result.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 
 void main() {
   group('AppFailure Instantiation & Metadata Tests', () {

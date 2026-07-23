@@ -1,13 +1,13 @@
----
+﻿---
 Last updated: 2026-07-11
 Updated by: Antigravity
 Related milestone: 3C-Bridge-A
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — Architecture Decisions (ADR)
+# Kapında Hub — Architecture Decisions (ADR)
 
-Bu doküman, Kampüs Hub projesinde alınan mimari kararları, bu kararların gerekçelerini ve etkilerini kayıt altında tutar.
+Bu doküman, Kapında Hub projesinde alınan mimari kararları, bu kararların gerekçelerini ve etkilerini kayıt altında tutar.
 
 ---
 

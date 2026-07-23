@@ -1,4 +1,4 @@
-# Work Log - Kampüs Hub
+﻿# Work Log - Kapında Hub
 
 This file tracks all technical changes, architectural decisions, database migrations, and milestones in the project.
 

@@ -1,4 +1,4 @@
-# Milestone 3C-B Technical Verification Report
+﻿# Milestone 3C-B Technical Verification Report
 ## Tenant RLS, Workspace RPCs and Ownership Security
 
 This report details the implementation, database security architecture, and pgTAP verification results for **Milestone 3C-B: Tenant RLS, Workspace RPCs and Ownership Security**.
@@ -6,7 +6,7 @@ This report details the implementation, database security architecture, and pgTA
 ---
 
 ### 1. Milestone Özeti (Milestone Summary)
-Milestone 3C-B kapsamında Kampüs Hub platformu tekil bir allowlist yapısından çoklu çalışma alanı (multi-workspace/multi-tenant) modeline başarıyla geçirilmiştir. Kullanıcıların global bir hesaba sahip olduğu, kendi ekiplerini kurabildikleri, bekleyen davetler aracılığıyla birden fazla workspace'e üye olabildikleri ve bu workspace'ler arasında güvenli şekilde geçiş yapabildikleri esnek ve güvenli bir veritabanı altyapısı kurulmuştur.
+Milestone 3C-B kapsamında Kapında Hub platformu tekil bir allowlist yapısından çoklu çalışma alanı (multi-workspace/multi-tenant) modeline başarıyla geçirilmiştir. Kullanıcıların global bir hesaba sahip olduğu, kendi ekiplerini kurabildikleri, bekleyen davetler aracılığıyla birden fazla workspace'e üye olabildikleri ve bu workspace'ler arasında güvenli şekilde geçiş yapabildikleri esnek ve güvenli bir veritabanı altyapısı kurulmuştur.
 
 ---
 
@@ -75,7 +75,7 @@ Bildirimler (`notifications`) modeli çoklu kiralama yapısına uyum sağlayacak
 ---
 
 ### 10. Signup’ın Legacy Allowlist’ten Ayrılması (Signup Decoupling)
-Global Kampüs Hub hesabı oluşturulurken (sign up) tetiklenen `handle_new_user` tetikleyici fonksiyonu eski tekil `access_invitations` tablosundaki allowlist zorunluluğundan arındırılmıştır. Artık herkes global bir hesap oluşturabilir. Yeni kayıt olan kullanıcılara herhangi bir workspace yetkisi veya üyelik verilmez; profiles tablosundaki legacy role kolonuna kısıtlı `'intern'` varsayılan değeri atanır.
+Global Kapında Hub hesabı oluşturulurken (sign up) tetiklenen `handle_new_user` tetikleyici fonksiyonu eski tekil `access_invitations` tablosundaki allowlist zorunluluğundan arındırılmıştır. Artık herkes global bir hesap oluşturabilir. Yeni kayıt olan kullanıcılara herhangi bir workspace yetkisi veya üyelik verilmez; profiles tablosundaki legacy role kolonuna kısıtlı `'intern'` varsayılan değeri atanır.
 
 ---
 

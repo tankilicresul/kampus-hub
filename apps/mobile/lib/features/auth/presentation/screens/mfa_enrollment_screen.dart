@@ -1,9 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kampushub/core/result/app_result.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 import '../auth_state_notifier.dart';
 
 /// MFA TOTP Enrollment Screen — shown when admin user has no verified TOTP factor.

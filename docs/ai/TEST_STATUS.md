@@ -1,11 +1,11 @@
----
+﻿---
 Last updated: 2026-07-23
 Updated by: Antigravity
 Related milestone: Milestones 4 & 5
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — Test Status
+# Kapında Hub — Test Status
 
 Bu doküman, sistemdeki testlerin güncel çalışma durumlarını, başarı oranlarını ve doğrulama ortamlarını listeler.
 

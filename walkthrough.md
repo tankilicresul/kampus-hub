@@ -1,4 +1,4 @@
-# Verification Walkthrough - Milestone 3
+﻿# Verification Walkthrough - Milestone 3
 
 This walkthrough details the steps taken to implement and verify Milestone 3, split into:
 - **Milestone 3A: Local database and Flutter auth scaffold** (Completed)
@@ -252,8 +252,8 @@ flutter analyze
 
 ### 2. Hash and Content Consistency Validation
 - Executed SHA-256 hash checks before and after moves to guarantee zero content modification in the migrated code.
-- Resolved and cleaned up 100% of old import paths (`core/router/app_router.dart`, `core/theme/app_theme.dart`, `import 'app.dart';`, and `package:kampushub/app.dart`).
-- Verified MyApp configuration classes were intact, router redirects and guard conditions remained unmodified, and no new class names (e.g. KampusHubApp) were introduced.
+- Resolved and cleaned up 100% of old import paths (`core/router/app_router.dart`, `core/theme/app_theme.dart`, `import 'app.dart';`, and `package:kapindahub/app.dart`).
+- Verified MyApp configuration classes were intact, router redirects and guard conditions remained unmodified, and no new class names (e.g. kapindahubApp) were introduced.
 
 ---
 

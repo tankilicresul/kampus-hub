@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,16 +7,16 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:kampushub/core/constants/constants.dart';
-import 'package:kampushub/core/logging/app_logger.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/core/async/operation_class.dart';
-import 'package:kampushub/core/async/retry_policy.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/registered_device.dart';
-import 'package:kampushub/features/auth/domain/models/device_registration_result.dart';
-import 'package:kampushub/features/auth/data/repositories/supabase_auth_repository.dart';
-import 'package:kampushub/features/auth/data/repositories/supabase_device_security_repository.dart';
+import 'package:kapindahub/core/constants/constants.dart';
+import 'package:kapindahub/core/logging/app_logger.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/core/async/operation_class.dart';
+import 'package:kapindahub/core/async/retry_policy.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/registered_device.dart';
+import 'package:kapindahub/features/auth/domain/models/device_registration_result.dart';
+import 'package:kapindahub/features/auth/data/repositories/supabase_auth_repository.dart';
+import 'package:kapindahub/features/auth/data/repositories/supabase_device_security_repository.dart';
 
 class FakePostgrestFilterBuilder<T> implements PostgrestFilterBuilder<T> {
   final Future<T> _future;

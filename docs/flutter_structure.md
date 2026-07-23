@@ -1,6 +1,6 @@
-# Flutter App Folder Structure & Route Specification
+﻿# Flutter App Folder Structure & Route Specification
 
-This document defines the folder structure and routing table for the Kampüs Hub Flutter application. It uses a **feature-first** organization, aligning well with clean architecture and modern state management (e.g., Bloc/Cubit).
+This document defines the folder structure and routing table for the Kapında Hub Flutter application. It uses a **feature-first** organization, aligning well with clean architecture and modern state management (e.g., Bloc/Cubit).
 
 ---
 

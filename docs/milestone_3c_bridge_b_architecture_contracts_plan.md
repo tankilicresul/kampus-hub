@@ -1,7 +1,7 @@
-# Milestone 3C-Bridge-B Implementation Plan
+﻿# Milestone 3C-Bridge-B Implementation Plan
 ## Architecture Boundaries, AppFailure and Result Contracts
 
-Bu doküman, Kampüs Hub mobil uygulamasının veri katmanı ve hata yönetim mimarisini Clean Architecture sınırlarına göre soyutlamak üzere uygulanacak teknik yol haritasını içerir.
+Bu doküman, Kapında Hub mobil uygulamasının veri katmanı ve hata yönetim mimarisini Clean Architecture sınırlarına göre soyutlamak üzere uygulanacak teknik yol haritasını içerir.
 
 ---
 

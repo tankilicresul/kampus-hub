@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/core/logging/sensitive_data_redactor.dart';
-import 'package:kampushub/core/logging/app_logger.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/core/logging/sensitive_data_redactor.dart';
+import 'package:kapindahub/core/logging/app_logger.dart';
 
 class FakeAppLogSink implements AppLogSink {
   final List<AppLogRecord> records = [];

@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kampushub/core/result/app_result.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 import '../auth_state_notifier.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -72,7 +72,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Kampüs Hub',
+                    'Kapında Hub',
                     style: TextStyle(
                       color: Theme.of(context).textTheme.headlineMedium?.color,
                       fontSize: 32,

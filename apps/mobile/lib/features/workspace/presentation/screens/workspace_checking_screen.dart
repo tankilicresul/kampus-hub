@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kampushub/features/auth/presentation/auth_state_notifier.dart';
+import 'package:kapindahub/features/auth/presentation/auth_state_notifier.dart';
 import '../workspace_state_notifier.dart';
 
 class WorkspaceCheckingScreen extends ConsumerWidget {

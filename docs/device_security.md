@@ -1,6 +1,6 @@
-# Device Security & Session Revocation - Kampüs Hub
+﻿# Device Security & Session Revocation - Kapında Hub
 
-This document explains the device seat limits, server-side registration rules, local biometric authentication, and inactivity lockouts configured for Kampüs Hub.
+This document explains the device seat limits, server-side registration rules, local biometric authentication, and inactivity lockouts configured for Kapında Hub.
 
 ---
 

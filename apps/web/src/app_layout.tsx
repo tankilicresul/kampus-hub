@@ -50,7 +50,7 @@ export const AppLayout: React.FC = () => {
       <div className="sidebar">
         <div className="sidebar-header">
           <FolderClosed size={20} style={{ color: 'var(--accent-color)' }} />
-          <span className="sidebar-logo">Kampüs Hub</span>
+          <span className="sidebar-logo">Kampüs Kapında CRM</span>
         </div>
         
         <div className="workspace-list">
@@ -171,7 +171,7 @@ export const AppLayout: React.FC = () => {
             onClick={() => setActiveTab('crm')}
           >
             <BarChart4 size={16} />
-            <span>CRM Dashboard</span>
+            <span>Kampüs Kapında CRM</span>
           </div>
         </div>
 

@@ -1,10 +1,10 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/core/errors/failure_mapper.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/core/errors/failure_mapper.dart';
 
 void main() {
   group('FailureMapper - 25 Target Assertions Unit Tests', () {

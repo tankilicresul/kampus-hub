@@ -305,7 +305,7 @@ class MainHomeView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text('Kampüs Hub Dashboard'),
+        title: const Text('Kapında Hub Dashboard'),
         backgroundColor: const Color(0xFF1E293B),
       ),
       body: isLoadingWorkspace

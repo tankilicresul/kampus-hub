@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kampüs Hub</string>
+	<string>Kapında Hub</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,9 +15,9 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>kampushub</string>
+	<string>kapindahub</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Kampüs Hub uygulamasının güvenli biçimde açılması için biyometrik doğrulama kullanılır.</string>
+	<string>Kapında Hub uygulamasının güvenli biçimde açılması için biyometrik doğrulama kullanılır.</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

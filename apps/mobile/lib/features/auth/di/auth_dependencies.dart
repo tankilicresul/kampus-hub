@@ -1,12 +1,12 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/repositories/device_security_repository.dart';
-import 'package:kampushub/features/auth/data/repositories/supabase_auth_repository.dart';
-import 'package:kampushub/features/auth/data/repositories/supabase_device_security_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/device_security_repository.dart';
+import 'package:kapindahub/features/auth/data/repositories/supabase_auth_repository.dart';
+import 'package:kapindahub/features/auth/data/repositories/supabase_device_security_repository.dart';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>(
   (ref) => const FlutterSecureStorage(),

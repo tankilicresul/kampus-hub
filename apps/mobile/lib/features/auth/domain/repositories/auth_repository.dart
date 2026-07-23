@@ -1,4 +1,4 @@
-import 'package:kampushub/core/result/app_result.dart';
+﻿import 'package:kapindahub/core/result/app_result.dart';
 import '../models/authenticated_user.dart';
 import '../models/access_check_result.dart';
 import '../models/mfa_enrollment.dart';

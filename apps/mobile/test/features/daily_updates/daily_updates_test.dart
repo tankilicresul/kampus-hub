@@ -1,6 +1,6 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/features/daily_updates/domain/models/daily_update_model.dart';
-import 'package:kampushub/features/daily_updates/presentation/daily_update_state_notifier.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/features/daily_updates/domain/models/daily_update_model.dart';
+import 'package:kapindahub/features/daily_updates/presentation/daily_update_state_notifier.dart';
 
 void main() {
   group('DailyUpdateModel Unit Tests', () {

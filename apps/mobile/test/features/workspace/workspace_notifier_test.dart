@@ -1,10 +1,10 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace_invitation.dart';
-import 'package:kampushub/features/workspace/domain/repositories/workspace_repository.dart';
-import 'package:kampushub/features/workspace/presentation/workspace_state_notifier.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace_invitation.dart';
+import 'package:kapindahub/features/workspace/domain/repositories/workspace_repository.dart';
+import 'package:kapindahub/features/workspace/presentation/workspace_state_notifier.dart';
 
 class _FakeWorkspaceRepository implements WorkspaceRepository {
   List<Workspace> workspaces = [];

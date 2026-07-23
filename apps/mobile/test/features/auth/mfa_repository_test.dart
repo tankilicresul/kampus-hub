@@ -1,11 +1,11 @@
-import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/access_check_result.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_enrollment.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_factor.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/access_check_result.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_enrollment.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_factor.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
 
 // ── Configurable fake AuthRepository ─────────────────────────────────────
 //

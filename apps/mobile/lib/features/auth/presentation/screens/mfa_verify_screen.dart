@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kampushub/core/result/app_result.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 import '../auth_state_notifier.dart';
 
 /// MFA TOTP Verify Screen — shown when the user has an enrolled TOTP factor

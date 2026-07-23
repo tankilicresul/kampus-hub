@@ -1,9 +1,9 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:kampushub/core/logging/app_logger.dart';
-import 'package:kampushub/features/workspace/data/repositories/supabase_workspace_repository.dart';
+import 'package:kapindahub/core/logging/app_logger.dart';
+import 'package:kapindahub/features/workspace/data/repositories/supabase_workspace_repository.dart';
 
 class FakePostgrestFilterBuilder<T> implements PostgrestFilterBuilder<T> {
   final Future<T> _future;

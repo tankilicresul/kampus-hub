@@ -1,32 +1,32 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kampushub/app/router/app_router.dart';
-import 'package:kampushub/features/auth/presentation/auth_state_notifier.dart';
-import 'package:kampushub/features/auth/presentation/screens/login_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/access_checking_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/access_waiting_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/access_denied_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/account_expired_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/biometric_prompt_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/device_limit_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/mfa_enrollment_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/mfa_verify_screen.dart';
-import 'package:kampushub/features/auth/presentation/screens/config_missing_screen.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/repositories/device_security_repository.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/access_check_result.dart';
-import 'package:kampushub/features/auth/domain/models/registered_device.dart';
-import 'package:kampushub/features/auth/domain/models/device_registration_result.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_enrollment.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_factor.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/features/workspace/presentation/workspace_state_notifier.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace.dart';
-import 'package:kampushub/features/workspace/domain/models/workspace_invitation.dart';
-import 'package:kampushub/features/workspace/domain/repositories/workspace_repository.dart';
+import 'package:kapindahub/app/router/app_router.dart';
+import 'package:kapindahub/features/auth/presentation/auth_state_notifier.dart';
+import 'package:kapindahub/features/auth/presentation/screens/login_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/access_checking_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/access_waiting_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/access_denied_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/account_expired_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/biometric_prompt_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/device_limit_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/mfa_enrollment_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/mfa_verify_screen.dart';
+import 'package:kapindahub/features/auth/presentation/screens/config_missing_screen.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/device_security_repository.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/access_check_result.dart';
+import 'package:kapindahub/features/auth/domain/models/registered_device.dart';
+import 'package:kapindahub/features/auth/domain/models/device_registration_result.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_enrollment.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_factor.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/features/workspace/presentation/workspace_state_notifier.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace.dart';
+import 'package:kapindahub/features/workspace/domain/models/workspace_invitation.dart';
+import 'package:kapindahub/features/workspace/domain/repositories/workspace_repository.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
@@ -208,7 +208,7 @@ void main() {
           child: const MaterialApp(home: LoginScreen()),
         ),
       );
-      expect(find.text('Kampüs Hub'), findsOneWidget);
+      expect(find.text('Kapında Hub'), findsOneWidget);
       expect(
         find.text('Kampüs Kapında İç Operasyon Platformu'),
         findsOneWidget,

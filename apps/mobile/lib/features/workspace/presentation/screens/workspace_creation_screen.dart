@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:kampushub/core/result/app_result.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 import '../workspace_state_notifier.dart';
 
 class WorkspaceCreationScreen extends ConsumerStatefulWidget {

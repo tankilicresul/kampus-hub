@@ -1,4 +1,4 @@
-# Kampüs Hub — Agent Rules & Skill Trigger Directives (`AGENTS.md`)
+﻿# Kapında Hub — Agent Rules & Skill Trigger Directives (`AGENTS.md`)
 
 This document defines mandatory agent behavior rules, automatic skill discovery guidelines, and architectural policies for all AI pair programming tasks in this workspace.
 

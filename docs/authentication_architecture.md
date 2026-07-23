@@ -1,6 +1,6 @@
-# Authentication & Workspace Onboarding Architecture - Kampüs Hub
+﻿# Authentication & Workspace Onboarding Architecture - Kapında Hub
 
-This document defines the authentication architecture, workspace onboarding layers, and user state checks implemented in the Kampüs Hub platform.
+This document defines the authentication architecture, workspace onboarding layers, and user state checks implemented in the Kapında Hub platform.
 
 ---
 

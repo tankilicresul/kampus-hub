@@ -1,6 +1,6 @@
-# 15-Day Milestone & Development Plan - Kampüs Hub
+﻿# 15-Day Milestone & Development Plan - Kapında Hub
 
-This document defines the 15-day development plan for Kampüs Hub, broken down into progressive milestones. It outlines daily tasks, deliverables, and test criteria.
+This document defines the 15-day development plan for Kapında Hub, broken down into progressive milestones. It outlines daily tasks, deliverables, and test criteria.
 
 ---
 
@@ -8,7 +8,7 @@ This document defines the 15-day development plan for Kampüs Hub, broken down i
 
 ```mermaid
 gantt
-    title Kampüs Hub 15-Day Plan
+    title Kapında Hub 15-Day Plan
     dateFormat  YYYY-MM-DD
     section Milestone 1
     Workspace Blueprint       :active, m1, 2026-07-10, 2d

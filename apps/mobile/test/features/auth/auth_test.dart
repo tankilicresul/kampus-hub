@@ -1,18 +1,18 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:kampushub/core/constants/constants.dart';
-import 'package:kampushub/core/utils/inactivity_tracker.dart';
-import 'package:kampushub/core/errors/app_failure.dart';
-import 'package:kampushub/features/auth/presentation/auth_state_notifier.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/repositories/device_security_repository.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/access_check_result.dart';
-import 'package:kampushub/features/auth/domain/models/registered_device.dart';
-import 'package:kampushub/features/auth/domain/models/device_registration_result.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_enrollment.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_factor.dart';
-import 'package:kampushub/core/result/app_result.dart';
+import 'package:kapindahub/core/constants/constants.dart';
+import 'package:kapindahub/core/utils/inactivity_tracker.dart';
+import 'package:kapindahub/core/errors/app_failure.dart';
+import 'package:kapindahub/features/auth/presentation/auth_state_notifier.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/device_security_repository.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/access_check_result.dart';
+import 'package:kapindahub/features/auth/domain/models/registered_device.dart';
+import 'package:kapindahub/features/auth/domain/models/device_registration_result.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_enrollment.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_factor.dart';
+import 'package:kapindahub/core/result/app_result.dart';
 
 class _FakeAuthRepository implements AuthRepository {
   @override
@@ -357,7 +357,7 @@ void main() {
       notifier.testState = AuthState(
         status: AuthStatus.checkingAccess,
         role: 'admin',
-        email: 'admin@kampushub.com',
+        email: 'admin@kapindahub.com',
       );
 
       await notifier.registerDevice();

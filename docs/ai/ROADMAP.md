@@ -1,11 +1,11 @@
----
+﻿---
 Last updated: 2026-07-12
 Updated by: Antigravity
 Related milestone: 3C-C
 Source of truth status: authoritative
 ---
 
-# Kampüs Hub — Roadmap
+# Kapında Hub — Roadmap
 
 Bu doküman, projenin kısa ve uzun vadeli geliştirme adımlarını, aşamaların durumlarını ve birbirlerine olan bağımlılıklarını tanımlar.
 

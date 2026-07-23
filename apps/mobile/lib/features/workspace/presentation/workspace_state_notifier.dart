@@ -1,7 +1,7 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/features/auth/presentation/auth_state_notifier.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/features/auth/presentation/auth_state_notifier.dart';
 import '../domain/models/workspace.dart';
 import '../domain/models/workspace_invitation.dart';
 import '../domain/repositories/workspace_repository.dart';

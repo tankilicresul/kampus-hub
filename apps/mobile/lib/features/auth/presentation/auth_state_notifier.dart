@@ -1,16 +1,16 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
-import 'package:kampushub/core/result/app_result.dart';
-import 'package:kampushub/features/auth/domain/models/authenticated_user.dart';
-import 'package:kampushub/features/auth/domain/models/access_check_result.dart';
-import 'package:kampushub/features/auth/domain/models/registered_device.dart';
-import 'package:kampushub/features/auth/domain/models/device_registration_result.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_enrollment.dart';
-import 'package:kampushub/features/auth/domain/models/mfa_factor.dart';
-import 'package:kampushub/features/auth/domain/repositories/auth_repository.dart';
-import 'package:kampushub/features/auth/domain/repositories/device_security_repository.dart';
-import 'package:kampushub/features/auth/di/auth_dependencies.dart';
+import 'package:kapindahub/core/result/app_result.dart';
+import 'package:kapindahub/features/auth/domain/models/authenticated_user.dart';
+import 'package:kapindahub/features/auth/domain/models/access_check_result.dart';
+import 'package:kapindahub/features/auth/domain/models/registered_device.dart';
+import 'package:kapindahub/features/auth/domain/models/device_registration_result.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_enrollment.dart';
+import 'package:kapindahub/features/auth/domain/models/mfa_factor.dart';
+import 'package:kapindahub/features/auth/domain/repositories/auth_repository.dart';
+import 'package:kapindahub/features/auth/domain/repositories/device_security_repository.dart';
+import 'package:kapindahub/features/auth/di/auth_dependencies.dart';
 
 enum AuthStatus {
   unauthenticated,

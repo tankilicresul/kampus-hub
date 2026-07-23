@@ -1,11 +1,11 @@
-# Database Plan & Schema Design - Kampüs Hub
+﻿# Database Plan & Schema Design - Kapında Hub
 
 > [!NOTE]
 > **Schema Status**: All multi-tenant core structures and Row-Level Security policies up to migration `20260712060000_fix_invitation_task_assignment_resolution.sql` have been successfully deployed and verified with zero errors.
 
 ---
 
-This document defines the PostgreSQL database schema for Kampüs Hub, implemented via Supabase migrations. It outlines custom data types, table structures, Row-Level Security (RLS) rules, soft-delete policies, multi-tenant workspace isolation, and the ER diagram.
+This document defines the PostgreSQL database schema for Kapında Hub, implemented via Supabase migrations. It outlines custom data types, table structures, Row-Level Security (RLS) rules, soft-delete policies, multi-tenant workspace isolation, and the ER diagram.
 
 ---
 

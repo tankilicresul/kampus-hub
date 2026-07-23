@@ -1,4 +1,4 @@
-# Milestone 3C: Multi-Tenant Workspace Migration Plan
+﻿# Milestone 3C: Multi-Tenant Workspace Migration Plan
 
 > [!NOTE]
 > **Current Status**: 
@@ -8,7 +8,7 @@
 
 ---
 
-Bu doküman, Kampüs Hub uygulamasını tek kiracılı (single-tenant) global allowlist yapısından, kullanıcıların kendi ekiplerini/workspace'lerini oluşturabildiği, birden fazla ekibe katılabildiği ve aralarında geçiş yapabildiği çoklu kiracılı (multi-tenant) bir yapıya dönüştürme planını içerir.
+Bu doküman, Kapında Hub uygulamasını tek kiracılı (single-tenant) global allowlist yapısından, kullanıcıların kendi ekiplerini/workspace'lerini oluşturabildiği, birden fazla ekibe katılabildiği ve aralarında geçiş yapabildiği çoklu kiracılı (multi-tenant) bir yapıya dönüştürme planını içerir.
 
 ---
 
