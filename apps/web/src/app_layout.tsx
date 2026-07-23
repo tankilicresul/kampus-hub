@@ -169,44 +169,10 @@ export const AppLayout: React.FC = () => {
               <Menu size={20} />
             </button>
 
-            {/* Logged in User Name & Avatar Display (Clicking opens Profile) */}
-            <div 
-              className="user-greeting-area" 
-              onClick={() => handleTabChange('profile')}
-              style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-              title="Profilim Sayfasına Git"
-            >
-              <div className="user-avatar-circle" style={{
-                width: '34px',
-                height: '34px',
-                borderRadius: '50%',
-                backgroundColor: 'var(--accent-color)',
-                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                color: 'white',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: '0 2px 8px rgba(183, 1, 22, 0.2)'
-              }}>
-                {!avatarUrl && displayName.substring(0, 2).toUpperCase()}
-              </div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
-                  {displayName}
-                </span>
-                {activeWorkspace && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <FolderClosed size={12} style={{ color: 'var(--accent-color)' }} />
-                    {activeWorkspace.name}
-                  </span>
-                )}
-              </div>
+            {/* App Logo & Brand (Mobile & Header display) */}
+            <div className="app-bar-brand" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FolderClosed size={20} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
+              <span className="sidebar-logo" style={{ fontSize: '1.15rem' }}>Kampüs Hub</span>
             </div>
             
             {/* Team Selector Dropdown (Quick select) */}

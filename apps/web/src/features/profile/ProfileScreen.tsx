@@ -225,7 +225,7 @@ export const ProfileScreen: React.FC = () => {
   const userRoleDisplay = activeWorkspace?.permissionRole || role || 'Personel';
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', paddingBottom: '48px' }}>
       
       {/* Profile Top Hero Card */}
       <div style={{
@@ -393,11 +393,11 @@ export const ProfileScreen: React.FC = () => {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="scroll-x" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+      <div className="scroll-x" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px', paddingRight: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
         <button
           className={`btn ${activeSubTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveSubTab('settings')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0 }}
+          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <UserIcon size={15} />
           <span>Profil & Düzenle</span>
@@ -406,7 +406,7 @@ export const ProfileScreen: React.FC = () => {
         <button
           className={`btn ${activeSubTab === 'my_tasks' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveSubTab('my_tasks')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0 }}
+          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <CheckCircle2 size={15} />
           <span>Görevlerim ({tasks.length})</span>
@@ -415,7 +415,7 @@ export const ProfileScreen: React.FC = () => {
         <button
           className={`btn ${activeSubTab === 'my_updates' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveSubTab('my_updates')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0 }}
+          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <FileText size={15} />
           <span>Raporlarım ({dailyUpdates.length})</span>

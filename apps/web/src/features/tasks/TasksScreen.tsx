@@ -181,7 +181,7 @@ export const TasksScreen: React.FC = () => {
         </div>
         
         {/* Priority Filter Chips */}
-        <div className="scroll-x" style={{ display: 'flex', gap: '8px' }}>
+        <div className="scroll-x" style={{ display: 'flex', gap: '8px', paddingRight: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
           <span 
             className={`badge ${!selectedPriority ? 'active' : ''}`} 
             style={{ 
@@ -191,6 +191,8 @@ export const TasksScreen: React.FC = () => {
               borderRadius: '20px', 
               fontSize: '0.75rem',
               fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
               backgroundColor: !selectedPriority ? 'var(--accent-color)' : 'var(--bg-surface-accent)', 
               color: !selectedPriority ? 'white' : 'var(--text-secondary)' 
             }}
@@ -209,6 +211,8 @@ export const TasksScreen: React.FC = () => {
                 borderRadius: '20px', 
                 fontSize: '0.75rem',
                 fontWeight: 600,
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 backgroundColor: selectedPriority === p ? 'var(--accent-color)' : 'var(--bg-surface-accent)', 
                 color: selectedPriority === p ? 'white' : 'var(--text-secondary)' 
               }}

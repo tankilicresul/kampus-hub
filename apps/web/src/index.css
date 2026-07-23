@@ -255,6 +255,7 @@ body {
   transition: var(--transition-smooth);
   gap: 8px;
   font-family: var(--font-family);
+  white-space: nowrap;
 }
 
 .btn:active {
@@ -812,7 +813,7 @@ body {
 
   .view-area {
     padding: 12px 10px;
-    padding-bottom: 84px; /* Safe padding for bottom navigation */
+    padding-bottom: 96px; /* Safe padding for bottom navigation */
   }
 
   .mobile-nav-bar {
