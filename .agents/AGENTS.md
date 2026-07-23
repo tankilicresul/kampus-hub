@@ -20,5 +20,7 @@ Whenever performing tasks, the agent MUST inspect and apply available skills in 
 3. **Always preserve 100% test suite integrity**: Rerun `flutter test` and database test suites after every feature or bugfix edit.
 4. **Proactive MCP Tool Usage**: Directly invoke Supabase and GitHub MCP tools for database schemas, SQL queries, migration execution, logs, repo searches, issues, and PR management.
 5. **Strict Mobile Freeze**: DO NOT touch, edit, or modify any files in the mobile app (`apps/mobile/` or Flutter codebase) until the user explicitly requests mobile changes.
+6. **Automatic GitHub Deployment/Push**: Whenever any changes or features are added/updated in a session, immediately stage, commit, and push them to GitHub (`origin main`) so that continuous deployment (e.g. Vercel) triggers automatically.
+
 
 

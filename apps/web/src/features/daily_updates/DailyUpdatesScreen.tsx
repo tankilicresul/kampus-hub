@@ -5,7 +5,8 @@ import { Plus, RefreshCw, AlertTriangle, Calendar } from 'lucide-react';
 interface DailyUpdate {
   id: string;
   user_id: string;
-  today_summary: string;
+  completed_today: string;
+  ongoing_work?: string;
   tomorrow_plan: string;
   blockers?: string;
   is_late: boolean;
@@ -16,16 +17,18 @@ interface DailyUpdate {
 }
 
 export const DailyUpdatesScreen: React.FC = () => {
-  const { activeWorkspace } = useAuth();
+  const { activeWorkspace, user } = useAuth();
   const [updates, setUpdates] = useState<DailyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Submit modal
   const [showAddModal, setShowAddModal] = useState(false);
-  const [todaySummary, setTodaySummary] = useState('');
+  const [completedToday, setCompletedToday] = useState('');
+  const [ongoingWork, setOngoingWork] = useState('');
   const [tomorrowPlan, setTomorrowPlan] = useState('');
   const [blockers, setBlockers] = useState('');
   const [isLateWarning, setIsLateWarning] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const checkLateSubmission = () => {
     const now = new Date();
@@ -69,28 +72,35 @@ export const DailyUpdatesScreen: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeWorkspace || !todaySummary.trim() || !tomorrowPlan.trim()) return;
+    if (!activeWorkspace || !user || !completedToday.trim() || !tomorrowPlan.trim()) return;
 
     const isLate = new Date().getHours() >= 20;
+    setSubmitting(true);
 
     try {
       const { error } = await supabase.from('daily_updates').insert({
         workspace_id: activeWorkspace.id,
-        today_summary: todaySummary.trim(),
+        user_id: user.id,
+        completed_today: completedToday.trim(),
+        ongoing_work: ongoingWork.trim() || 'Devam ediyor',
         tomorrow_plan: tomorrowPlan.trim(),
         blockers: blockers.trim() || null,
         is_late: isLate,
+        status: 'published'
       });
 
       if (error) throw error;
 
       setShowAddModal(false);
-      setTodaySummary('');
+      setCompletedToday('');
+      setOngoingWork('');
       setTomorrowPlan('');
       setBlockers('');
       await loadUpdates();
     } catch (err) {
       console.error('Submit daily update failed:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -154,8 +164,15 @@ export const DailyUpdatesScreen: React.FC = () => {
 
               <div>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Bugün Yapılanlar</h4>
-                <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.today_summary}</p>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.completed_today}</p>
               </div>
+
+              {update.ongoing_work && (
+                <div>
+                  <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Devam Eden İşler</h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.ongoing_work}</p>
+                </div>
+              )}
 
               <div>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Yarın Yapılacaklar</h4>
@@ -192,10 +209,20 @@ export const DailyUpdatesScreen: React.FC = () => {
                 <textarea
                   required
                   placeholder="Bugün yapılan işler..."
-                  value={todaySummary}
-                  onChange={(e) => setTodaySummary(e.target.value)}
+                  value={completedToday}
+                  onChange={(e) => setCompletedToday(e.target.value)}
                   className="form-input"
                   rows={3}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Devam Eden İşler (İsteğe Bağlı)</label>
+                <input
+                  type="text"
+                  placeholder="Devam eden işler veya süreçler..."
+                  value={ongoingWork}
+                  onChange={(e) => setOngoingWork(e.target.value)}
+                  className="form-input"
                 />
               </div>
               <div className="form-group">
@@ -221,7 +248,9 @@ export const DailyUpdatesScreen: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Gönder</button>
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? <RefreshCw className="animate-spin" size={16} /> : 'Gönder'}
+                </button>
               </div>
             </form>
           </div>
@@ -230,3 +259,4 @@ export const DailyUpdatesScreen: React.FC = () => {
     </div>
   );
 };
+

@@ -499,6 +499,8 @@ body {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 24px;
   box-shadow: var(--shadow-lg);
   display: flex;
@@ -678,6 +680,44 @@ body {
   display: none;
 }
 
+.mobile-menu-toggle {
+  display: none;
+}
+
+/* Mobile Drawer Overlay & Drawer Container */
+.mobile-drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+}
+
+.mobile-drawer {
+  width: 290px;
+  max-width: 85vw;
+  height: 100%;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+  animation: slideDrawer 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideDrawer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
 /* Mobile View adjustments */
 @media (max-width: 768px) {
   .app-container {
@@ -685,7 +725,13 @@ body {
   }
   
   .sidebar {
-    display: none; /* Hide sidebar completely in favor of top bar + bottom nav */
+    display: none; /* Hide desktop sidebar in favor of mobile drawer */
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .auth-container {
@@ -697,7 +743,7 @@ body {
   }
 
   .auth-brand-panel {
-    display: none; /* Hide desktop side panel, use mobile brand header inside form card */
+    display: none;
   }
 
   .auth-mobile-brand {
@@ -729,14 +775,14 @@ body {
   }
 
   .auth-card {
-    padding: 28px 20px;
+    padding: 24px 16px;
     max-width: 100%;
     border-radius: var(--radius-lg);
   }
 
   .app-bar {
-    padding: 0 12px;
-    height: 52px;
+    padding: 0 10px;
+    height: 56px;
   }
   
   .app-bar-title {
@@ -752,16 +798,16 @@ body {
   }
   
   .logout-text, .user-email-text, .user-profile-info {
-    display: none !important; /* Hide email and profile info to keep top bar compact */
+    display: none !important;
   }
 
   .nav-tabs {
-    display: none; /* Hide top nav tabs, handled by bottom menu */
+    display: none;
   }
 
   .view-area {
-    padding: 12px;
-    padding-bottom: 76px; /* Safe padding for bottom navigation */
+    padding: 12px 10px;
+    padding-bottom: 84px; /* Safe padding for bottom navigation */
   }
 
   .mobile-nav-bar {
@@ -772,21 +818,21 @@ body {
   .crm-header-card {
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
-    padding: 8px 10px;
+    padding: 10px 8px;
     margin-bottom: 12px;
     border-radius: var(--radius-md);
   }
   
   .crm-header-card div[style*="width: 1px"] {
-    display: none !important; /* Hide divider lines to save space */
+    display: none !important;
   }
 
   .stat-value {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   
   .stat-label {
-    font-size: 0.6rem;
+    font-size: 0.62rem;
   }
 
   /* Horizontally scrollable swipe deck for Kanban / Pipelines */
@@ -800,9 +846,9 @@ body {
   }
 
   .board-column {
-    width: 80vw;
-    max-width: 290px;
-    max-height: calc(100vh - 190px);
+    width: 82vw;
+    max-width: 300px;
+    max-height: calc(100vh - 200px);
     scroll-snap-align: start;
     padding: 12px;
     border-radius: var(--radius-md);
@@ -815,22 +861,25 @@ body {
   }
   
   .card-title {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
   
   .card-desc {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
   
-  /* Make buttons textless icon buttons on mobile */
+  /* Flexible button labels on mobile instead of hiding text completely */
   .btn-text {
-    display: none;
+    display: inline;
+    font-size: 0.78rem;
+    font-weight: 600;
   }
   
   .btn {
     padding: 8px 12px;
     font-size: 0.8rem;
     border-radius: 10px;
+    gap: 6px;
   }
   
   /* Horizontally scrollable tag filters */
@@ -841,7 +890,7 @@ body {
     padding-bottom: 4px;
   }
   .scroll-x::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for clean horizontal chips */
+    display: none;
   }
 
   /* Compact Stage Selector Tabs for Mobile CRM */
@@ -1159,4 +1208,196 @@ button:active, .btn:active, .workspace-item:active, .task-card:active, .crm-card
 .animate-slide-up {
   animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Mobile Overflow Fixes & 100% Full-Screen Fit */
+html, body, #root {
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.view-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.board-container {
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 92% !important;
+    max-width: 440px !important;
+    margin: 0 auto;
+    padding: 18px 16px !important;
+  }
+}
+
+/* Top In-App Invitation Notification Banner */
+.top-invitation-banner {
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-glass);
+  box-shadow: 0 4px 20px rgba(183, 1, 22, 0.08);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  animation: slideDownBanner 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 45;
+  position: relative;
+  background-image: linear-gradient(90deg, rgba(183, 1, 22, 0.04) 0%, transparent 60%);
+}
+
+@keyframes slideDownBanner {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.top-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.bell-badge-wrapper {
+  background-color: rgba(183, 1, 22, 0.12);
+  color: var(--accent-color);
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(183, 1, 22, 0.2);
+}
+
+.bell-ring-anim {
+  animation: bellRing 2s infinite ease-in-out;
+}
+
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(0deg); }
+}
+
+.top-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.top-banner-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.role-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background-color: rgba(183, 1, 22, 0.12);
+  color: var(--accent-color);
+  letter-spacing: 0.04em;
+}
+
+.top-banner-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.top-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.banner-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-smooth);
+}
+
+.banner-close-btn:hover {
+  background-color: var(--bg-surface-accent);
+  color: var(--text-primary);
+}
+
+.invitation-badge-pulse {
+  animation: pulseBadge 1.8s infinite;
+}
+
+@keyframes pulseBadge {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Zero Workspace State Card */
+.zero-workspace-card {
+  max-width: 580px;
+  margin: 40px auto;
+  padding: 36px 28px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.zero-workspace-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background-color: rgba(183, 1, 22, 0.1);
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+@media (max-width: 768px) {
+  .top-invitation-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 14px;
+  }
+  .top-banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 6px;
+  }
+}
+
+
 

@@ -12,7 +12,7 @@ interface Task {
 }
 
 export const TasksScreen: React.FC = () => {
-  const { activeWorkspace } = useAuth();
+  const { activeWorkspace, user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -74,6 +74,7 @@ export const TasksScreen: React.FC = () => {
         description: newDesc.trim() || null,
         priority: newPriority,
         status: 'todo',
+        created_by: user?.id || null,
       });
       if (error) throw error;
       
@@ -99,29 +100,35 @@ export const TasksScreen: React.FC = () => {
     try {
       const { error } = await supabase.from('tasks').update({
         status: targetStatus,
-        // Wait state reason fields can be added depending on schema
+        updated_at: new Date().toISOString(),
       }).eq('id', transitionTask.id);
 
       if (error) throw error;
 
-      // Add audit log for transition
-      await supabase.from('audit_logs').insert({
-        action: 'task_status_changed',
-        table_name: 'tasks',
-        record_id: transitionTask.id,
-        payload: {
-          title: transitionTask.title,
-          new_status: targetStatus,
-          reason: transitionReason.trim(),
-          workspace_id: activeWorkspace?.id,
-        },
-      }).select().maybeSingle();
+      // Add audit log for transition safely
+      try {
+        await supabase.from('audit_logs').insert({
+          action: 'task_status_changed',
+          table_name: 'tasks',
+          record_id: transitionTask.id,
+          user_id: user?.id || null,
+          workspace_id: activeWorkspace?.id || null,
+          payload: {
+            title: transitionTask.title,
+            new_status: targetStatus,
+            reason: transitionReason.trim(),
+          },
+        });
+      } catch (logErr) {
+        console.warn('Audit log write skipped:', logErr);
+      }
 
-      setTransitionTask(null);
-      setTargetStatus(null);
       await loadTasks();
     } catch (err) {
       console.error('Update status failed:', err);
+    } finally {
+      setTransitionTask(null);
+      setTargetStatus(null);
     }
   };
 
@@ -150,9 +157,9 @@ export const TasksScreen: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
       {/* Search & Filter Header */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
             <input
               type="text"
@@ -317,16 +324,16 @@ export const TasksScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Öncelik</label>
+                <label className="form-label">Öncelik Seviyesi</label>
                 <select
                   value={newPriority}
                   onChange={(e) => setNewPriority(e.target.value as any)}
                   className="form-input"
                 >
-                  <option value="low">Düşük</option>
-                  <option value="normal">Normal</option>
+                  <option value="critical">Kritik (Acil)</option>
                   <option value="high">Yüksek</option>
-                  <option value="critical">Kritik</option>
+                  <option value="normal">Normal</option>
+                  <option value="low">Düşük</option>
                 </select>
               </div>
               <div className="modal-footer">

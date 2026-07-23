@@ -62,6 +62,7 @@ export interface AuthContextType {
   inviteMember: (email: string, role?: string) => Promise<{ success: boolean; message?: string }>;
   acceptInvitation: (invitationId: string) => Promise<boolean>;
   declineInvitation: (invitationId: string) => Promise<boolean>;
+  updateUserProfile: (data: { fullName?: string; avatarUrl?: string }) => Promise<boolean>;
   refreshWorkspaces: () => Promise<void>;
   refreshInvitations: () => Promise<void>;
 }
@@ -90,14 +91,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      setRole(userRole);
+      setRole(userRole || 'member');
       setStatus('authenticated');
       await loadWorkspacesData();
       await loadPendingInvitations();
     } catch (err: any) {
-      console.error('Check user access failed:', err);
-      // Fast bypass for debug/simulation modes
-      setRole('admin');
+      console.error('Check user access failed, fallback to standard member access:', err);
+      setRole('member');
       setStatus('authenticated');
       await loadWorkspacesData();
       await loadPendingInvitations();
@@ -137,10 +137,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       const formatted = (data || []).map((inv: any) => ({
-        id: inv.id,
+        id: inv.invitation_id || inv.id,
         workspaceId: inv.workspace_id,
         workspaceName: inv.workspace_name,
-        invitedByEmail: inv.invited_by_email,
+        invitedByEmail: inv.invited_by_name || inv.invited_by_email || 'Ekip Yöneticisi',
         permissionRole: inv.permission_role,
         createdAt: inv.created_at,
       }));
@@ -178,6 +178,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Periodic background check for pending invitations & workspaces
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+
+    const interval = setInterval(() => {
+      loadPendingInvitations();
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [status]);
 
   const signIn = async (email: string, password: string): Promise<boolean> => {
     setErrorMessage(null);
@@ -292,12 +303,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, message: 'Aktif bir çalışma alanı seçili değil.' };
     }
     try {
+      const cleanEmail = email.trim().toLowerCase();
+      const tokenHash = `inv_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      const permRole = (role === 'admin' ? 'admin' : 'member') as any;
+
       const { error } = await supabase.from('workspace_invitations').insert({
         workspace_id: activeWorkspace.id,
-        email: email.trim().toLowerCase(),
-        permission_role: role,
+        normalized_email: cleanEmail,
+        token_hash: tokenHash,
+        permission_role: permRole,
+        job_role: 'operations',
         invited_by: user?.id,
-        is_active: true,
+        invitation_status: 'pending',
       });
 
       if (error) throw error;
@@ -314,7 +331,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         p_invitation_id: invitationId,
       });
       if (error) throw error;
-      await loadWorkspacesData();
+
+      // Reload workspaces and update active workspace to the newly joined team
+      const { data: wsData } = await supabase.rpc('list_current_user_workspaces');
+      if (wsData && wsData.length > 0) {
+        const formatted = wsData.map((w: any) => ({
+          id: w.id,
+          name: w.name,
+          slug: w.slug,
+          permissionRole: w.permission_role,
+        }));
+        setWorkspaces(formatted);
+        // Switch to the newest joined workspace
+        const newest = formatted[formatted.length - 1];
+        setActiveWorkspace(newest);
+        try {
+          await supabase.rpc('set_current_user_active_workspace', { workspace_id: newest.id });
+        } catch (_) {}
+      } else {
+        await loadWorkspacesData();
+      }
+
       await loadPendingInvitations();
       return true;
     } catch (err: any) {
@@ -333,6 +370,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return true;
     } catch (err: any) {
       console.error('Decline invitation failed:', err);
+      return false;
+    }
+  };
+
+  const updateUserProfile = async (data: { fullName?: string; avatarUrl?: string }): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const updates: Record<string, any> = {};
+      if (data.fullName !== undefined) {
+        updates.full_name = data.fullName;
+        updates.name = data.fullName;
+      }
+      if (data.avatarUrl !== undefined) {
+        updates.avatar_url = data.avatarUrl;
+      }
+
+      const { data: authResult, error: authError } = await supabase.auth.updateUser({
+        data: updates,
+      });
+
+      if (authError) throw authError;
+      if (authResult?.user) {
+        setUser(authResult.user);
+      }
+
+      const profileDbUpdates: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (data.fullName !== undefined) profileDbUpdates.full_name = data.fullName;
+      if (data.avatarUrl !== undefined) profileDbUpdates.avatar_url = data.avatarUrl;
+
+      await supabase
+        .from('profiles')
+        .update(profileDbUpdates)
+        .eq('id', user.id);
+
+      return true;
+    } catch (err: any) {
+      console.error('Update user profile failed:', err);
       return false;
     }
   };
@@ -356,6 +430,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         inviteMember,
         acceptInvitation,
         declineInvitation,
+        updateUserProfile,
         refreshWorkspaces: loadWorkspacesData,
         refreshInvitations: loadPendingInvitations,
       }}

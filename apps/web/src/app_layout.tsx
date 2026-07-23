@@ -3,8 +3,12 @@ import { useAuth } from './context/AuthContext';
 import { TasksScreen } from './features/tasks/TasksScreen';
 import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen';
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
+import { ProfileScreen } from './features/profile/ProfileScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
-import { LogOut, Plus, CheckSquare, Calendar, BarChart4, FolderClosed, User, Sun, Moon, UserPlus, Mail, Check, X, Download } from 'lucide-react';
+import { 
+  LogOut, Plus, CheckSquare, Calendar, BarChart4, FolderClosed, User, 
+  Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
+} from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
   const { 
@@ -20,12 +24,14 @@ export const AppLayout: React.FC = () => {
     user 
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile'>('tasks');
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [forcePwaPromptOpen, setForcePwaPromptOpen] = useState(false);
+  const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm') => {
+  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
   };
@@ -91,6 +97,17 @@ export const AppLayout: React.FC = () => {
     }
   };
 
+  const getUserDisplayName = () => {
+    if (!user) return 'Kullanıcı';
+    const metaName = user.user_metadata?.full_name || user.user_metadata?.name;
+    if (metaName && metaName.trim()) return metaName.trim();
+    if (user.email) return user.email.split('@')[0];
+    return 'Kullanıcı';
+  };
+
+  const displayName = getUserDisplayName();
+  const avatarUrl = user?.user_metadata?.avatar_url || null;
+
   return (
     <div className="app-container">
       {/* Sidebar - Workspace switcher (Desktop only) */}
@@ -104,6 +121,11 @@ export const AppLayout: React.FC = () => {
           <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             EKİPLER
           </div>
+          {workspaces.length === 0 && (
+            <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Henüz ekip yok
+            </div>
+          )}
           {workspaces.map((ws) => (
             <div 
               key={ws.id} 
@@ -136,50 +158,89 @@ export const AppLayout: React.FC = () => {
       <div className="main-content">
         {/* App Bar */}
         <div className="app-bar">
-          <div className="app-bar-left">
-            {/* Desktop Workspace Title */}
-            <div className="app-bar-title desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span>{activeWorkspace ? activeWorkspace.name : 'Ekip Seçilmedi'}</span>
-              {activeWorkspace?.permissionRole && (
-                <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '12px', backgroundColor: 'rgba(99,102,241,0.15)', color: 'var(--accent-color)' }}>
-                  {activeWorkspace.permissionRole.toUpperCase()}
+          <div className="app-bar-left" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            {/* Mobile Hamburger Drawer Trigger */}
+            <button 
+              className="btn btn-secondary mobile-menu-toggle"
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{ padding: '8px', borderRadius: '10px' }}
+              title="Menüyü Aç"
+            >
+              <Menu size={20} />
+            </button>
+
+            {/* Logged in User Name & Avatar Display (Clicking opens Profile) */}
+            <div 
+              className="user-greeting-area" 
+              onClick={() => handleTabChange('profile')}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+              title="Profilim Sayfasına Git"
+            >
+              <div className="user-avatar-circle" style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--accent-color)',
+                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                color: 'white',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                boxShadow: '0 2px 8px rgba(183, 1, 22, 0.2)'
+              }}>
+                {!avatarUrl && displayName.substring(0, 2).toUpperCase()}
+              </div>
+              
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>
+                  {displayName}
                 </span>
-              )}
+                {activeWorkspace && (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <FolderClosed size={12} style={{ color: 'var(--accent-color)' }} />
+                    {activeWorkspace.name}
+                  </span>
+                )}
+              </div>
             </div>
             
-            {/* Mobile Workspace Selector (dropdown) */}
-            <div className="mobile-workspace-selector">
-              {activeWorkspace && (
-                <select 
-                  value={activeWorkspace.id} 
-                  onChange={(e) => {
-                    if (e.target.value === '__add_new_workspace__') {
-                      setShowWorkspaceModal(true);
-                    } else if (e.target.value === '__invite_team__') {
-                      setShowTeamModal(true);
-                    } else {
-                      selectWorkspace(e.target.value);
-                    }
-                  }}
-                  className="form-input"
-                  style={{ 
-                    padding: '6px 12px', 
-                    fontSize: '0.85rem', 
-                    width: '180px', 
-                    borderRadius: '12px',
-                    backgroundColor: 'var(--bg-surface-accent)',
-                    border: '1px solid var(--border-glass)',
-                    color: 'var(--text-primary)',
-                    fontWeight: 600
-                  }}
-                >
-                  {workspaces.map((ws) => (
-                    <option key={ws.id} value={ws.id}>{ws.name}</option>
-                  ))}
-                  <option value="__invite_team__">+ Üye Davet Et</option>
-                  <option value="__add_new_workspace__">+ Yeni Ekip</option>
-                </select>
-              )}
+            {/* Team Selector Dropdown (Quick select) */}
+            <div className="mobile-workspace-selector" style={{ marginLeft: '4px' }}>
+              <select 
+                value={activeWorkspace?.id || '__none__'} 
+                onChange={(e) => {
+                  if (e.target.value === '__add_new_workspace__') {
+                    setShowWorkspaceModal(true);
+                  } else if (e.target.value === '__invite_team__') {
+                    setShowTeamModal(true);
+                  } else if (e.target.value !== '__none__') {
+                    selectWorkspace(e.target.value);
+                  }
+                }}
+                className="form-input"
+                style={{ 
+                  padding: '5px 10px', 
+                  fontSize: '0.8rem', 
+                  maxWidth: '140px', 
+                  borderRadius: '12px',
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  border: '1px solid var(--border-glass)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 600
+                }}
+              >
+                {!activeWorkspace && <option value="__none__">Ekip Seçilmedi</option>}
+                {workspaces.map((ws) => (
+                  <option key={ws.id} value={ws.id}>{ws.name}</option>
+                ))}
+                <option value="__invite_team__">+ Üye Davet</option>
+                <option value="__add_new_workspace__">+ Yeni Ekip</option>
+              </select>
             </div>
           </div>
           
@@ -208,7 +269,7 @@ export const AppLayout: React.FC = () => {
               <UserPlus size={16} />
               <span className="desktop-workspace-title">Davetler</span>
               {pendingInvitations.length > 0 && (
-                <span style={{
+                <span className="invitation-badge-pulse" style={{
                   position: 'absolute',
                   top: '-4px',
                   right: '-4px',
@@ -238,7 +299,7 @@ export const AppLayout: React.FC = () => {
             </button>
 
             {/* User Profile Info */}
-            <div className="user-profile-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+            <div className="user-profile-info desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               <User size={16} />
               <span className="user-email-text" style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.email}
@@ -252,6 +313,69 @@ export const AppLayout: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Top In-App Invitation Notification Banner */}
+        {pendingInvitations.length > 0 && !dismissedBanner && (
+          <div className="top-invitation-banner">
+            <div className="top-banner-content">
+              <div className="bell-badge-wrapper">
+                <Bell size={20} className="bell-ring-anim" />
+              </div>
+              <div className="top-banner-text">
+                <div className="top-banner-title">
+                  <span><strong>{pendingInvitations[0].workspaceName}</strong> ekibinden yeni davet!</span>
+                  <span className="role-tag">{pendingInvitations[0].permissionRole.toUpperCase()}</span>
+                </div>
+                <div className="top-banner-subtitle">
+                  Gönderen: {pendingInvitations[0].invitedByEmail}
+                </div>
+              </div>
+            </div>
+
+            <div className="top-banner-actions">
+              <button 
+                className="btn btn-primary" 
+                style={{ padding: '7px 14px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                onClick={async () => {
+                  const ok = await acceptInvitation(pendingInvitations[0].id);
+                  if (ok && navigator.vibrate) navigator.vibrate([10, 50, 10]);
+                }}
+              >
+                <Check size={16} />
+                <span>Ekibe Katıl</span>
+              </button>
+
+              <button 
+                className="btn btn-secondary" 
+                style={{ padding: '7px 12px', fontSize: '0.85rem' }}
+                onClick={async () => {
+                  await declineInvitation(pendingInvitations[0].id);
+                }}
+              >
+                <X size={16} />
+                <span>Reddet</span>
+              </button>
+
+              {pendingInvitations.length > 1 && (
+                <button 
+                  className="btn btn-secondary"
+                  style={{ padding: '7px 12px', fontSize: '0.85rem' }}
+                  onClick={() => setShowTeamModal(true)}
+                >
+                  +{pendingInvitations.length - 1} Davet Daha
+                </button>
+              )}
+
+              <button 
+                className="banner-close-btn"
+                onClick={() => setDismissedBanner(true)}
+                title="Kapat"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Tab Navigation (Desktop view) */}
         <div className="nav-tabs">
@@ -276,13 +400,105 @@ export const AppLayout: React.FC = () => {
             <BarChart4 size={16} />
             <span>CRM</span>
           </div>
+          <div 
+            className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => handleTabChange('profile')}
+          >
+            <User size={16} />
+            <span>Profil</span>
+          </div>
         </div>
 
         {/* View Area */}
         <div className="view-area">
-          {activeTab === 'tasks' && <TasksScreen />}
-          {activeTab === 'updates' && <DailyUpdatesScreen />}
-          {activeTab === 'crm' && <CrmDashboardScreen />}
+          {!activeWorkspace ? (
+            <div className="zero-workspace-card">
+              <div className="zero-workspace-icon">
+                <Users size={36} />
+              </div>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>
+                Kampüs Hub'a Hoş Geldiniz!
+              </h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 24px' }}>
+                Henüz herhangi bir ekibe dahil değilsiniz. Kendi ekibinizi oluşturabilir veya başkalarının gönderdiği davetlere katılarak hemen çalışmaya başlayabilirsiniz.
+              </p>
+
+              {/* Pending invitations list in zero state */}
+              {pendingInvitations.length > 0 ? (
+                <div style={{
+                  backgroundColor: 'rgba(99,102,241,0.08)',
+                  border: '1px solid var(--border-glass)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '20px',
+                  marginBottom: '24px',
+                  textAlign: 'left'
+                }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)' }}>
+                    <Mail size={18} style={{ color: 'var(--accent-color)' }} />
+                    Size Gönderilen Ekip Davetleri ({pendingInvitations.length})
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {pendingInvitations.map((inv) => (
+                      <div key={inv.id} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'var(--bg-surface)',
+                        padding: '12px 16px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--border-glass)'
+                      }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{inv.workspaceName}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            Gönderen: {inv.invitedByEmail} • Rol: {inv.permissionRole}
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button className="btn btn-primary" style={{ padding: '8px 14px', fontSize: '0.85rem' }} onClick={() => acceptInvitation(inv.id)}>
+                            <Check size={15} /> Katıl
+                          </button>
+                          <button className="btn btn-secondary" style={{ padding: '8px 12px', fontSize: '0.85rem' }} onClick={() => declineInvitation(inv.id)}>
+                            <X size={15} /> Reddet
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div style={{
+                  padding: '16px',
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.85rem',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}>
+                  <Bell size={16} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
+                  <span>Arkadaşınız size e-posta daveti gönderdiğinde ekranınızın üstünde bildirim belirecektir.</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={() => setShowWorkspaceModal(true)}>
+                  <Plus size={18} />
+                  <span>Kendi Ekibini Oluştur</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {activeTab === 'tasks' && <TasksScreen />}
+              {activeTab === 'updates' && <DailyUpdatesScreen />}
+              {activeTab === 'crm' && <CrmDashboardScreen />}
+              {activeTab === 'profile' && <ProfileScreen />}
+            </>
+          )}
         </div>
       </div>
 
@@ -310,17 +526,157 @@ export const AppLayout: React.FC = () => {
           <span>CRM</span>
         </button>
         <button 
-          className="mobile-nav-item"
-          onClick={() => {
-            if (navigator.vibrate) navigator.vibrate(10);
-            setForcePwaPromptOpen(true);
-          }}
-          style={{ color: 'var(--accent-color)' }}
+          className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => handleTabChange('profile')}
         >
-          <Download size={20} />
-          <span>İndir</span>
+          <User size={20} />
+          <span>Profil</span>
         </button>
       </div>
+
+      {/* Mobile Navigation & Workspace Drawer */}
+      {isMobileMenuOpen && (
+        <div className="mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
+          <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-glass)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FolderClosed size={20} style={{ color: 'var(--accent-color)' }} />
+                <span className="sidebar-logo">Kampüs Hub</span>
+              </div>
+              <button 
+                className="btn btn-secondary btn-icon-only" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{ padding: '6px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* User Details Box (Clicking opens Profile page) */}
+            <div 
+              onClick={() => {
+                handleTabChange('profile');
+                setIsMobileMenuOpen(false);
+              }}
+              style={{
+                padding: '12px 14px',
+                backgroundColor: 'var(--bg-surface-accent)',
+                borderRadius: 'var(--radius-md)',
+                margin: '12px 16px 4px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                border: '1px solid var(--border-glass)',
+                cursor: 'pointer'
+              }}
+              title="Profilim Sayfasına Git"
+            >
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--accent-color)',
+                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                color: 'white',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                {!avatarUrl && displayName.substring(0, 2).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {displayName}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {user?.email}
+                </div>
+              </div>
+            </div>
+
+            <div className="workspace-list" style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                EKİPLERİNİZ ({workspaces.length})
+              </div>
+              {workspaces.length === 0 && (
+                <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                  Henüz bir ekibe dahil değilsiniz
+                </div>
+              )}
+              {workspaces.map((ws) => (
+                <div 
+                  key={ws.id} 
+                  className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
+                  onClick={() => {
+                    selectWorkspace(ws.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  style={{ padding: '12px', marginBottom: '4px' }}
+                >
+                  <div className="workspace-avatar">
+                    {ws.name.substring(0, 2).toUpperCase()}
+                  </div>
+                  <span style={{ fontSize: '0.9rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {ws.name}
+                  </span>
+                  {activeWorkspace?.id === ws.id && <Check size={16} />}
+                </div>
+              ))}
+            </div>
+
+            <div className="mobile-drawer-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-glass)' }}>
+              <button 
+                className="btn btn-primary btn-block" 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setShowTeamModal(true);
+                }}
+              >
+                <UserPlus size={16} />
+                <span>Üye Davet Et</span>
+              </button>
+              <button 
+                className="btn btn-secondary btn-block" 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setShowWorkspaceModal(true);
+                }}
+              >
+                <Plus size={16} />
+                <span>Yeni Ekip Oluştur</span>
+              </button>
+
+              <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '4px 0' }} />
+
+              <button 
+                className="btn btn-secondary btn-block" 
+                onClick={toggleTheme}
+                style={{ justifyContent: 'flex-start', gap: '10px' }}
+              >
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                <span>{theme === 'dark' ? 'Açık Mod' : 'Koyu Mod'}</span>
+              </button>
+
+              <button 
+                className="btn btn-secondary btn-block" 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logOut();
+                }}
+                style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--color-danger)' }}
+              >
+                <LogOut size={16} />
+                <span>Çıkış Yap</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Team Invitation & Management Modal */}
       {showTeamModal && (

@@ -39,24 +39,9 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      const dismissed = localStorage.getItem('pwa_prompt_dismissed');
-      if (!standalone && !dismissed) {
-        setShowBanner(true);
-      }
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // 4. Auto-show for iOS if not installed & not dismissed
-    const dismissed = localStorage.getItem('pwa_prompt_dismissed');
-    if (iosDevice && !standalone && !dismissed) {
-      // Small delay for smooth user experience on load
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 1200);
-      return () => clearTimeout(timer);
-    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
