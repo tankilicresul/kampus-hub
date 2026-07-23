@@ -90,7 +90,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: TextStyle(
                         color: Theme.of(context).textTheme.headlineMedium?.color,
                         fontSize: 28,
-                        fontWeight: FontWeight.extrabold,
+                        fontWeight: FontWeight.w800,
                         letterSpacing: -0.5,
                       ),
                       textAlign: TextAlign.center,
