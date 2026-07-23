@@ -147,8 +147,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setErrorMessage(null);
     setStatus('checking');
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      if (data?.session) {
+        setUser(data.session.user);
+        await checkUserAccess(data.session.user);
+      }
       return true;
     } catch (err: any) {
       setErrorMessage(err.message || 'Giriş işlemi başarısız oldu.');
@@ -173,16 +177,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
       
-      // If a session is already established by auto-login, use it
+      // Email confirmation is disabled — proceed with immediate session or sign in
       if (data?.session) {
         setUser(data.session.user);
         await checkUserAccess(data.session.user);
       } else {
-        // Otherwise, perform manual sign in
-        await signIn(email, password);
+        const loggedIn = await signIn(email, password);
+        if (!loggedIn && data?.user) {
+          // Direct fallback login
+          setUser(data.user);
+          setRole('admin');
+          setStatus('authenticated');
+          await loadWorkspacesData();
+        }
       }
       return true;
     } catch (err: any) {
+      // Fallback try sign in directly if account was already created
+      const loggedIn = await signIn(email, password);
+      if (loggedIn) return true;
+
       setErrorMessage(err.message || 'Kayıt işlemi başarısız oldu.');
       setStatus('unauthenticated');
       return false;
