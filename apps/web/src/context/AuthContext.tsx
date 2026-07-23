@@ -1,18 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient, type User, type SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase Client Initialization (cached on window to prevent HMR warnings)
+// ── Supabase Client (Cloud) ───────────────────────────────────────────────────
+// Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
+// Set these in Vercel → Settings → Environment Variables (Production + Preview).
 export const supabase: SupabaseClient = (() => {
-  const url = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+  const url = import.meta.env.VITE_SUPABASE_URL as string;
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-  if (!anonKey) {
-    console.warn('Warning: VITE_SUPABASE_ANON_KEY is missing. Auth context will not function correctly.');
+  if (!url || !anonKey) {
+    throw new Error(
+      '[Kampüs Kapında CRM] Supabase env vars eksik!\n' +
+      'VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY tanımlanmış olmalı.\n' +
+      'Vercel → Settings → Environment Variables bölümüne ekle.'
+    );
   }
 
-  const globalVar = window as any;
+  // Cache on window to prevent duplicate clients during HMR
+  const globalVar = window as unknown as Record<string, unknown>;
   if (!globalVar.__supabaseClient) {
-    globalVar.__supabaseClient = createClient(url, anonKey);
+    globalVar.__supabaseClient = createClient(url, anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
   }
   return globalVar.__supabaseClient as SupabaseClient;
 })();
