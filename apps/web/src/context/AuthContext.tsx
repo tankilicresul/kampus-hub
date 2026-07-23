@@ -48,7 +48,7 @@ export interface AuthContextType {
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
   signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string) => Promise<boolean>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<boolean>;
   logOut: () => Promise<void>;
   selectWorkspace: (workspaceId: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<boolean>;
@@ -157,11 +157,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string): Promise<boolean> => {
+  const signUp = async (email: string, password: string, fullName?: string): Promise<boolean> => {
     setErrorMessage(null);
     setStatus('checking');
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            name: fullName,
+          },
+        },
+      });
       if (error) throw error;
       
       // If a session is already established by auto-login, use it
