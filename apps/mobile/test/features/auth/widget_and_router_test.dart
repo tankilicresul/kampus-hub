@@ -39,6 +39,12 @@ class _FakeAuthRepository implements AuthRepository {
   Future<AppResult<void>> signInWithGoogle() async => const AppSuccess(null);
 
   @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async => const AppSuccess(
         AccessCheckResult(
           allowed: true,
@@ -351,6 +357,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.unauthenticated),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -369,6 +376,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.checkingAccess),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -387,6 +395,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.waitingAccess),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -408,6 +417,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               ),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -426,6 +436,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.expiredAccess),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -444,6 +455,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.deviceLimitReached),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));
@@ -462,6 +474,7 @@ group('GoRouter Redirect Guards Integration Tests', () {
               AuthState(status: AuthStatus.biometricLocked),
             ),
           ),
+          mockWorkspaceOverride,
         ],
       );
       await tester.pumpWidget(buildRouterTestApp(container));

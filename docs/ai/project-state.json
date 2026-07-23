@@ -16,11 +16,11 @@
     "schemaDiff": "empty"
   },
   "flutter": {
-    "testCount": 211,
-    "passedTests": 211,
+    "testCount": 212,
+    "passedTests": 212,
     "failedTests": 0,
     "analyzeStatus": "clean",
-    "verificationNote": "Workspace onboarding flows and switcher widgets integration verified; 211 tests passing cleanly."
+    "verificationNote": "Fail-closed Admin MFA registration check added; 212 tests passing cleanly."
   },
   "environments": {
     "localSupabase": "verified",

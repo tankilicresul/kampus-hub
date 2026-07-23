@@ -106,6 +106,34 @@ final class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async {
+    const op = OperationClass.securitySensitive;
+    final timeout = TimeoutPolicy.defaults.forOperation(op);
+    try {
+      await supabase.auth.signInWithPassword(email: email, password: password).timeout(timeout);
+      return const AppSuccess(null);
+    } catch (e, st) {
+      final failure = FailureMapper.map(e, stackTrace: st);
+      logger.error('signInWithEmail failed', error: e, stackTrace: st);
+      return AppError(failure);
+    }
+  }
+
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async {
+    const op = OperationClass.securitySensitive;
+    final timeout = TimeoutPolicy.defaults.forOperation(op);
+    try {
+      await supabase.auth.signUp(email: email, password: password).timeout(timeout);
+      return const AppSuccess(null);
+    } catch (e, st) {
+      final failure = FailureMapper.map(e, stackTrace: st);
+      logger.error('signUpWithEmail failed', error: e, stackTrace: st);
+      return AppError(failure);
+    }
+  }
+
+  @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async {
     const op = OperationClass.safeRead;
     final timeout = TimeoutPolicy.defaults.forOperation(op);

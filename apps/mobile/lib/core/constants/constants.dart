@@ -2,15 +2,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class AppConstants {
-  // Supabase Local Dev Fallbacks
-  static const String _rawSupabaseUrl = 'http://127.0.0.1:54321';
+  // Supabase Local Dev Fallbacks (Host PC Wi-Fi IP for physical device connectivity)
+  static const String _rawSupabaseUrl = 'http://172.21.169.249:54321';
 
   static String get defaultSupabaseUrl {
-    if (_rawSupabaseUrl.contains('127.0.0.1') || _rawSupabaseUrl.contains('localhost')) {
-      if (!kIsWeb && Platform.isAndroid && kDebugMode) {
-        return _rawSupabaseUrl.replaceAll('127.0.0.1', '10.0.2.2').replaceAll('localhost', '10.0.2.2');
-      }
-    }
     return _rawSupabaseUrl;
   }
 

@@ -10,6 +10,10 @@ abstract interface class AuthRepository {
   AuthenticatedUser? get currentUser;
 
   Future<AppResult<void>> signInWithGoogle();
+  
+  Future<AppResult<void>> signInWithEmail({required String email, required String password});
+  
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password});
 
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess();
 

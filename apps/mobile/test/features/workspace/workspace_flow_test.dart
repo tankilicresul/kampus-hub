@@ -35,6 +35,10 @@ class _MockAuthRepository implements AuthRepository {
   @override
   Future<AppResult<void>> signInWithGoogle() async => const AppSuccess(null);
   @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
+  @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async => const AppSuccess(
         AccessCheckResult(allowed: true, reason: 'active'),
       );

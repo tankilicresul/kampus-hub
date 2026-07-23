@@ -25,6 +25,12 @@ class _FakeAuthRepository implements AuthRepository {
   Future<AppResult<void>> signInWithGoogle() async => const AppSuccess(null);
 
   @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async => const AppSuccess(
         AccessCheckResult(
           allowed: true,
@@ -336,9 +342,28 @@ void main() {
         _FakeDeviceSecurityRepository(),
       );
 
-      final factors = await notifier.loadMfaFactors();
-      expect(factors, isEmpty);
+      final result = await notifier.loadMfaFactors();
+      expect(result, isA<AppSuccess<List<MfaFactor>>>());
+      expect((result as AppSuccess<List<MfaFactor>>).value, isEmpty);
       expect(notifier.state.mfaFactors, isEmpty);
+    });
+
+    test('loadMfaFactors failing during admin registerDevice triggers fail-closed sign-out', () async {
+      final notifier = TestAuthStateNotifier(
+        _MfaLoadFailureAuthRepository(),
+        _FakeDeviceSecurityRepository(),
+      );
+
+      notifier.testState = AuthState(
+        status: AuthStatus.checkingAccess,
+        role: 'admin',
+        email: 'admin@kampushub.com',
+      );
+
+      await notifier.registerDevice();
+
+      expect(notifier.state.status, AuthStatus.unauthenticated);
+      expect(notifier.state.error, contains('MFA durum sorgulama hatası'));
     });
   });
 }
@@ -361,7 +386,11 @@ class _CancelledGoogleSignInAuthRepository implements AuthRepository {
       ),
     );
   }
+  @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
 
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
   @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async =>
       const AppSuccess(AccessCheckResult(allowed: true, reason: 'active'));
@@ -401,7 +430,11 @@ class _NullIdTokenAuthRepository implements AuthRepository {
       ),
     );
   }
+  @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
 
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
   @override
   Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async =>
       const AppSuccess(AccessCheckResult(allowed: true, reason: 'active'));
@@ -419,6 +452,47 @@ class _NullIdTokenAuthRepository implements AuthRepository {
 
   @override
   Future<AppResult<List<MfaFactor>>> listMfaFactors() async => const AppSuccess([]);
+
+  @override
+  Future<AppResult<void>> unenrollMfaFactor(String factorId) async =>
+      const AppSuccess(null);
+}
+
+class _MfaLoadFailureAuthRepository implements AuthRepository {
+  @override
+  Stream<AuthenticatedUser?> get onAuthStateChanged => const Stream.empty();
+
+  @override
+  AuthenticatedUser? get currentUser => null;
+
+  @override
+  Future<AppResult<void>> signInWithGoogle() async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<void>> signInWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<void>> signUpWithEmail({required String email, required String password}) async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<AccessCheckResult>> checkCurrentUserAccess() async =>
+      const AppSuccess(AccessCheckResult(allowed: true, reason: 'active'));
+
+  @override
+  Future<AppResult<void>> signOut() async => const AppSuccess(null);
+
+  @override
+  Future<AppResult<MfaEnrollment>> enrollMfaTotp() async =>
+      const AppSuccess(MfaEnrollment(factorId: 'x', qrCodeUri: 'x', secret: 'x'));
+
+  @override
+  Future<AppResult<void>> challengeAndVerifyMfa({required String code}) async =>
+      const AppSuccess(null);
+
+  @override
+  Future<AppResult<List<MfaFactor>>> listMfaFactors() async {
+    return const AppError(DatabaseFailure(technicalMessage: 'DB error'));
+  }
 
   @override
   Future<AppResult<void>> unenrollMfaFactor(String factorId) async =>

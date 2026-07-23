@@ -148,3 +148,19 @@
 - [x] Integrate workspace pending invitations accept/decline screens.
 - [x] Implement multi-tenant workspace switcher dashboard side menu panel.
 - [x] Configure dynamic GoRouter access redirect guards based on Riverpod providers list changes.
+
+## Milestone 4: Task Management & Automations (Completed)
+- [x] Create 24-step university opening tasks template generator function and SQL trigger.
+- [x] Implement TaskModel, TaskRepository, SupabaseTaskRepository, and TaskStateNotifier.
+- [x] Build TasksScreen with Kanban Board and filterable List view layouts.
+- [x] Implement status transition modal with mandatory waiting state reason requirement.
+- [x] Add priority badges ('critical', 'high', 'normal', 'low') and new task creation dialog.
+
+## Milestone 5: Daily Updates, CRM & Dashboard Integration (Completed)
+- [x] Implement DailyUpdateModel, DailyUpdateRepository, SupabaseDailyUpdateRepository, and DailyUpdateStateNotifier.
+- [x] Build DailyUpdatesScreen with report creation modal, late submission detector (20:00+), and update feed.
+- [x] Implement CrmBusinessModel, CrmRepository, SupabaseCrmRepository, and CrmStateNotifier.
+- [x] Build CrmDashboardScreen with sales pipeline Kanban board, role-gated commission rates, and business creation modal.
+- [x] Integrate all feature screens into a unified tabbed BottomNavigationBar layout in `app_router.dart`.
+- [x] Write domain unit tests and verify 100% test suite pass status.
+
