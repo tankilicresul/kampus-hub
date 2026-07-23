@@ -20,3 +20,14 @@ This skill set integrates the official and community `gemini-skills` guidelines:
 ## 3. Physical Device & Wireless Debugging
 - **Host Local IP**: Always map Supabase URLs to the local host machine IP (e.g., `http://172.21.169.249:54321`) instead of emulator-only `10.0.2.2`.
 - **ADB Wireless Port**: Pair once with `adb pair ip:pairing_port`, connect to `adb connect ip:main_port`.
+
+## 4. GitHub Push Policy (MANDATORY)
+- **Always push after every change**: After completing any file edit, bugfix, feature, or configuration update, ALWAYS run the following sequence without waiting for the user to ask:
+  ```
+  git add -A
+  git commit -m "<concise description of changes>"
+  git push origin main
+  ```
+- **Commit message format**: Use clear, imperative English (e.g. `feat: add favicon.ico`, `fix: resolve 404 on favicon`, `chore: update skill rules`).
+- **Never skip the push**: Even for small one-line fixes, always commit and push to keep the remote (`origin/main`) in sync with local work.
+- **Scope of rule**: This applies to ALL changes in the `c:\Projects\kampus-hub` workspace, including web, mobile, Supabase, docs, and agent config files.
