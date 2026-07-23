@@ -1,7 +1,7 @@
 {
   "short_name": "Kampüs Hub",
-  "name": "Kampüs Kapında Hub",
-  "description": "Kampüs Kapında CRM ve Çalışma Alanı Yönetim Platformu",
+  "name": "Kampüs Hub",
+  "description": "Kampüs Hub Görev, Rapor ve Müşteri Panosu",
   "start_url": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

@@ -890,3 +890,273 @@ body {
     font-weight: 700;
   }
 }
+
+/* Micro-Interactions & Native Mobile Tap Feedback */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active, .btn:active, .workspace-item:active, .task-card:active, .crm-card:active, .mobile-nav-item:active {
+  transform: scale(0.95) !important;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Safe Area Insets for Native Feel */
+.app-bar {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.mobile-nav-bar {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  height: calc(64px + env(safe-area-inset-bottom));
+}
+
+/* PWA Banner Overlay & Card */
+.pwa-install-banner-overlay {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 480px;
+  z-index: 999;
+}
+
+.pwa-install-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.pwa-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--bg-surface-accent);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.pwa-card-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.pwa-icon-glow {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--accent-color), #f43f5e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 8px 20px rgba(183, 1, 22, 0.3);
+}
+
+.pwa-sparkle-icon {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  color: #fbbf24;
+}
+
+.pwa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(183, 1, 22, 0.1);
+  color: var(--accent-color);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.pwa-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+}
+
+.pwa-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.pwa-features-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 6px;
+  margin: 12px 0 16px;
+  background: var(--bg-surface-accent);
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+}
+
+.pwa-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pwa-check-icon {
+  color: var(--color-success);
+}
+
+.pwa-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pwa-main-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: var(--radius-md);
+}
+
+.pwa-sub-btn {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 6px;
+}
+
+/* iOS Bottom Sheet Modal */
+.pwa-ios-modal-backdrop {
+  z-index: 1000;
+}
+
+.pwa-ios-sheet {
+  max-width: 500px;
+  width: 100%;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px;
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-surface);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.pwa-sheet-handle {
+  width: 40px;
+  height: 5px;
+  background: var(--border-glass);
+  border-radius: 10px;
+  margin: 0 auto 16px;
+}
+
+.pwa-apple-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.pwa-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pwa-step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 14px;
+  background: var(--bg-surface-accent);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.pwa-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-gradient);
+  color: white;
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pwa-step-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.pwa-highlight {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(183, 1, 22, 0.12);
+  color: var(--accent-color);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 800;
+}
+
+.pwa-step-desc {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* Keyframe animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 40px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

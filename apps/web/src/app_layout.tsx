@@ -3,7 +3,8 @@ import { useAuth } from './context/AuthContext';
 import { TasksScreen } from './features/tasks/TasksScreen';
 import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen';
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
-import { LogOut, Plus, CheckSquare, Calendar, BarChart4, FolderClosed, User, Sun, Moon, UserPlus, Mail, Check, X } from 'lucide-react';
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { LogOut, Plus, CheckSquare, Calendar, BarChart4, FolderClosed, User, Sun, Moon, UserPlus, Mail, Check, X, Download } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
   const { 
@@ -22,6 +23,12 @@ export const AppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm'>('tasks');
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
+  const [forcePwaPromptOpen, setForcePwaPromptOpen] = useState(false);
+  
+  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm') => {
+    if (navigator.vibrate) navigator.vibrate(10);
+    setActiveTab(tab);
+  };
   
   // Create Workspace Form State
   const [newWsName, setNewWsName] = useState('');
@@ -46,14 +53,23 @@ export const AppLayout: React.FC = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  const [isCreatingWs, setIsCreatingWs] = useState(false);
+  const [createWsError, setCreateWsError] = useState<string | null>(null);
+
   const handleCreateWs = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCreateWsError(null);
     if (!newWsName.trim()) return;
     
+    setIsCreatingWs(true);
     const success = await createWorkspace(newWsName.trim());
+    setIsCreatingWs(false);
+
     if (success) {
       setNewWsName('');
       setShowWorkspaceModal(false);
+    } else {
+      setCreateWsError('Yeni ekip oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.');
     }
   };
 
@@ -81,12 +97,12 @@ export const AppLayout: React.FC = () => {
       <div className="sidebar">
         <div className="sidebar-header">
           <FolderClosed size={20} style={{ color: 'var(--accent-color)' }} />
-          <span className="sidebar-logo">Kampüs Kapında CRM</span>
+          <span className="sidebar-logo">Kampüs Hub</span>
         </div>
         
         <div className="workspace-list">
           <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            EKİPLER VE ÇALIŞMA ALANLARI
+            EKİPLER
           </div>
           {workspaces.map((ws) => (
             <div 
@@ -107,11 +123,11 @@ export const AppLayout: React.FC = () => {
         <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button className="btn btn-primary btn-block" onClick={() => setShowTeamModal(true)}>
             <UserPlus size={16} />
-            <span>Ekibe Üye Çağır</span>
+            <span>Davet Et</span>
           </button>
           <button className="btn btn-secondary btn-block" onClick={() => setShowWorkspaceModal(true)}>
             <Plus size={16} />
-            <span>Yeni Ekip / Workspace Kur</span>
+            <span>Yeni Ekip</span>
           </button>
         </div>
       </div>
@@ -123,7 +139,7 @@ export const AppLayout: React.FC = () => {
           <div className="app-bar-left">
             {/* Desktop Workspace Title */}
             <div className="app-bar-title desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span>{activeWorkspace ? activeWorkspace.name : 'Workspace seçilmedi'}</span>
+              <span>{activeWorkspace ? activeWorkspace.name : 'Ekip Seçilmedi'}</span>
               {activeWorkspace?.permissionRole && (
                 <span className="badge" style={{ fontSize: '0.75rem', padding: '4px 8px', borderRadius: '12px', backgroundColor: 'rgba(99,102,241,0.15)', color: 'var(--accent-color)' }}>
                   {activeWorkspace.permissionRole.toUpperCase()}
@@ -160,23 +176,37 @@ export const AppLayout: React.FC = () => {
                   {workspaces.map((ws) => (
                     <option key={ws.id} value={ws.id}>{ws.name}</option>
                   ))}
-                  <option value="__invite_team__">+ Ekibe Üye Davet Et</option>
-                  <option value="__add_new_workspace__">+ Yeni Ekip Kur</option>
+                  <option value="__invite_team__">+ Üye Davet Et</option>
+                  <option value="__add_new_workspace__">+ Yeni Ekip</option>
                 </select>
               )}
             </div>
           </div>
           
           <div className="app-bar-actions">
+            {/* PWA Install Button */}
+            <button 
+              className="btn btn-primary" 
+              onClick={() => {
+                if (navigator.vibrate) navigator.vibrate(10);
+                setForcePwaPromptOpen(true);
+              }}
+              style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+              title="Uygulamayı İndir"
+            >
+              <Download size={15} />
+              <span>İndir</span>
+            </button>
+
             {/* Pending Invitations Badge Button */}
             <button 
               className="btn btn-secondary" 
               onClick={() => setShowTeamModal(true)}
               style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}
-              title="Ekip ve Davet Yönetimi"
+              title="Davetler"
             >
               <UserPlus size={16} />
-              <span className="desktop-workspace-title">Ekip Davetleri</span>
+              <span className="desktop-workspace-title">Davetler</span>
               {pendingInvitations.length > 0 && (
                 <span style={{
                   position: 'absolute',
@@ -202,7 +232,7 @@ export const AppLayout: React.FC = () => {
             <button 
               className="btn btn-secondary btn-icon-only" 
               onClick={toggleTheme}
-              title={theme === 'dark' ? 'Açık Moda Geç' : 'Karanlık Moda Geç'}
+              title={theme === 'dark' ? 'Açık Mod' : 'Koyu Mod'}
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
@@ -227,24 +257,24 @@ export const AppLayout: React.FC = () => {
         <div className="nav-tabs">
           <div 
             className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tasks')}
+            onClick={() => handleTabChange('tasks')}
           >
             <CheckSquare size={16} />
             <span>Görevler</span>
           </div>
           <div 
             className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
-            onClick={() => setActiveTab('updates')}
+            onClick={() => handleTabChange('updates')}
           >
             <Calendar size={16} />
-            <span>Günlük Raporlar</span>
+            <span>Raporlar</span>
           </div>
           <div 
             className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => setActiveTab('crm')}
+            onClick={() => handleTabChange('crm')}
           >
             <BarChart4 size={16} />
-            <span>Kampüs Kapında CRM</span>
+            <span>CRM</span>
           </div>
         </div>
 
@@ -260,24 +290,35 @@ export const AppLayout: React.FC = () => {
       <div className="mobile-nav-bar">
         <button 
           className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tasks')}
+          onClick={() => handleTabChange('tasks')}
         >
           <CheckSquare size={20} />
           <span>Görevler</span>
         </button>
         <button 
           className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
-          onClick={() => setActiveTab('updates')}
+          onClick={() => handleTabChange('updates')}
         >
           <Calendar size={20} />
           <span>Raporlar</span>
         </button>
         <button 
           className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-          onClick={() => setActiveTab('crm')}
+          onClick={() => handleTabChange('crm')}
         >
           <BarChart4 size={20} />
           <span>CRM</span>
+        </button>
+        <button 
+          className="mobile-nav-item"
+          onClick={() => {
+            if (navigator.vibrate) navigator.vibrate(10);
+            setForcePwaPromptOpen(true);
+          }}
+          style={{ color: 'var(--accent-color)' }}
+        >
+          <Download size={20} />
+          <span>İndir</span>
         </button>
       </div>
 
@@ -286,7 +327,7 @@ export const AppLayout: React.FC = () => {
         <div className="modal-backdrop">
           <div className="modal-content" style={{ maxWidth: '520px', width: '90%' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Ekip Yönetimi & Davetler</span>
+              <span>Ekip & Davetler</span>
               <button className="btn btn-secondary btn-icon-only" onClick={() => setShowTeamModal(false)}>
                 <X size={16} />
               </button>
@@ -297,7 +338,7 @@ export const AppLayout: React.FC = () => {
               <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: 'rgba(99,102,241,0.1)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Mail size={18} style={{ color: 'var(--accent-color)' }} />
-                  Gelen Ekip Davetleriniz ({pendingInvitations.length})
+                  Gelen Davetler ({pendingInvitations.length})
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {pendingInvitations.map((inv) => (
@@ -325,7 +366,7 @@ export const AppLayout: React.FC = () => {
             {/* Invite Form Section (Kendi Ekibine Üye Çağır) */}
             <form onSubmit={handleInviteSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
-                Kendi Ekibine Üye Çağır ({activeWorkspace?.name})
+                Üye Davet Et ({activeWorkspace?.name})
               </div>
 
               {inviteFeedback && (
@@ -342,7 +383,7 @@ export const AppLayout: React.FC = () => {
               )}
 
               <div className="form-group">
-                <label className="form-label">Davet Edilecek E-posta Adresi</label>
+                <label className="form-label">E-posta</label>
                 <input
                   type="email"
                   required
@@ -354,22 +395,22 @@ export const AppLayout: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Yetki Rolü</label>
+                <label className="form-label">Rol</label>
                 <select 
                   value={inviteRole} 
                   onChange={(e) => setInviteRole(e.target.value)}
                   className="form-input"
                 >
-                  <option value="staff">Personel / Ekip Üyesi</option>
-                  <option value="representative">Kampüs Temsilcisi</option>
-                  <option value="admin">Yönetici / Admin</option>
+                  <option value="staff">Personel</option>
+                  <option value="representative">Temsilci</option>
+                  <option value="admin">Yönetici</option>
                 </select>
               </div>
 
               <div className="modal-footer" style={{ marginTop: '8px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowTeamModal(false)}>Kapat</button>
                 <button type="submit" className="btn btn-primary" disabled={isSubmittingInvite}>
-                  {isSubmittingInvite ? 'Gönderiliyor...' : 'Davet Gönder'}
+                  {isSubmittingInvite ? 'Gönderiliyor...' : 'Davet Et'}
                 </button>
               </div>
             </form>
@@ -381,27 +422,37 @@ export const AppLayout: React.FC = () => {
       {showWorkspaceModal && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <div className="modal-header">Yeni Çalışma Alanı / Ekip Oluştur</div>
+            <div className="modal-header">Yeni Ekip</div>
+            {createWsError && (
+              <div className="alert alert-danger" style={{ marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                {createWsError}
+              </div>
+            )}
             <form onSubmit={handleCreateWs} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label className="form-label">Ekip / Workspace Adı</label>
+                <label className="form-label">Ekip Adı</label>
                 <input
                   type="text"
                   required
-                  placeholder="Örn: Ankara Kampüs Ekibi"
+                  placeholder="Örn: Ankara Ekibi"
                   value={newWsName}
                   onChange={(e) => setNewWsName(e.target.value)}
                   className="form-input"
                 />
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowWorkspaceModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Oluştur ve Başla</button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setCreateWsError(null); setShowWorkspaceModal(false); }}>İptal</button>
+                <button type="submit" className="btn btn-primary" disabled={isCreatingWs}>
+                  {isCreatingWs ? 'Oluşturuluyor...' : 'Oluştur'}
+                </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Native PWA Install Prompt Banner & Sheet Modal */}
+      <PwaInstallPrompt forceOpen={forcePwaPromptOpen} onCloseForce={() => setForcePwaPromptOpen(false)} />
     </div>
   );
 };

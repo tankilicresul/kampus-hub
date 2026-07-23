@@ -99,12 +99,12 @@ export const DailyUpdatesScreen: React.FC = () => {
       {/* Header bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)' }}>
         <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Günlük Durum Raporları</h2>
-          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Ekibinizin günlük ilerlemelerini buradan inceleyebilirsiniz.</p>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Günlük Raporlar</h2>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Ekibin günlük çalışma raporları.</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
           <Plus size={18} />
-          <span className="btn-text">Rapor Gönder</span>
+          <span className="btn-text">Rapor Ekle</span>
         </button>
       </div>
 
@@ -116,8 +116,8 @@ export const DailyUpdatesScreen: React.FC = () => {
       ) : updates.length === 0 ? (
         <div style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px', color: 'var(--text-secondary)' }}>
           <Calendar size={48} />
-          <h3>Henüz rapor gönderilmemiş</h3>
-          <p>Günün ilk raporunu siz paylaşın!</p>
+          <h3>Rapor Yok</h3>
+          <p>İlk raporu sen ekle!</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -138,7 +138,7 @@ export const DailyUpdatesScreen: React.FC = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                    {update.profile?.full_name || 'Ekip Arkadaşı'}
+                    {update.profile?.full_name || 'Ekip Üyesi'}
                   </span>
                   <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     {new Date(update.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
@@ -147,24 +147,24 @@ export const DailyUpdatesScreen: React.FC = () => {
                 {update.is_late && (
                   <span className="badge badge-danger" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <AlertTriangle size={12} />
-                    Geç Bildirim (20:00+)
+                    Geç Rapor (20:00 sonrası)
                   </span>
                 )}
               </div>
 
               <div>
-                <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Bugün Neler Yapıldı?</h4>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Bugün Yapılanlar</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.today_summary}</p>
               </div>
 
               <div>
-                <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Yarın Neler Yapılacak?</h4>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>Yarın Yapılacaklar</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.tomorrow_plan}</p>
               </div>
 
               {update.blockers && (
                 <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', padding: '10px 14px', borderRadius: 'var(--radius-md)', borderLeft: '3px solid var(--color-danger)' }}>
-                  <h4 style={{ fontSize: '0.8rem', color: 'var(--color-danger)', fontWeight: 700, marginBottom: '2px' }}>Karşılaşılan Engeller:</h4>
+                  <h4 style={{ fontSize: '0.8rem', color: 'var(--color-danger)', fontWeight: 700, marginBottom: '2px' }}>Engeller:</h4>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{update.blockers}</p>
                 </div>
               )}
@@ -177,21 +177,21 @@ export const DailyUpdatesScreen: React.FC = () => {
       {showAddModal && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <div className="modal-header">Günlük Rapor Hazırla</div>
+            <div className="modal-header">Günlük Rapor</div>
             
             {isLateWarning && (
               <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <AlertTriangle size={16} />
-                <span>Geç bildirim: Günlük güncellemeler en geç saat 20:00'ye kadar iletilmelidir!</span>
+                <span>Geç Rapor: Raporlar saat 20:00'ye kadar iletilmelidir.</span>
               </div>
             )}
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label className="form-label">Bugün Neler Yaptınız?</label>
+                <label className="form-label">Bugün Yapılanlar</label>
                 <textarea
                   required
-                  placeholder="Bugün tamamladığınız işleri detaylıca yazın..."
+                  placeholder="Bugün yapılan işler..."
                   value={todaySummary}
                   onChange={(e) => setTodaySummary(e.target.value)}
                   className="form-input"
@@ -199,10 +199,10 @@ export const DailyUpdatesScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Yarın Neler Yapacaksınız?</label>
+                <label className="form-label">Yarın Yapılacaklar</label>
                 <textarea
                   required
-                  placeholder="Yarın odaklanacağınız hedefleri planlayın..."
+                  placeholder="Yarın yapılacak işler..."
                   value={tomorrowPlan}
                   onChange={(e) => setTomorrowPlan(e.target.value)}
                   className="form-input"
@@ -210,10 +210,10 @@ export const DailyUpdatesScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Engeller / Bloklayan Durumlar (Opsiyonel)</label>
+                <label className="form-label">Engeller (Varsa)</label>
                 <input
                   type="text"
-                  placeholder="Geliştirmenizi yavaşlatan bir durum var mı?"
+                  placeholder="Varsa engeller..."
                   value={blockers}
                   onChange={(e) => setBlockers(e.target.value)}
                   className="form-input"
@@ -221,7 +221,7 @@ export const DailyUpdatesScreen: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Raporu Gönder</button>
+                <button type="submit" className="btn btn-primary">Gönder</button>
               </div>
             </form>
           </div>

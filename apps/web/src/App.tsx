@@ -27,11 +27,11 @@ const NavigationContainer: React.FC = () => {
           <ShieldAlert size={48} style={{ color: 'var(--color-danger)', margin: '0 auto' }} />
           <div className="auth-title">Erişim Engellendi</div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            {errorMessage || 'Bu hesaba erişim izniniz bulunmuyor veya yöneticiniz tarafından yetkilendirilmediniz.'}
+            {errorMessage || 'Bu hesaba erişim yetkiniz bulunmuyor.'}
           </p>
           <button className="btn btn-secondary btn-block" onClick={logOut}>
             <LogOut size={16} />
-            <span>Giriş Ekranına Dön</span>
+            <span>Girişe Dön</span>
           </button>
         </div>
       </div>

@@ -62,12 +62,12 @@ export const CrmDashboardScreen: React.FC = () => {
     setFormError(null);
 
     if (!activeWorkspace) {
-      setFormError('Aktif bir çalışma alanı bulunamadı. Lütfen sol menüden bir çalışma alanı seçin.');
+      setFormError('Aktif ekip seçilmedi. Lütfen sol menüden bir ekip seçin.');
       return;
     }
 
     if (!name.trim()) {
-      setFormError('İşletme adı zorunludur.');
+      setFormError('İşletme adı gerekli.');
       return;
     }
 
@@ -110,7 +110,7 @@ export const CrmDashboardScreen: React.FC = () => {
       await loadBusinesses();
     } catch (err: any) {
       console.error('Create CRM business failed:', err);
-      setFormError(err.message || 'İşletme oluşturulurken bir veritabanı hatası oluştu.');
+      setFormError(err.message || 'İşletme eklenirken bir hata oluştu.');
     } finally {
       setIsSubmitting(false);
     }
@@ -140,13 +140,13 @@ export const CrmDashboardScreen: React.FC = () => {
   const winRate = totalCount > 0 ? Math.round((wonCount / totalCount) * 100) : 0;
 
   const stages = [
-    { key: 'discovered', title: 'Keşfedildi', color: '#38bdf8' },
-    { key: 'visit_planned', title: 'Ziyaret Planlandı', color: '#a78bfa' },
-    { key: 'contacted', title: 'İletişim Kuruldu', color: '#fbbf24' },
-    { key: 'agreement_reached', title: 'Anlaşma Sağlandı', color: '#34d399' },
-    { key: 'contract_completed', title: 'Sözleşme Tamam', color: '#059669' },
+    { key: 'discovered', title: 'Keşif', color: '#38bdf8' },
+    { key: 'visit_planned', title: 'Ziyaret', color: '#a78bfa' },
+    { key: 'contacted', title: 'Görüşme', color: '#fbbf24' },
+    { key: 'agreement_reached', title: 'Anlaşma', color: '#34d399' },
+    { key: 'contract_completed', title: 'Sözleşme', color: '#059669' },
     { key: 'active', title: 'Aktif', color: '#10b981' },
-    { key: 'rejected', title: 'Reddedildi', color: '#ef4444' },
+    { key: 'rejected', title: 'Kayıp', color: '#ef4444' },
   ] as const;
 
   // Filter columns to active one on mobile for extreme compactness
@@ -174,19 +174,19 @@ export const CrmDashboardScreen: React.FC = () => {
         <div className="stat-item">
           <TrendingUp size={20} style={{ color: 'var(--accent-color)' }} />
           <span className="stat-value">%{winRate}</span>
-          <span className="stat-label">Kazanma</span>
+          <span className="stat-label">Başarı</span>
         </div>
       </div>
 
       {/* Control bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)', padding: '16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)' }}>
         <div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>CRM Pipeline</h2>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Müşterilerinizi satış hattında takip edin.</p>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Müşteri Süreci</h2>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Müşteri ve satış aşamaları.</p>
         </div>
         <button className="btn btn-primary" onClick={() => { setFormError(null); setShowAddModal(true); }}>
           <Plus size={18} />
-          <span className="btn-text">İşletme Ekle</span>
+          <span className="btn-text">Ekle</span>
         </button>
       </div>
 
@@ -207,7 +207,7 @@ export const CrmDashboardScreen: React.FC = () => {
                 borderRadius: '50%',
                 display: 'inline-block'
               }} />
-              <span>{stg.title.split(' ')[0]}</span>
+              <span>{stg.title}</span>
               <span className="mobile-stage-tab-badge">{count}</span>
             </button>
           );
@@ -236,7 +236,7 @@ export const CrmDashboardScreen: React.FC = () => {
                 <div className="column-cards" style={{ marginTop: '8px' }}>
                   {stageBusinesses.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '24px 12px', fontSize: '0.75rem', color: 'var(--text-muted)', border: '1px dashed var(--border-glass)', borderRadius: 'var(--radius-md)' }}>
-                      İşletme yok
+                      Kayıt yok
                     </div>
                   ) : (
                     stageBusinesses.map((biz) => (
@@ -315,7 +315,7 @@ export const CrmDashboardScreen: React.FC = () => {
       {showAddModal && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <div className="modal-header">Yeni İşletme Ekle</div>
+            <div className="modal-header">Yeni İşletme</div>
 
             {formError && (
               <div className="alert alert-danger" style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}>
@@ -336,7 +336,7 @@ export const CrmDashboardScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Yetkili Kişi</label>
+                <label className="form-label">Yetkili</label>
                 <input
                   type="text"
                   placeholder="Örn: Ahmet Yılmaz"
@@ -346,7 +346,7 @@ export const CrmDashboardScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Yetkili Telefon</label>
+                <label className="form-label">Telefon</label>
                 <input
                   type="text"
                   placeholder="Örn: 0555..."
@@ -356,7 +356,7 @@ export const CrmDashboardScreen: React.FC = () => {
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Komisyon Oranı (%)</label>
+                <label className="form-label">Komisyon (%)</label>
                 <input
                   type="number"
                   step="0.1"

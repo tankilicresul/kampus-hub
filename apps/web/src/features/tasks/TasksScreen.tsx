@@ -133,11 +133,18 @@ export const TasksScreen: React.FC = () => {
     return matchesSearch && matchesPriority;
   });
 
+  const priorityLabels: Record<string, string> = {
+    critical: 'Kritik',
+    high: 'Yüksek',
+    normal: 'Normal',
+    low: 'Düşük',
+  };
+
   const columns = [
     { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
-    { key: 'in_progress', title: 'Devam Ediyor', color: '#f59e0b' },
-    { key: 'waiting', title: 'Beklemede', color: '#f97316' },
-    { key: 'completed', title: 'Tamamlandı', color: '#10b981' },
+    { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
+    { key: 'waiting', title: 'Bekliyor', color: '#f97316' },
+    { key: 'completed', title: 'Bitti', color: '#10b981' },
   ] as const;
 
   return (
@@ -149,7 +156,7 @@ export const TasksScreen: React.FC = () => {
             <Search size={18} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
             <input
               type="text"
-              placeholder="Görevlerde ara..."
+              placeholder="Ara..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="form-input"
@@ -158,7 +165,7 @@ export const TasksScreen: React.FC = () => {
           </div>
            <button className="btn btn-secondary" onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}>
             {viewMode === 'kanban' ? <List size={18} /> : <Kanban size={18} />}
-            <span className="btn-text">{viewMode === 'kanban' ? 'Liste' : 'Kanban'}</span>
+            <span className="btn-text">{viewMode === 'kanban' ? 'Liste' : 'Pano'}</span>
           </button>
           <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
             <Plus size={18} />
@@ -200,7 +207,7 @@ export const TasksScreen: React.FC = () => {
               }}
               onClick={() => setSelectedPriority(p)}
             >
-              {p.toUpperCase()}
+              {priorityLabels[p]}
             </span>
           ))}
         </div>
@@ -214,7 +221,7 @@ export const TasksScreen: React.FC = () => {
       ) : filteredTasks.length === 0 ? (
         <div style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '16px', color: 'var(--text-secondary)' }}>
           <AlertCircle size={48} />
-          <h3>Henüz görev bulunmuyor</h3>
+          <h3>Görev Yok</h3>
         </div>
       ) : viewMode === 'kanban' ? (
         <div className="board-container">
@@ -234,7 +241,7 @@ export const TasksScreen: React.FC = () => {
                   {columnTasks.map((task) => (
                     <div key={task.id} className="task-card">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <span className={`badge badge-${task.priority}`}>{task.priority}</span>
+                        <span className={`badge badge-${task.priority}`}>{priorityLabels[task.priority] || task.priority}</span>
                       </div>
                       <div className="card-title">{task.title}</div>
                       {task.description && <div className="card-desc">{task.description}</div>}
@@ -257,7 +264,7 @@ export const TasksScreen: React.FC = () => {
                             }}
                             onClick={() => handleStatusChangeClick(task, c.key)}
                           >
-                            ➔ {c.title.split(' ')[0]}
+                            ➔ {c.title}
                           </button>
                         ))}
                       </div>
@@ -273,10 +280,12 @@ export const TasksScreen: React.FC = () => {
           {filteredTasks.map((task) => (
             <div key={task.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', borderBottom: '1px solid var(--border-glass)' }}>
               <div>
-                <span className={`badge badge-${task.priority}`} style={{ marginRight: '10px' }}>{task.priority}</span>
+                <span className={`badge badge-${task.priority}`} style={{ marginRight: '10px' }}>{priorityLabels[task.priority] || task.priority}</span>
                 <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>{task.title}</span>
               </div>
-              <span className="badge" style={{ backgroundColor: 'var(--bg-surface-accent)', color: 'var(--text-secondary)' }}>{task.status.toUpperCase()}</span>
+              <span className="badge" style={{ backgroundColor: 'var(--bg-surface-accent)', color: 'var(--text-secondary)' }}>
+                {columns.find(c => c.key === task.status)?.title || task.status}
+              </span>
             </div>
           ))}
         </div>
@@ -286,10 +295,10 @@ export const TasksScreen: React.FC = () => {
       {showAddModal && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <div className="modal-header">Yeni Görev Oluştur</div>
+            <div className="modal-header">Yeni Görev</div>
             <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label className="form-label">Görev Başlığı</label>
+                <label className="form-label">Başlık</label>
                 <input
                   type="text"
                   required
@@ -314,15 +323,15 @@ export const TasksScreen: React.FC = () => {
                   onChange={(e) => setNewPriority(e.target.value as any)}
                   className="form-input"
                 >
-                  <option value="low">Düşük (Low)</option>
+                  <option value="low">Düşük</option>
                   <option value="normal">Normal</option>
-                  <option value="high">Yüksek (High)</option>
-                  <option value="critical">Kritik (Critical)</option>
+                  <option value="high">Yüksek</option>
+                  <option value="critical">Kritik</option>
                 </select>
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Oluştur</button>
+                <button type="submit" className="btn btn-primary">Ekle</button>
               </div>
             </form>
           </div>
@@ -333,16 +342,16 @@ export const TasksScreen: React.FC = () => {
       {transitionTask && (
         <div className="modal-backdrop">
           <div className="modal-content">
-            <div className="modal-header">Durum Değişiklik Gerekçesi</div>
+            <div className="modal-header">Neden Değişiyor?</div>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              "{transitionTask.title}" görevinin durumunu değiştirmek için bir açıklama girmeniz gerekmektedir.
+              Durum değişimi için kısa bir neden belirtin.
             </p>
             <div className="form-group">
-              <label className="form-label">Açıklama / Gerekçe</label>
+              <label className="form-label">Neden</label>
               <input
                 type="text"
                 required
-                placeholder="Örn: Çalışma tamamlandı / Test ediliyor"
+                placeholder="Örn: İş bitti, teste geçildi"
                 value={transitionReason}
                 onChange={(e) => setTransitionReason(e.target.value)}
                 className="form-input"

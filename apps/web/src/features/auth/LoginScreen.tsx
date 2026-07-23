@@ -26,11 +26,11 @@ export const LoginScreen: React.FC = () => {
       {/* Brand Side Panel (Desktop) */}
       <div className="auth-brand-panel">
         <div className="brand-logo-large">
-          <img src="/logo.png" alt="Kampüs Kapında CRM Logo" />
+          <img src="/logo.png" alt="Kampüs Hub Logo" />
         </div>
-        <div className="auth-brand-title">Kampüs Kapında CRM</div>
+        <div className="auth-brand-title">Kampüs Hub</div>
         <div className="auth-brand-desc">
-          Operasyonlarınızı, görevlerinizi ve müşteri süreçlerinizi tek bir noktadan yönetin.
+          Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
         </div>
       </div>
 
@@ -40,19 +40,19 @@ export const LoginScreen: React.FC = () => {
           {/* Mobile-Only Header with Large Logo (Transparent Background) */}
           <div className="auth-mobile-brand">
             <div className="brand-logo-large mobile-logo">
-              <img src="/logo.png" alt="Kampüs Kapında CRM Logo" />
+              <img src="/logo.png" alt="Kampüs Hub Logo" />
             </div>
-            <div className="auth-brand-title mobile-title">Kampüs Kapında CRM</div>
+            <div className="auth-brand-title mobile-title">Kampüs Hub</div>
           </div>
 
           <div className="auth-header" style={{ marginBottom: '24px' }}>
             <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', textAlign: 'center' }}>
-              {isLoginTab ? 'Giriş Yap' : 'Hesap Oluştur'}
+              {isLoginTab ? 'Giriş' : 'Kayıt'}
             </h2>
             <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px' }}>
               {isLoginTab 
-                ? 'Yönetici veya ekip üyesi hesabı ile devam edin.' 
-                : 'Formu doldurarak saniyeler içinde yeni hesabınızı oluşturun.'}
+                ? 'Hesabınızla hemen giriş yapın.' 
+                : 'Bilgileri girip hemen kayıt olun.'}
             </p>
           </div>
 
@@ -75,7 +75,7 @@ export const LoginScreen: React.FC = () => {
               }}
               onClick={() => setIsLoginTab(true)}
             >
-              Giriş Yap
+              Giriş
             </button>
             <button 
               type="button"
@@ -94,7 +94,7 @@ export const LoginScreen: React.FC = () => {
               }}
               onClick={() => setIsLoginTab(false)}
             >
-              Kayıt Ol
+              Kayıt
             </button>
           </div>
 
@@ -109,7 +109,7 @@ export const LoginScreen: React.FC = () => {
             {!isLoginTab && (
               <div className="form-group">
                 <label className="form-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>
-                  İsim Soyisim
+                  Ad Soyad
                 </label>
                 <div style={{ position: 'relative' }}>
                   <User size={18} style={{ position: 'absolute', left: '14px', top: '16px', color: 'var(--text-muted)' }} />
@@ -128,7 +128,7 @@ export const LoginScreen: React.FC = () => {
 
             <div className="form-group">
               <label className="form-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>
-                E-posta Adresi
+                E-posta
               </label>
               <div style={{ position: 'relative' }}>
                 <Mail size={18} style={{ position: 'absolute', left: '14px', top: '16px', color: 'var(--text-muted)' }} />
@@ -183,7 +183,7 @@ export const LoginScreen: React.FC = () => {
               ) : isLoginTab ? (
                 'Giriş Yap'
               ) : (
-                'Kayıt Ol ve Başla'
+                'Kayıt Ol'
               )}
             </button>
           </form>

@@ -259,15 +259,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createWorkspace = async (name: string): Promise<boolean> => {
     try {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      let slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+      if (!slug) slug = `ws-${Date.now()}`;
+
+      // Call RPC with matching SQL parameter names: workspace_name, requested_slug, industry
       const { error } = await supabase.rpc('create_workspace_with_owner', { 
-        p_name: name,
-        p_slug: slug || `ws-${Date.now()}`,
-        p_industry: 'education',
-        p_logo_url: null,
-        p_default_language: 'tr'
+        workspace_name: name.trim(),
+        requested_slug: slug,
+        industry: 'education',
+        default_language: 'tr',
+        timezone: 'Europe/Istanbul'
       });
-      if (error) throw error;
+
+      if (error) {
+        console.warn('Full RPC signature call failed, trying single-argument fallback:', error);
+        const fallback = await supabase.rpc('create_workspace_with_owner', { 
+          workspace_name: name.trim() 
+        });
+        if (fallback.error) throw fallback.error;
+      }
+      
       await loadWorkspacesData();
       return true;
     } catch (err: any) {

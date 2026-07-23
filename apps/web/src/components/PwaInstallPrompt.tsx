@@ -131,11 +131,11 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
               </div>
               <div className="pwa-title-area">
                 <div className="pwa-badge">
-                  <Sparkles size={12} /> Native Uygulama Hissi
+                  <Sparkles size={12} /> Mobil Uygulama
                 </div>
-                <h3 className="pwa-title">Kampüs Hub'ı Telefonuna Yükle!</h3>
+                <h3 className="pwa-title">Uygulamayı Yükle!</h3>
                 <p className="pwa-subtitle">
-                  Tek tıkla ana ekranına ekle, tıpkı App Store / Google Play uygulaması gibi ışık hızında kullan.
+                  Ana ekrana ekle, hızlıca kullan.
                 </p>
               </div>
             </div>
@@ -144,15 +144,15 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
             <div className="pwa-features-grid">
               <div className="pwa-feature-item">
                 <CheckCircle2 size={16} className="pwa-check-icon" />
-                <span>Çevrimdışı / Hızlı Erişim</span>
+                <span>Hızlı Erişim</span>
               </div>
               <div className="pwa-feature-item">
                 <CheckCircle2 size={16} className="pwa-check-icon" />
-                <span>Tam Ekran Native Deneyim</span>
+                <span>Tam Ekran</span>
               </div>
               <div className="pwa-feature-item">
                 <CheckCircle2 size={16} className="pwa-check-icon" />
-                <span>Anlık Bildirim & Güncellemeler</span>
+                <span>Bildirimler</span>
               </div>
             </div>
 
@@ -160,11 +160,11 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
             <div className="pwa-actions">
               <button className="btn btn-primary pwa-main-btn" onClick={handleInstallClick}>
                 <Download size={18} />
-                <span>{isIOS ? 'iOS Yükleme Rehberini Aç' : 'Uygulamayı Hemen İndir'}</span>
+                <span>{isIOS ? 'Yükleme Adımları' : 'Hemen Yükle'}</span>
                 <ArrowRight size={16} />
               </button>
               <button className="btn btn-ghost pwa-sub-btn" onClick={handleDismiss}>
-                Daha Sonra Hatırlat
+                Sonra
               </button>
             </div>
           </div>
@@ -183,8 +183,8 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
                   <Smartphone size={20} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Apple iOS Yükleme Adımları</h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Safari tarayıcısından 3 adımda ana ekrana ekle</p>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>iOS Yükleme Adımları</h3>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Safari'den 3 adımda ekle</p>
                 </div>
               </div>
               <button className="btn btn-secondary btn-icon-only" onClick={() => { setShowIosModal(false); if (onCloseForce) onCloseForce(); }}>
@@ -198,10 +198,10 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
                 <div className="pwa-step-num">1</div>
                 <div className="pwa-step-content">
                   <div className="pwa-step-title">
-                    Alt Menüdeki <span className="pwa-highlight"><Share size={16} /> Paylaş</span> Simgesine Dokun
+                    <span className="pwa-highlight"><Share size={16} /> Paylaş</span> butonuna dokun
                   </div>
                   <div className="pwa-step-desc">
-                    Safari ekranının en altındaki ortada yer alan kare ve yukarı ok (Paylaş) butonuna basın.
+                    Ekranın altındaki Paylaş butonuna basın.
                   </div>
                 </div>
               </div>
@@ -211,10 +211,10 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
                 <div className="pwa-step-num">2</div>
                 <div className="pwa-step-content">
                   <div className="pwa-step-title">
-                    <span className="pwa-highlight"><PlusSquare size={16} /> Ana Ekrana Ekle</span> Seçeneğini Bul
+                    <span className="pwa-highlight"><PlusSquare size={16} /> Ana Ekrana Ekle</span> seç
                   </div>
                   <div className="pwa-step-desc">
-                    Açılan paylaşım listesini aşağı doğru kaydırıp "Ana Ekrana Ekle" seçeneğine dokunun.
+                    Açılan menüden "Ana Ekrana Ekle"ye dokunun.
                   </div>
                 </div>
               </div>
@@ -224,10 +224,10 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
                 <div className="pwa-step-num">3</div>
                 <div className="pwa-step-content">
                   <div className="pwa-step-title">
-                    Sağ Üstteki <span className="pwa-highlight">Ekle</span> Butonuna Bas
+                    Sağ üstteki <span className="pwa-highlight">Ekle</span> butonuna bas
                   </div>
                   <div className="pwa-step-desc">
-                    Açılan pencerede sağ üst köşedeki "Ekle" yazısına tıklayın. Kampüs Hub doğrudan ana ekranınıza bir uygulama olarak yüklenecektir!
+                    Sağ üst köşedeki "Ekle" butonuna basın.
                   </div>
                 </div>
               </div>
@@ -235,7 +235,7 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
 
             <div className="modal-footer" style={{ marginTop: '20px' }}>
               <button className="btn btn-primary btn-block" onClick={() => { setShowIosModal(false); if (onCloseForce) onCloseForce(); }}>
-                Anlaşıldı, Tamam
+                Tamam
               </button>
             </div>
           </div>
