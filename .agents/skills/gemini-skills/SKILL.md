@@ -37,3 +37,8 @@ This skill set integrates the official and community `gemini-skills` guidelines:
 - **Supabase MCP Integration**: Proactively use `supabase` tools (`execute_sql`, `list_tables`, `search_docs`, `apply_migration`, `list_migrations`, `get_logs`, `get_advisors`, `generate_typescript_types`, etc.) for PostgreSQL database queries, schema analysis, running migrations, retrieving server logs, and project diagnostics.
 - **Tool Preference**: Always incline toward leveraging these MCP tools directly whenever handling repository tasks or Supabase database management to ensure accurate, real-time context and execution.
 
+## 6. Mobile Modification Freeze (STRICT MANDATE)
+- **NO MOBILE CHANGES**: DO NOT make any code, UI layout, or file modifications to the mobile app (`apps/mobile/` or Flutter codebase) under any circumstances unless the user explicitly requests mobile changes.
+- **Freeze Scope**: Keep all work strictly focused on web (`apps/web`), database/Supabase, docs, or configuration files until the user explicitly revokes this freeze.
+
+

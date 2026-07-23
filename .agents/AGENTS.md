@@ -19,4 +19,6 @@ Whenever performing tasks, the agent MUST inspect and apply available skills in 
 2. **Never leave mandatory non-null database foreign keys unhandled** in UI creation dialogs. Always supply fallback resolvers or update schema constraints cleanly.
 3. **Always preserve 100% test suite integrity**: Rerun `flutter test` and database test suites after every feature or bugfix edit.
 4. **Proactive MCP Tool Usage**: Directly invoke Supabase and GitHub MCP tools for database schemas, SQL queries, migration execution, logs, repo searches, issues, and PR management.
+5. **Strict Mobile Freeze**: DO NOT touch, edit, or modify any files in the mobile app (`apps/mobile/` or Flutter codebase) until the user explicitly requests mobile changes.
+
 
