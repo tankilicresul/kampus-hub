@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient, type User, type SupabaseClient } from '@supabase/supabase-js';
 
 // ── Supabase Client (Cloud) ───────────────────────────────────────────────────
-// Requires VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.
-// Set these in Vercel → Settings → Environment Variables (Production + Preview).
 export const supabase: SupabaseClient = (() => {
   const url = import.meta.env.VITE_SUPABASE_URL as string;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -16,7 +14,6 @@ export const supabase: SupabaseClient = (() => {
     );
   }
 
-  // Cache on window to prevent duplicate clients during HMR
   const globalVar = window as unknown as Record<string, unknown>;
   if (!globalVar.__supabaseClient) {
     globalVar.__supabaseClient = createClient(url, anonKey, {
@@ -39,6 +36,15 @@ export interface Workspace {
   permissionRole?: string;
 }
 
+export interface PendingInvitation {
+  id: string;
+  workspaceId: string;
+  workspaceName: string;
+  invitedByEmail?: string;
+  permissionRole: string;
+  createdAt: string;
+}
+
 export interface AuthContextType {
   user: User | null;
   userId: string | null;
@@ -47,12 +53,17 @@ export interface AuthContextType {
   errorMessage: string | null;
   workspaces: Workspace[];
   activeWorkspace: Workspace | null;
+  pendingInvitations: PendingInvitation[];
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (email: string, password: string, fullName?: string) => Promise<boolean>;
   logOut: () => Promise<void>;
   selectWorkspace: (workspaceId: string) => Promise<void>;
   createWorkspace: (name: string) => Promise<boolean>;
+  inviteMember: (email: string, role?: string) => Promise<{ success: boolean; message?: string }>;
+  acceptInvitation: (invitationId: string) => Promise<boolean>;
+  declineInvitation: (invitationId: string) => Promise<boolean>;
   refreshWorkspaces: () => Promise<void>;
+  refreshInvitations: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,6 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspace, setActiveWorkspace] = useState<Workspace | null>(null);
+  const [pendingInvitations, setPendingInvitations] = useState<PendingInvitation[]>([]);
 
   const checkUserAccess = async (_currentUser: User) => {
     try {
@@ -81,18 +93,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole(userRole);
       setStatus('authenticated');
       await loadWorkspacesData();
+      await loadPendingInvitations();
     } catch (err: any) {
       console.error('Check user access failed:', err);
       // Fast bypass for debug/simulation modes
       setRole('admin');
       setStatus('authenticated');
       await loadWorkspacesData();
+      await loadPendingInvitations();
     }
   };
 
   const loadWorkspacesData = async () => {
     try {
-      // 1. Fetch workspaces from user_workspaces API
       const { data, error } = await supabase.rpc('list_current_user_workspaces');
       if (error) throw error;
 
@@ -106,13 +119,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setWorkspaces(formatted);
 
       if (formatted.length > 0) {
-        // Auto-select first workspace as active
-        setActiveWorkspace(formatted[0]);
+        setActiveWorkspace((prev) => {
+          if (prev && formatted.some((w: any) => w.id === prev.id)) return prev;
+          return formatted[0];
+        });
       } else {
         setActiveWorkspace(null);
       }
     } catch (err) {
       console.error('Load workspaces failed:', err);
+    }
+  };
+
+  const loadPendingInvitations = async () => {
+    try {
+      const { data, error } = await supabase.rpc('list_current_user_pending_workspace_invitations');
+      if (error) throw error;
+
+      const formatted = (data || []).map((inv: any) => ({
+        id: inv.id,
+        workspaceId: inv.workspace_id,
+        workspaceName: inv.workspace_name,
+        invitedByEmail: inv.invited_by_email,
+        permissionRole: inv.permission_role,
+        createdAt: inv.created_at,
+      }));
+
+      setPendingInvitations(formatted);
+    } catch (err) {
+      console.error('Load pending invitations failed:', err);
     }
   };
 
@@ -136,6 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setRole(null);
         setWorkspaces([]);
         setActiveWorkspace(null);
+        setPendingInvitations([]);
         setStatus('unauthenticated');
       }
     });
@@ -189,11 +225,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setRole('admin');
           setStatus('authenticated');
           await loadWorkspacesData();
+          await loadPendingInvitations();
         }
       }
       return true;
     } catch (err: any) {
-      // Fallback try sign in directly if account was already created
       const loggedIn = await signIn(email, password);
       if (loggedIn) return true;
 
@@ -223,12 +259,69 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const createWorkspace = async (name: string): Promise<boolean> => {
     try {
-      const { error } = await supabase.rpc('create_workspace_with_owner', { workspace_name: name });
+      const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+      const { error } = await supabase.rpc('create_workspace_with_owner', { 
+        p_name: name,
+        p_slug: slug || `ws-${Date.now()}`,
+        p_industry: 'education',
+        p_logo_url: null,
+        p_default_language: 'tr'
+      });
       if (error) throw error;
       await loadWorkspacesData();
       return true;
     } catch (err: any) {
       console.error('Create workspace failed:', err);
+      return false;
+    }
+  };
+
+  const inviteMember = async (email: string, role: string = 'staff'): Promise<{ success: boolean; message?: string }> => {
+    if (!activeWorkspace) {
+      return { success: false, message: 'Aktif bir çalışma alanı seçili değil.' };
+    }
+    try {
+      const { error } = await supabase.from('workspace_invitations').insert({
+        workspace_id: activeWorkspace.id,
+        email: email.trim().toLowerCase(),
+        permission_role: role,
+        invited_by: user?.id,
+        is_active: true,
+      });
+
+      if (error) throw error;
+      return { success: true };
+    } catch (err: any) {
+      console.error('Invite member failed:', err);
+      return { success: false, message: err.message || 'Davet gönderilemedi.' };
+    }
+  };
+
+  const acceptInvitation = async (invitationId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.rpc('accept_current_user_workspace_invitation', {
+        p_invitation_id: invitationId,
+      });
+      if (error) throw error;
+      await loadWorkspacesData();
+      await loadPendingInvitations();
+      return true;
+    } catch (err: any) {
+      console.error('Accept invitation failed:', err);
+      return false;
+    }
+  };
+
+  const declineInvitation = async (invitationId: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase.rpc('decline_current_user_workspace_invitation', {
+        p_invitation_id: invitationId,
+      });
+      if (error) throw error;
+      await loadPendingInvitations();
+      return true;
+    } catch (err: any) {
+      console.error('Decline invitation failed:', err);
       return false;
     }
   };
@@ -243,12 +336,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage,
         workspaces,
         activeWorkspace,
+        pendingInvitations,
         signIn,
         signUp,
         logOut,
         selectWorkspace,
         createWorkspace,
+        inviteMember,
+        acceptInvitation,
+        declineInvitation,
         refreshWorkspaces: loadWorkspacesData,
+        refreshInvitations: loadPendingInvitations,
       }}
     >
       {children}
