@@ -3,17 +3,22 @@
   "name": "Kampüs Kapında CRM",
   "icons": [
     {
-      "src": "favicon.svg",
+      "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "logo.png",
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/logo.png",
       "type": "image/png",
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#7c3aed",
   "background_color": "#f8fafc"
