@@ -106,9 +106,15 @@ export const TasksScreen: React.FC = () => {
 
       // Add audit log for transition
       await supabase.from('audit_logs').insert({
-        workspace_id: activeWorkspace?.id,
-        action_type: 'task_status_changed',
-        details: `Görev: ${transitionTask.title}, Yeni Durum: ${targetStatus}, Gerekçe: ${transitionReason.trim()}`,
+        action: 'task_status_changed',
+        table_name: 'tasks',
+        record_id: transitionTask.id,
+        payload: {
+          title: transitionTask.title,
+          new_status: targetStatus,
+          reason: transitionReason.trim(),
+          workspace_id: activeWorkspace?.id,
+        },
       }).select().maybeSingle();
 
       setTransitionTask(null);

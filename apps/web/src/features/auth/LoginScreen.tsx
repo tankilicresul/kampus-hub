@@ -24,11 +24,11 @@ export const LoginScreen: React.FC = () => {
       {/* Brand Side Panel */}
       <div className="auth-brand-panel">
         <div className="brand-logo-badge">
-          <img src="/logo.png" alt="Kapında Hub Logo" />
+          <img src="/logo.png" alt="Kampüs Kapında CRM Logo" />
         </div>
-        <div className="auth-brand-title">Kapında Hub</div>
+        <div className="auth-brand-title">Kampüs Kapında CRM</div>
         <div className="auth-brand-desc">
-          Operasyonlarınızı, görevlerinizi ve satış süreçlerinizi tek bir noktadan yönetin.
+          Operasyonlarınızı, görevlerinizi ve müşteri süreçlerinizi tek bir noktadan yönetin.
         </div>
       </div>
 
