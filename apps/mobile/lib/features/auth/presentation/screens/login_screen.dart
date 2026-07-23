@@ -86,7 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Kampüs Kapında CRM',
+                      'Kapında Hub',
                       style: TextStyle(
                         color: Theme.of(context).textTheme.headlineMedium?.color,
                         fontSize: 28,
@@ -97,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      _isSignUp ? 'Saniyeler içinde kayıt olarak hemen başlayın' : 'Operasyon ve müşteri yönetim platformu',
+                      'Kampüs Kapında İç Operasyon Platformu',
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha(200),
                         fontSize: 14,
