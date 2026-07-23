@@ -74,12 +74,13 @@ export const CrmDashboardScreen: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      // Fetch default university_id if exists in database
+      // Fetch default university_id if exists for active workspace
       let targetUniId: string | null = null;
       try {
         const { data: uniList } = await supabase
           .from('universities')
           .select('id')
+          .eq('workspace_id', activeWorkspace.id)
           .limit(1);
         if (uniList && uniList.length > 0) {
           targetUniId = uniList[0].id;

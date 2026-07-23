@@ -169,10 +169,9 @@ export const AppLayout: React.FC = () => {
               <Menu size={20} />
             </button>
 
-            {/* App Logo & Brand (Mobile & Header display) */}
-            <div className="app-bar-brand" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {/* App Folder Icon & Team Selector */}
+            <div className="app-bar-brand" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <FolderClosed size={20} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
-              <span className="sidebar-logo" style={{ fontSize: '1.15rem' }}>Kampüs Hub</span>
             </div>
             
             {/* Team Selector Dropdown (Quick select) */}
