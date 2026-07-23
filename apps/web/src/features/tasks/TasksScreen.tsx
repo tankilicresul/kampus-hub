@@ -38,20 +38,10 @@ export const TasksScreen: React.FC = () => {
         .from('tasks')
         .select('*')
         .eq('workspace_id', activeWorkspace.id)
-        .eq('deleted_at', null); // Soft deletes check
-      
-      if (error) {
-        // Fallback fallback if soft_delete columns aren't matching
-        const fallback = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('workspace_id', activeWorkspace.id);
-        if (fallback.data) {
-          setTasks(fallback.data as Task[]);
-        }
-      } else {
-        setTasks(data as Task[]);
-      }
+        .is('deleted_at', null); // Soft deletes check
+
+      if (error) throw error;
+      if (data) setTasks(data as Task[]);
     } catch (err) {
       console.error('Fetch tasks failed:', err);
     } finally {
