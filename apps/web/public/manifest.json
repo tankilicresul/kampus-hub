@@ -1,11 +1,20 @@
 {
-  "short_name": "KK CRM",
-  "name": "Kampüs Kapında CRM",
+  "short_name": "Kampüs Hub",
+  "name": "Kampüs Kapında Hub",
+  "description": "Kampüs Kapında CRM ve Çalışma Alanı Yönetim Platformu",
+  "start_url": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "theme_color": "#b70116",
+  "background_color": "#0f172a",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
     },
     {
       "src": "/favicon.ico",
@@ -15,11 +24,8 @@
     {
       "src": "/logo.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": "/",
-  "display": "standalone",
-  "theme_color": "#7c3aed",
-  "background_color": "#f8fafc"
+  ]
 }

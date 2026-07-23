@@ -26,6 +26,8 @@ export const CrmDashboardScreen: React.FC = () => {
   const [personName, setPersonName] = useState('');
   const [personPhone, setPersonPhone] = useState('');
   const [commissionRate, setCommissionRate] = useState(10.0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -57,16 +59,34 @@ export const CrmDashboardScreen: React.FC = () => {
 
   const handleCreateBusiness = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeWorkspace || !name.trim()) return;
+    setFormError(null);
+
+    if (!activeWorkspace) {
+      setFormError('Aktif bir çalışma alanı bulunamadı. Lütfen sol menüden bir çalışma alanı seçin.');
+      return;
+    }
+
+    if (!name.trim()) {
+      setFormError('İşletme adı zorunludur.');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
-      // Fetch default university_id if needed
-      const { data: uniList } = await supabase
-        .from('universities')
-        .select('id')
-        .limit(1);
-      
-      const targetUniId = uniList && uniList.length > 0 ? uniList[0].id : null;
+      // Fetch default university_id if exists in database
+      let targetUniId: string | null = null;
+      try {
+        const { data: uniList } = await supabase
+          .from('universities')
+          .select('id')
+          .limit(1);
+        if (uniList && uniList.length > 0) {
+          targetUniId = uniList[0].id;
+        }
+      } catch (_) {
+        targetUniId = null;
+      }
 
       const { error } = await supabase.from('businesses').insert({
         workspace_id: activeWorkspace.id,
@@ -78,7 +98,9 @@ export const CrmDashboardScreen: React.FC = () => {
         commission_rate: commissionRate,
       });
 
-      if (error) throw error;
+      if (error) {
+        throw error;
+      }
 
       setShowAddModal(false);
       setName('');
@@ -86,8 +108,11 @@ export const CrmDashboardScreen: React.FC = () => {
       setPersonPhone('');
       setCommissionRate(10.0);
       await loadBusinesses();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Create CRM business failed:', err);
+      setFormError(err.message || 'İşletme oluşturulurken bir veritabanı hatası oluştu.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -159,7 +184,7 @@ export const CrmDashboardScreen: React.FC = () => {
           <h2 style={{ fontSize: '1.2rem', fontWeight: 800 }}>CRM Pipeline</h2>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Müşterilerinizi satış hattında takip edin.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+        <button className="btn btn-primary" onClick={() => { setFormError(null); setShowAddModal(true); }}>
           <Plus size={18} />
           <span className="btn-text">İşletme Ekle</span>
         </button>
@@ -291,6 +316,13 @@ export const CrmDashboardScreen: React.FC = () => {
         <div className="modal-backdrop">
           <div className="modal-content">
             <div className="modal-header">Yeni İşletme Ekle</div>
+
+            {formError && (
+              <div className="alert alert-danger" style={{ marginBottom: '16px', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem' }}>
+                {formError}
+              </div>
+            )}
+
             <form onSubmit={handleCreateBusiness} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
                 <label className="form-label">İşletme Adı</label>
@@ -338,7 +370,9 @@ export const CrmDashboardScreen: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Kaydet</button>
+                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? <RefreshCw className="animate-spin" size={16} /> : 'Kaydet'}
+                </button>
               </div>
             </form>
           </div>
