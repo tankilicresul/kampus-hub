@@ -31,3 +31,9 @@ This skill set integrates the official and community `gemini-skills` guidelines:
 - **Commit message format**: Use clear, imperative English (e.g. `feat: add favicon.ico`, `fix: resolve 404 on favicon`, `chore: update skill rules`).
 - **Never skip the push**: Even for small one-line fixes, always commit and push to keep the remote (`origin/main`) in sync with local work.
 - **Scope of rule**: This applies to ALL changes in the `c:\Projects\kampus-hub` workspace, including web, mobile, Supabase, docs, and agent config files.
+
+## 5. GitHub & Supabase MCP / API Directives
+- **GitHub MCP Integration**: Proactively use `github-mcp-server` tools (`issue_read`, `issue_write`, `list_issues`, `search_issues`, `search_code`, `list_commits`, `create_pull_request`, etc.) for GitHub repository management, issue tracking, PR operations, and remote code searches.
+- **Supabase MCP Integration**: Proactively use `supabase` tools (`execute_sql`, `list_tables`, `search_docs`, `apply_migration`, `list_migrations`, `get_logs`, `get_advisors`, `generate_typescript_types`, etc.) for PostgreSQL database queries, schema analysis, running migrations, retrieving server logs, and project diagnostics.
+- **Tool Preference**: Always incline toward leveraging these MCP tools directly whenever handling repository tasks or Supabase database management to ensure accurate, real-time context and execution.
+
