@@ -247,7 +247,7 @@ export const AppLayout: React.FC = () => {
           <div className="app-bar-actions">
             {/* PWA Install Button */}
             <button 
-              className="btn btn-primary" 
+              className="btn btn-primary desktop-only-btn" 
               onClick={() => {
                 if (navigator.vibrate) navigator.vibrate(10);
                 setForcePwaPromptOpen(true);
@@ -291,7 +291,7 @@ export const AppLayout: React.FC = () => {
 
             {/* Theme Toggle Button */}
             <button 
-              className="btn btn-secondary btn-icon-only" 
+              className="btn btn-secondary btn-icon-only desktop-only-btn" 
               onClick={toggleTheme}
               title={theme === 'dark' ? 'Açık Mod' : 'Koyu Mod'}
             >
@@ -307,7 +307,7 @@ export const AppLayout: React.FC = () => {
             </div>
 
             {/* Logout Button */}
-            <button className="btn btn-secondary" style={{ padding: '8px 12px' }} onClick={logOut}>
+            <button className="btn btn-secondary desktop-only-btn" style={{ padding: '8px 12px' }} onClick={logOut}>
               <LogOut size={16} />
               <span className="logout-text">Çıkış</span>
             </button>

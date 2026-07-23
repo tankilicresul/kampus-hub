@@ -661,14 +661,14 @@ body {
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 600;
   gap: 4px;
   background: none;
   border: none;
   cursor: pointer;
   transition: var(--transition-smooth);
-  width: 60px;
+  flex: 1;
   height: 100%;
 }
 
@@ -789,8 +789,8 @@ body {
     font-size: 0.95rem;
   }
   
-  .desktop-workspace-title {
-    display: none;
+  .desktop-workspace-title, .desktop-only-btn {
+    display: none !important;
   }
   
   .mobile-workspace-selector {
@@ -803,6 +803,11 @@ body {
 
   .nav-tabs {
     display: none;
+  }
+
+  .zero-workspace-card {
+    margin: 12px auto !important;
+    padding: 20px 14px !important;
   }
 
   .view-area {
