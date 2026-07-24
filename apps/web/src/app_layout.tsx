@@ -197,7 +197,7 @@ export const AppLayout: React.FC = () => {
       {/* Main Panel */}
       <div className="main-content">
         {/* App Bar — 3-kolon: sol(hamburger) | orta(ekip seçici) | sağ(bildirim+desktop actions) */}
-        <div className="app-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="app-bar" style={{ position: 'sticky', top: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
 
           {/* SOL — hamburger */}
           <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
-import { Send, MessageSquare, Reply, X, RefreshCw } from 'lucide-react';
+import { Send, MessageSquare, Reply, X, RefreshCw, Smile, Paperclip, Camera, Mic } from 'lucide-react';
+
 
 interface Message {
   id: string;
@@ -514,27 +515,36 @@ export const MessagesScreen: React.FC = () => {
         </div>
       )}
 
-      <div style={{
-        backgroundColor: 'var(--bg-surface)',
-        padding: '14px 16px',
+      {/* WhatsApp-Style Message Input Area */}
+      <div style={{ 
+        padding: '10px 14px 14px',
+        backgroundColor: 'var(--bg-main)', 
         borderTop: replyTo ? 'none' : '1px solid var(--border-glass)',
         display: 'flex',
-        gap: '12px',
+        gap: '8px',
         alignItems: 'flex-end',
         borderRadius: '0 0 var(--radius-md) var(--radius-md)',
-        boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.02)'
       }}>
+        {/* Input Pill Container */}
         <div style={{
           flex: 1,
           display: 'flex',
           alignItems: 'center',
-          backgroundColor: 'var(--bg-surface-accent)',
-          border: `1px solid ${isFocused ? 'var(--accent-color)' : 'var(--border-glass)'}`,
-          boxShadow: isFocused ? '0 0 0 3px rgba(183, 1, 22, 0.12)' : 'none',
-          borderRadius: '16px',
-          padding: '2px 8px 2px 14px',
+          backgroundColor: 'var(--bg-surface)',
+          border: `1px solid ${isFocused ? 'rgba(0, 168, 132, 0.5)' : 'var(--border-glass)'}`,
+          boxShadow: isFocused ? '0 0 0 3px rgba(0, 168, 132, 0.15)' : 'none',
+          borderRadius: '24px',
+          padding: '2px 14px',
           transition: 'var(--transition-smooth)',
         }}>
+          {/* Smiley Icon */}
+          <Smile 
+            size={22} 
+            style={{ color: 'var(--text-muted)', marginRight: '10px', cursor: 'pointer', flexShrink: 0 }} 
+            onClick={() => setContent(prev => prev + '😊')}
+          />
+          
+          {/* Text Area */}
           <textarea
             ref={textareaRef}
             value={content}
@@ -542,7 +552,7 @@ export const MessagesScreen: React.FC = () => {
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder="Mesaj yazın... (Enter = gönder, Shift+Enter = yeni satır)"
+            placeholder="Mesaj"
             rows={1}
             style={{
               flex: 1,
@@ -550,12 +560,12 @@ export const MessagesScreen: React.FC = () => {
               backgroundColor: 'transparent',
               border: 'none',
               padding: '10px 0',
-              fontSize: '0.88rem',
+              fontSize: '0.92rem',
               color: 'var(--text-primary)',
               fontFamily: 'var(--font-family)',
               outline: 'none',
               maxHeight: '120px',
-              lineHeight: '1.5',
+              lineHeight: '1.4',
             }}
             onInput={e => {
               const el = e.currentTarget;
@@ -563,30 +573,50 @@ export const MessagesScreen: React.FC = () => {
               el.style.height = Math.min(el.scrollHeight, 120) + 'px';
             }}
           />
+
+          {/* Paperclip Icon */}
+          <Paperclip 
+            size={20} 
+            style={{ color: 'var(--text-muted)', marginLeft: '10px', cursor: 'pointer', flexShrink: 0, transform: 'rotate(45deg)' }} 
+          />
+
+          {/* Camera Icon */}
+          <Camera 
+            size={20} 
+            style={{ color: 'var(--text-muted)', marginLeft: '12px', cursor: 'pointer', flexShrink: 0 }} 
+          />
         </div>
+
+        {/* Circular Send/Mic Button */}
         <button
           onClick={handleSend}
-          disabled={!content.trim() || sending}
+          disabled={sending}
           style={{ 
-            width: '42px', 
-            height: '42px', 
+            width: '46px', 
+            height: '46px', 
             borderRadius: '50%', 
-            background: !content.trim() ? '#e2e8f0' : 'linear-gradient(135deg, var(--accent-color) 0%, #d81b24 100%)',
-            color: !content.trim() ? '#94a3b8' : 'white',
+            background: '#00a884', 
+            color: 'white',
             border: 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: !content.trim() ? 'not-allowed' : 'pointer',
-            boxShadow: !content.trim() ? 'none' : '0 4px 10px rgba(183, 1, 22, 0.2)',
-            transition: 'var(--transition-smooth)',
+            cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(0, 168, 132, 0.3)',
+            transition: 'all 0.2s ease',
             flexShrink: 0
           }}
-          onMouseEnter={(e) => { if (content.trim()) e.currentTarget.style.transform = 'scale(1.05)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.06)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
-          title="Gönder (Enter)"
+          title={content.trim() ? "Gönder" : "Ses kaydet"}
         >
-          {sending ? <RefreshCw size={16} className="animate-spin" /> : <Send size={15} style={{ marginLeft: '2px' }} />}
+          {sending ? (
+            <RefreshCw size={18} className="animate-spin" />
+          ) : content.trim() ? (
+            <Send size={18} style={{ marginLeft: '2px' }} />
+          ) : (
+            <Mic size={20} />
+          )}
         </button>
       </div>
     </div>
