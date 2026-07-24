@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
-import { Send, MessageSquare, Reply, X, RefreshCw, Smile } from 'lucide-react';
+import { Send, MessageSquare, Reply, X, RefreshCw } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -13,6 +13,21 @@ interface Message {
   reply_to?: { content: string; profile?: { full_name: string | null } } | null;
 }
 
+const getAvatarGradient = (userId: string) => {
+  const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const gradients = [
+    'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', // Pink
+    'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)', // Blue
+    'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)', // Peach
+    'linear-gradient(135deg, #f6d365 0%, #fda085 100%)', // Gold/Orange
+    'linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)', // Mint/Blue
+    'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', // Lavender
+    'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)', // Purple/Blue
+    'linear-gradient(135deg, #abecd6 0%, #fbed96 100%)', // Yellow/Teal
+  ];
+  return gradients[hash % gradients.length];
+};
+
 export const MessagesScreen: React.FC = () => {
   const { activeWorkspace, user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -20,6 +35,7 @@ export const MessagesScreen: React.FC = () => {
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [sending, setSending] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,8 +47,8 @@ export const MessagesScreen: React.FC = () => {
         .from('workspace_messages')
         .select(`
           *,
-          profile:profiles(full_name, avatar_url),
-          reply_to:reply_to_id(content, profile:user_id(full_name))
+          profile:profiles!workspace_messages_user_id_fkey(full_name, avatar_url),
+          reply_to:reply_to_id(content, profile:profiles!workspace_messages_user_id_fkey(full_name))
         `)
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
@@ -51,7 +67,6 @@ export const MessagesScreen: React.FC = () => {
     loadMessages();
   }, [loadMessages]);
 
-  // Realtime subscription
   useEffect(() => {
     if (!activeWorkspace?.id) return;
     const channel = supabase
@@ -70,7 +85,6 @@ export const MessagesScreen: React.FC = () => {
     return () => { supabase.removeChannel(channel); };
   }, [activeWorkspace?.id, loadMessages]);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -88,6 +102,9 @@ export const MessagesScreen: React.FC = () => {
       if (error) throw error;
       setContent('');
       setReplyTo(null);
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
     } catch (err) {
       console.error('Send message failed:', err);
     } finally {
@@ -122,7 +139,6 @@ export const MessagesScreen: React.FC = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  // Group messages by date
   const grouped: { date: string; messages: Message[] }[] = [];
   messages.forEach(msg => {
     const dateLabel = formatDate(msg.created_at);
@@ -138,31 +154,72 @@ export const MessagesScreen: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Header */}
       <div style={{
-        backgroundColor: 'var(--bg-surface)',
+        background: 'linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 255, 255, 0.95) 100%)',
         padding: '16px 20px',
-        borderRadius: 'var(--radius-lg)',
+        borderRadius: 'var(--radius-md)',
         border: '1px solid var(--border-glass)',
+        boxShadow: 'var(--shadow-sm)',
         marginBottom: '16px',
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: '12px',
+        backdropFilter: 'blur(10px)',
       }}>
-        <MessageSquare size={20} style={{ color: 'var(--accent-color)' }} />
-        <div>
-          <h2 style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
-            {activeWorkspace?.name || 'Ekip'} Sohbeti
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, rgba(183,1,22,0.1) 0%, rgba(183,1,22,0.04) 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          border: '1px solid rgba(183,1,22,0.15)',
+          color: 'var(--accent-color)',
+          flexShrink: 0,
+        }}>
+          <MessageSquare size={18} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h2 style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {activeWorkspace?.name || 'Ekip'} Sohbeti
+            </span>
+            {messages.length > 0 && (
+              <span style={{
+                fontSize: '0.68rem',
+                backgroundColor: 'rgba(183,1,22,0.08)',
+                color: 'var(--accent-color)',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                border: '1px solid rgba(183,1,22,0.12)'
+              }}>
+                {messages.length} mesaj
+              </span>
+            )}
           </h2>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             Tüm ekip üyeleri bu kanalı görüntüleyebilir
           </p>
         </div>
         <button
-          className="btn btn-secondary"
+          className="btn btn-secondary btn-icon-only"
           onClick={loadMessages}
-          style={{ marginLeft: 'auto', padding: '6px' }}
+          disabled={loading}
+          style={{ 
+            padding: '8px', 
+            borderRadius: '50%', 
+            width: '36px', 
+            height: '36px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            transition: 'var(--transition-smooth)',
+            border: '1px solid var(--border-glass)'
+          }}
           title="Yenile"
         >
-          <RefreshCw size={15} />
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
         </button>
       </div>
 
@@ -170,46 +227,73 @@ export const MessagesScreen: React.FC = () => {
       <div style={{
         flex: 1,
         overflowY: 'auto',
-        padding: '8px 4px',
+        padding: '8px 4px 16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px',
+        gap: '4px',
       }}>
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-            <RefreshCw className="animate-spin" size={24} style={{ margin: '0 auto 8px' }} />
+        {loading && messages.length === 0 && (
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: '40px' }}>
+            <RefreshCw className="animate-spin" size={24} style={{ color: 'var(--accent-color)' }} />
           </div>
         )}
+
         {!loading && messages.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-            <Smile size={48} style={{ margin: '0 auto 12px', opacity: 0.3 }} />
-            <p style={{ fontSize: '0.95rem', fontWeight: 600 }}>Henüz mesaj yok</p>
-            <p style={{ fontSize: '0.8rem', marginTop: '4px' }}>Ekibinizle sohbete başlayın!</p>
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            padding: '60px 20px',
+            textAlign: 'center',
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, rgba(183,1,22,0.06) 0%, rgba(183,1,22,0.01) 100%)',
+              border: '1px solid rgba(183,1,22,0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px',
+              color: 'var(--accent-color)',
+            }}>
+              <MessageSquare size={36} style={{ opacity: 0.6 }} />
+            </div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '6px' }}>
+              Ekip Sohbetine Hoş Geldiniz!
+            </h3>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '280px', lineHeight: '1.5' }}>
+              Bu kanal üzerinden çalışma arkadaşlarınızla anlık olarak haberleşebilirsiniz. İlk mesajı yazarak sohbete başlayın!
+            </p>
           </div>
         )}
 
         {grouped.map(group => (
           <div key={group.date}>
-            {/* Date separator */}
             <div style={{
               display: 'flex',
               alignItems: 'center',
               gap: '12px',
-              margin: '16px 0 8px',
+              margin: '20px 0 12px',
             }}>
-              <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-glass)' }} />
+              <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(226, 232, 240, 0.5)' }} />
               <span style={{
-                fontSize: '0.72rem',
-                color: 'var(--text-muted)',
-                fontWeight: 600,
-                backgroundColor: 'var(--bg-main)',
-                padding: '2px 10px',
+                fontSize: '0.68rem',
+                color: 'var(--text-secondary)',
+                fontWeight: 700,
+                backgroundColor: 'var(--bg-surface-accent)',
+                padding: '3px 12px',
                 borderRadius: '20px',
                 border: '1px solid var(--border-glass)',
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase'
               }}>
                 {group.date}
               </span>
-              <div style={{ flex: 1, height: '1px', backgroundColor: 'var(--border-glass)' }} />
+              <div style={{ flex: 1, height: '1px', backgroundColor: 'rgba(226, 232, 240, 0.5)' }} />
             </div>
 
             {group.messages.map(msg => {
@@ -223,25 +307,26 @@ export const MessagesScreen: React.FC = () => {
                     flexDirection: isMine ? 'row-reverse' : 'row',
                     alignItems: 'flex-end',
                     gap: '8px',
-                    marginBottom: '6px',
+                    marginBottom: '12px',
                     padding: '0 4px',
                   }}
                 >
-                  {/* Avatar */}
                   {!isMine && (
                     <div style={{
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      backgroundColor: 'var(--accent-color)',
+                      background: getAvatarGradient(msg.user_id),
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.7rem',
-                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
                       flexShrink: 0,
+                      boxShadow: 'var(--shadow-sm)',
                       overflow: 'hidden',
+                      border: '1px solid var(--border-glass)',
                     }}>
                       {msg.profile?.avatar_url
                         ? <img src={msg.profile.avatar_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -250,75 +335,125 @@ export const MessagesScreen: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Bubble */}
-                  <div style={{ maxWidth: '70%' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: isMine ? 'flex-end' : 'flex-start',
+                    maxWidth: '72%' 
+                  }}>
                     {!isMine && (
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '3px', paddingLeft: '4px' }}>
-                        {name}
-                      </div>
-                    )}
-                    {/* Reply preview */}
-                    {msg.reply_to && (
-                      <div style={{
-                        backgroundColor: isMine ? 'rgba(255,255,255,0.15)' : 'var(--bg-surface-accent)',
-                        borderLeft: '3px solid var(--accent-color)',
-                        padding: '4px 8px',
-                        borderRadius: '8px 8px 0 0',
-                        fontSize: '0.75rem',
-                        color: 'var(--text-muted)',
-                        marginBottom: '-4px',
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px', 
+                        fontSize: '0.74rem', 
+                        fontWeight: 600, 
+                        color: 'var(--text-secondary)', 
+                        marginBottom: '4px', 
+                        paddingLeft: '6px' 
                       }}>
-                        <span style={{ fontWeight: 700 }}>
-                          {(msg.reply_to as any)?.profile?.full_name || 'Kullanıcı'}:{' '}
+                        <span>{name}</span>
+                        <span style={{ fontSize: '0.64rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                          {formatTime(msg.created_at)}
                         </span>
-                        {(msg.reply_to as any)?.content?.slice(0, 60)}
-                        {((msg.reply_to as any)?.content?.length || 0) > 60 ? '...' : ''}
                       </div>
                     )}
-                    <div
-                      style={{
-                        backgroundColor: isMine ? 'var(--accent-color)' : 'var(--bg-surface)',
-                        color: isMine ? 'white' : 'var(--text-primary)',
-                        padding: '10px 14px',
-                        borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                        fontSize: '0.88rem',
-                        lineHeight: '1.45',
-                        border: isMine ? 'none' : '1px solid var(--border-glass)',
-                        wordBreak: 'break-word',
-                        whiteSpace: 'pre-wrap',
-                        position: 'relative',
-                      }}
-                    >
-                      {msg.content}
-                      <span style={{
-                        display: 'block',
-                        fontSize: '0.68rem',
-                        opacity: 0.7,
-                        marginTop: '4px',
-                        textAlign: 'right',
-                      }}>
-                        {formatTime(msg.created_at)}
-                      </span>
+
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <div
+                        style={{
+                          background: isMine 
+                            ? 'linear-gradient(135deg, var(--accent-color) 0%, #d81b24 100%)' 
+                            : 'var(--bg-surface)',
+                          color: isMine ? 'white' : 'var(--text-primary)',
+                          padding: '10px 14px',
+                          borderRadius: isMine ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                          fontSize: '0.88rem',
+                          lineHeight: '1.45',
+                          border: isMine ? 'none' : '1px solid var(--border-glass)',
+                          boxShadow: isMine ? '0 3px 10px rgba(183, 1, 22, 0.15)' : 'var(--shadow-sm)',
+                          wordBreak: 'break-word',
+                          whiteSpace: 'pre-wrap',
+                        }}
+                      >
+                        {msg.reply_to && (
+                          <div style={{
+                            backgroundColor: isMine ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 0, 0, 0.03)',
+                            borderLeft: `3px solid ${isMine ? 'rgba(255, 255, 255, 0.6)' : 'var(--accent-color)'}`,
+                            padding: '6px 10px',
+                            borderRadius: '8px 8px 4px 4px',
+                            fontSize: '0.75rem',
+                            color: isMine ? 'rgba(255, 255, 255, 0.85)' : 'var(--text-secondary)',
+                            marginBottom: '6px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '2px',
+                          }}>
+                            <div style={{ fontWeight: 700, fontSize: '0.7rem', color: isMine ? '#fff' : 'var(--accent-color)' }}>
+                              {(msg.reply_to as any)?.profile?.full_name || 'Kullanıcı'}
+                            </div>
+                            <div style={{ 
+                              textOverflow: 'ellipsis', 
+                              overflow: 'hidden', 
+                              whiteSpace: 'nowrap',
+                              opacity: 0.95 
+                            }}>
+                              {(msg.reply_to as any)?.content}
+                            </div>
+                          </div>
+                        )}
+
+                        <div>{msg.content}</div>
+
+                        {isMine && (
+                          <span style={{
+                            display: 'block',
+                            fontSize: '0.64rem',
+                            opacity: 0.65,
+                            marginTop: '4px',
+                            textAlign: 'right',
+                          }}>
+                            {formatTime(msg.created_at)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {/* Reply button */}
-                    <button
-                      onClick={() => setReplyTo(msg)}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '0.7rem',
-                        color: 'var(--text-muted)',
-                        padding: '2px 4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        float: isMine ? 'left' : 'right',
-                      }}
-                      title="Yanıtla"
-                    >
-                      <Reply size={12} /> Yanıtla
-                    </button>
+
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: isMine ? 'flex-end' : 'flex-start',
+                      width: '100%',
+                      marginTop: '2px', 
+                      padding: '0 4px' 
+                    }}>
+                      <button
+                        onClick={() => setReplyTo(msg)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: '0.72rem',
+                          color: 'var(--text-muted)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          padding: '3px 6px',
+                          borderRadius: '8px',
+                          transition: 'var(--transition-smooth)',
+                        }}
+                        onMouseEnter={(e) => { 
+                          e.currentTarget.style.color = 'var(--accent-color)'; 
+                          e.currentTarget.style.backgroundColor = 'rgba(183, 1, 22, 0.05)'; 
+                        }}
+                        onMouseLeave={(e) => { 
+                          e.currentTarget.style.color = 'var(--text-muted)'; 
+                          e.currentTarget.style.backgroundColor = 'transparent'; 
+                        }}
+                      >
+                        <Reply size={11} />
+                        <span>Yanıtla</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -328,73 +463,130 @@ export const MessagesScreen: React.FC = () => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Reply preview bar */}
       {replyTo && (
         <div style={{
-          backgroundColor: 'var(--bg-surface)',
-          borderTop: '1px solid var(--border-glass)',
-          padding: '8px 16px',
+          backgroundColor: 'var(--bg-surface-accent)',
+          padding: '10px 18px',
           display: 'flex',
           alignItems: 'center',
-          gap: '10px',
+          gap: '12px',
           borderLeft: '3px solid var(--accent-color)',
+          borderTop: '1px solid var(--border-glass)',
         }}>
-          <Reply size={14} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
-          <div style={{ flex: 1, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-            <strong>{replyTo.profile?.full_name || 'Kullanıcı'}</strong> mesajına yanıt:{' '}
-            {replyTo.content.slice(0, 60)}{replyTo.content.length > 60 ? '...' : ''}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '24px',
+            height: '24px',
+            borderRadius: '6px',
+            backgroundColor: 'rgba(183, 1, 22, 0.1)',
+            color: 'var(--accent-color)',
+            flexShrink: 0
+          }}>
+            <Reply size={12} />
           </div>
-          <button onClick={() => setReplyTo(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <X size={14} />
+          <div style={{ flex: 1, fontSize: '0.8rem', color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{replyTo.profile?.full_name || 'Kullanıcı'}</span>
+            <span style={{ margin: '0 4px', opacity: 0.5 }}>•</span>
+            <span style={{ opacity: 0.85 }}>{replyTo.content}</span>
+          </div>
+          <button 
+            onClick={() => setReplyTo(null)} 
+            style={{ 
+              background: 'rgba(0,0,0,0.05)', 
+              border: 'none', 
+              cursor: 'pointer', 
+              color: 'var(--text-muted)',
+              width: '22px',
+              height: '22px',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'var(--transition-smooth)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.1)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.05)'; }}
+          >
+            <X size={12} />
           </button>
         </div>
       )}
 
-      {/* Input area */}
       <div style={{
         backgroundColor: 'var(--bg-surface)',
-        padding: '12px 16px',
+        padding: '14px 16px',
         borderTop: replyTo ? 'none' : '1px solid var(--border-glass)',
         display: 'flex',
-        gap: '10px',
+        gap: '12px',
         alignItems: 'flex-end',
-        borderRadius: '0 0 var(--radius-lg) var(--radius-lg)',
+        borderRadius: '0 0 var(--radius-md) var(--radius-md)',
+        boxShadow: '0 -4px 12px rgba(0, 0, 0, 0.02)'
       }}>
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Mesaj yaz... (Enter = gönder, Shift+Enter = yeni satır)"
-          rows={1}
-          style={{
-            flex: 1,
-            resize: 'none',
-            backgroundColor: 'var(--bg-surface-accent)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '14px',
-            padding: '10px 16px',
-            fontSize: '0.88rem',
-            color: 'var(--text-primary)',
-            fontFamily: 'var(--font-family)',
-            outline: 'none',
-            maxHeight: '120px',
-            lineHeight: '1.5',
-          }}
-          onInput={e => {
-            const el = e.currentTarget;
-            el.style.height = 'auto';
-            el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-          }}
-        />
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: 'var(--bg-surface-accent)',
+          border: `1px solid ${isFocused ? 'var(--accent-color)' : 'var(--border-glass)'}`,
+          boxShadow: isFocused ? '0 0 0 3px rgba(183, 1, 22, 0.12)' : 'none',
+          borderRadius: '16px',
+          padding: '2px 8px 2px 14px',
+          transition: 'var(--transition-smooth)',
+        }}>
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder="Mesaj yazın... (Enter = gönder, Shift+Enter = yeni satır)"
+            rows={1}
+            style={{
+              flex: 1,
+              resize: 'none',
+              backgroundColor: 'transparent',
+              border: 'none',
+              padding: '10px 0',
+              fontSize: '0.88rem',
+              color: 'var(--text-primary)',
+              fontFamily: 'var(--font-family)',
+              outline: 'none',
+              maxHeight: '120px',
+              lineHeight: '1.5',
+            }}
+            onInput={e => {
+              const el = e.currentTarget;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+            }}
+          />
+        </div>
         <button
-          className="btn btn-primary"
           onClick={handleSend}
           disabled={!content.trim() || sending}
-          style={{ padding: '10px 16px', borderRadius: '12px', flexShrink: 0 }}
+          style={{ 
+            width: '42px', 
+            height: '42px', 
+            borderRadius: '50%', 
+            background: !content.trim() ? '#e2e8f0' : 'linear-gradient(135deg, var(--accent-color) 0%, #d81b24 100%)',
+            color: !content.trim() ? '#94a3b8' : 'white',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: !content.trim() ? 'not-allowed' : 'pointer',
+            boxShadow: !content.trim() ? 'none' : '0 4px 10px rgba(183, 1, 22, 0.2)',
+            transition: 'var(--transition-smooth)',
+            flexShrink: 0
+          }}
+          onMouseEnter={(e) => { if (content.trim()) e.currentTarget.style.transform = 'scale(1.05)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
           title="Gönder (Enter)"
         >
-          {sending ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
+          {sending ? <RefreshCw size={16} className="animate-spin" /> : <Send size={15} style={{ marginLeft: '2px' }} />}
         </button>
       </div>
     </div>

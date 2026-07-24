@@ -48,10 +48,10 @@ export const AppLayout: React.FC = () => {
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
 
   useEffect(() => {
-    if (!activeWorkspace?.id || !isMobileMenuOpen) return;
+    if (!activeWorkspace?.id) return;
     supabase
       .from('workspace_members')
-      .select('user_id, permission_role, profiles(full_name, avatar_url)')
+      .select('user_id, permission_role, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
       .eq('workspace_id', activeWorkspace.id)
       .then(({ data }) => {
         if (data) {
@@ -65,7 +65,7 @@ export const AppLayout: React.FC = () => {
           );
         }
       });
-  }, [activeWorkspace?.id, isMobileMenuOpen]);
+  }, [activeWorkspace?.id]);
   
   const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin') => {
     if (navigator.vibrate) navigator.vibrate(10);

@@ -75,7 +75,7 @@ export const WorkspaceSettingsModal: React.FC<Props> = ({
       setLoading(true);
       const { data } = await supabase
         .from('workspace_members')
-        .select('user_id, permission_role, profiles(full_name, avatar_url)')
+        .select('user_id, permission_role, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
         .eq('workspace_id', workspaceId);
 
       if (data) {
