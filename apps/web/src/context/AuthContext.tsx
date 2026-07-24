@@ -115,8 +115,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setWorkspaces(formatted);
 
       if (formatted.length > 0) {
+        // En son hangi ekip açıktı? localStorage'dan oku.
+        const savedId = localStorage.getItem('kh_active_ws');
+
         setActiveWorkspace((prev) => {
-          if (prev && formatted.some((w: any) => w.id === prev.id)) return prev;
+          // Mevcut seçim hâlâ geçerliyse koru (örn. kabul edilen davet sonrası)
+          if (prev?.id && formatted.some((w: any) => w.id === prev.id)) return prev;
+          // localStorage'da kayıtlı ekip varsa ve listede mevcutsa ona dön
+          if (savedId) {
+            const saved = formatted.find((w: any) => w.id === savedId);
+            if (saved) return saved;
+          }
+          // Yoksa listedeki ilke ekip
           return formatted[0];
         });
       } else {
@@ -256,6 +266,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logOut = async () => {
     setStatus('checking');
+    localStorage.removeItem('kh_active_ws');
     await supabase.auth.signOut();
     setStatus('unauthenticated');
   };
@@ -264,6 +275,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const ws = workspaces.find((w) => w.id === workspaceId);
     if (ws) {
       setActiveWorkspace(ws);
+      // Seçimi kaydet — yenileme / pull-to-refresh sonrası geri döner
+      localStorage.setItem('kh_active_ws', workspaceId);
       try {
         await supabase.rpc('set_current_user_active_workspace', { workspace_id: workspaceId });
       } catch (err) {
