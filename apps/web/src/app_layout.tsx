@@ -5,6 +5,7 @@ import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen'
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+import { NotificationBell } from './components/NotificationBell';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, 
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
@@ -261,6 +262,9 @@ export const AppLayout: React.FC = () => {
                 </span>
               )}
             </button>
+
+            {/* Notification Bell */}
+            <NotificationBell />
 
             {/* Theme Toggle Button */}
             <button 

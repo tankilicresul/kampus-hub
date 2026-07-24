@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -14,7 +15,9 @@ import {
   Upload,
   Save,
   Mail,
-  Building
+  Building,
+  Bell,
+  BellOff
 } from 'lucide-react';
 
 interface UserTask {
@@ -36,6 +39,7 @@ interface UserDailyUpdate {
 
 export const ProfileScreen: React.FC = () => {
   const { user, activeWorkspace, role, updateUserProfile } = useAuth();
+  const { pushSupported, pushEnabled, pushLoading, enablePush, disablePush } = useNotifications();
   
   const [fullName, setFullName] = useState<string>(() => {
     return user?.user_metadata?.full_name || user?.user_metadata?.name || '';
@@ -556,6 +560,91 @@ export const ProfileScreen: React.FC = () => {
                 <span>Parolayı Güncelle</span>
               </button>
             </form>
+          </div>
+
+          {/* Web Push Notifications Card */}
+          <div style={{
+            backgroundColor: 'var(--bg-surface)',
+            padding: '24px',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-glass)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+              <Bell size={18} style={{ color: 'var(--accent-color)' }} />
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>Anlık Bildirim Ayarları</h3>
+            </div>
+
+            {!pushSupported ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                  Tarayıcınız veya ortamınız anlık bildirimleri desteklemiyor (VAPID anahtarı eksik veya tarayıcı Push API desteği yok).
+                </p>
+                <div style={{
+                  padding: '10px 12px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.08)',
+                  border: '1px solid rgba(239, 68, 68, 0.15)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.75rem',
+                  color: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <AlertCircle size={14} />
+                  <span>Push API desteği bulunamadı veya VAPID yapılandırılmamış.</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
+                  Yeni bir görev atandığında, günlük rapor süresi yaklaştığında veya ekibe katılım daveti aldığınızda anlık tarayıcı bildirimleri alın.
+                </p>
+
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px',
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  borderRadius: 'var(--radius-md)',
+                  marginTop: '4px'
+                }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {pushEnabled ? 'Bildirimler Etkin' : 'Bildirimler Devre Dışı'}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      {pushEnabled ? 'Bu tarayıcıdan anlık mesaj alıyorsunuz' : 'İzin vererek bildirim almaya başlayın'}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`btn ${pushEnabled ? 'btn-secondary' : 'btn-primary'}`}
+                    disabled={pushLoading}
+                    onClick={pushEnabled ? disablePush : enablePush}
+                    style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    {pushLoading ? (
+                      <RefreshCw className="animate-spin" size={14} />
+                    ) : pushEnabled ? (
+                      <>
+                        <BellOff size={14} />
+                        <span>Kapat</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bell size={14} />
+                        <span>Etkinleştir</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
         </div>

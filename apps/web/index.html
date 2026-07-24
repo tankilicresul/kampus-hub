@@ -28,15 +28,39 @@
     <script type="module" src="/src/main.tsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
+        let swRegistration = null;
+
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').then((reg) => {
-            console.log('ServiceWorker registered with scope: ', reg.scope);
+            swRegistration = reg;
             reg.update();
+
+            // ── Yeni SW bulunduğunda güncelleme hazır bayrağı ─────────────
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (!newWorker) return;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Yeni versiyon var! Uygulamayı bilgilendir
+                  window.dispatchEvent(new CustomEvent('sw-update-available', {
+                    detail: { registration: reg }
+                  }));
+                }
+              });
+            });
           }).catch((err) => {
             console.error('ServiceWorker registration failed: ', err);
           });
         });
 
+        // ── İOS PWA için kritik: Sekme görünür olduğunda güncelleme kontrol et ─
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && swRegistration) {
+            swRegistration.update();
+          }
+        });
+
+        // ── Yeni SW kontrolü ele geçirdiğinde sayfayı yenile ─────────────────
         let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           if (!refreshing) {

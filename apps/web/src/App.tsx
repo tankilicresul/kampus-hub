@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { LoginScreen } from './features/auth/LoginScreen';
 import { AppLayout } from './app_layout';
 import { RefreshCw, ShieldAlert, LogOut } from 'lucide-react';
@@ -44,7 +45,9 @@ const NavigationContainer: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <NavigationContainer />
+      <NotificationProvider>
+        <NavigationContainer />
+      </NotificationProvider>
     </AuthProvider>
   );
 }
