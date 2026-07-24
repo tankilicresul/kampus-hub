@@ -36,7 +36,7 @@ export const CrmDashboardScreen: React.FC = () => {
   }, []);
 
   const loadBusinesses = async () => {
-    if (!activeWorkspace) return;
+    if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase

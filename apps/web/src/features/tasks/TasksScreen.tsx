@@ -31,7 +31,7 @@ export const TasksScreen: React.FC = () => {
   const [transitionReason, setTransitionReason] = useState('');
 
   const loadTasks = async () => {
-    if (!activeWorkspace) return;
+    if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase

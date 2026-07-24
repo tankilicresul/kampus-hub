@@ -6,7 +6,7 @@ import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { 
-  LogOut, Plus, CheckSquare, Calendar, BarChart4, FolderClosed, User, 
+  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, 
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
 } from 'lucide-react';
 
@@ -113,7 +113,11 @@ export const AppLayout: React.FC = () => {
       {/* Sidebar - Workspace switcher (Desktop only) */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <FolderClosed size={20} style={{ color: 'var(--accent-color)' }} />
+          <img 
+            src="/logo.svg" 
+            alt="Kampüs Hub Logo" 
+            style={{ width: '36px', height: '36px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+          />
           <span className="sidebar-logo">Kampüs Hub</span>
         </div>
         
@@ -169,9 +173,13 @@ export const AppLayout: React.FC = () => {
               <Menu size={20} />
             </button>
 
-            {/* App Folder Icon & Team Selector */}
+            {/* App Logo Brand */}
             <div className="app-bar-brand" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <FolderClosed size={20} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
+              <img 
+                src="/logo.svg" 
+                alt="Kampüs Hub" 
+                style={{ width: '28px', height: '28px', objectFit: 'contain', filter: 'brightness(0) invert(1)', flexShrink: 0 }} 
+              />
             </div>
             
             {/* Team Selector Dropdown (Quick select) */}
@@ -505,7 +513,11 @@ export const AppLayout: React.FC = () => {
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-glass)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <FolderClosed size={20} style={{ color: 'var(--accent-color)' }} />
+                <img 
+                  src="/logo.svg" 
+                  alt="Kampüs Hub" 
+                  style={{ width: '30px', height: '30px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+                />
                 <span className="sidebar-logo">Kampüs Hub</span>
               </div>
               <button 

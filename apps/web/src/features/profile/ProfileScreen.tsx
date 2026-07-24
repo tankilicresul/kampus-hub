@@ -74,7 +74,7 @@ export const ProfileScreen: React.FC = () => {
   }, [user]);
 
   const loadUserData = async () => {
-    if (!activeWorkspace || !user) return;
+    if (!activeWorkspace?.id || !user) return;
     setLoading(true);
     try {
       const { data: taskData } = await supabase

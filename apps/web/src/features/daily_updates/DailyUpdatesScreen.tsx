@@ -45,7 +45,7 @@ export const DailyUpdatesScreen: React.FC = () => {
   }, [showAddModal]);
 
   const loadUpdates = async () => {
-    if (!activeWorkspace) return;
+    if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
       const { data, error } = await supabase

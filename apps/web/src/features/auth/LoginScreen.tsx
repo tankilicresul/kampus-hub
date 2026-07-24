@@ -26,7 +26,7 @@ export const LoginScreen: React.FC = () => {
       {/* Brand Side Panel (Desktop) */}
       <div className="auth-brand-panel">
         <div className="brand-logo-large">
-          <img src="/logo.png" alt="Kampüs Hub Logo" />
+          <img src="/logo.svg" alt="Kampüs Hub Logo" style={{ filter: 'brightness(0) invert(1)' }} />
         </div>
         <div className="auth-brand-title">Kampüs Hub</div>
         <div className="auth-brand-desc">
@@ -40,7 +40,7 @@ export const LoginScreen: React.FC = () => {
           {/* Mobile-Only Header with Large Logo (Transparent Background) */}
           <div className="auth-mobile-brand">
             <div className="brand-logo-large mobile-logo">
-              <img src="/logo.png" alt="Kampüs Hub Logo" />
+              <img src="/logo.svg" alt="Kampüs Hub Logo" style={{ filter: 'brightness(0) invert(1)' }} />
             </div>
             <div className="auth-brand-title mobile-title">Kampüs Hub</div>
           </div>

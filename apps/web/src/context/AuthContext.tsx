@@ -109,12 +109,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data, error } = await supabase.rpc('list_current_user_workspaces');
       if (error) throw error;
 
-      const formatted = (data || []).map((w: any) => ({
-        id: w.id,
-        name: w.name,
-        slug: w.slug,
-        permissionRole: w.permission_role,
-      }));
+      const formatted = (data || [])
+        .map((w: any) => ({
+          id: w.id || w.workspace_id,      // handle both field names
+          name: w.name || w.workspace_name || 'Ekip',
+          slug: w.slug || '',
+          permissionRole: w.permission_role || 'member',
+        }))
+        .filter((w: any) => !!w.id);       // only keep entries with a valid id
       
       setWorkspaces(formatted);
 
