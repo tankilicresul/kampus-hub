@@ -6,8 +6,9 @@ import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
+import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
-  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
+  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown, Settings,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
 } from 'lucide-react';
 
@@ -28,6 +29,7 @@ export const AppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile'>('tasks');
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
+  const [showWsSettings, setShowWsSettings] = useState(false);
   const [forcePwaPromptOpen, setForcePwaPromptOpen] = useState(false);
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -604,7 +606,22 @@ export const AppLayout: React.FC = () => {
               {/* Ekip Üyeleri */}
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
-                <span style={{ fontWeight: 400, fontSize: '0.65rem', color: 'var(--accent-color)' }}>{activeWorkspace?.name}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontWeight: 400, fontSize: '0.65rem', color: 'var(--accent-color)' }}>{activeWorkspace?.name}</span>
+                  {activeWorkspace && (
+                    <button
+                      className="btn btn-secondary btn-icon-only"
+                      style={{ padding: '4px', borderRadius: '8px' }}
+                      title="Ekip Ayarları"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setShowWsSettings(true);
+                      }}
+                    >
+                      <Settings size={13} />
+                    </button>
+                  )}
+                </div>
               </div>
               {workspaceMembers.length === 0 && (
                 <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
@@ -859,6 +876,28 @@ export const AppLayout: React.FC = () => {
 
       {/* Native PWA Install Prompt Banner & Sheet Modal */}
       <PwaInstallPrompt forceOpen={forcePwaPromptOpen} onCloseForce={() => setForcePwaPromptOpen(false)} />
+
+      {/* Workspace Settings Modal */}
+      {showWsSettings && activeWorkspace && user && (
+        <WorkspaceSettingsModal
+          workspaceId={activeWorkspace.id}
+          workspaceName={activeWorkspace.name}
+          currentUserId={user.id}
+          onClose={() => setShowWsSettings(false)}
+          onWorkspaceUpdated={(newName) => {
+            // AuthContext'teki workspace adını güncelle
+            selectWorkspace(activeWorkspace.id);
+            setShowWsSettings(false);
+          }}
+          onWorkspaceLeft={() => {
+            setShowWsSettings(false);
+            // Başka bir workspace'e geç veya sayfayı yenile
+            const otherWs = workspaces.find((w) => w.id !== activeWorkspace.id);
+            if (otherWs) selectWorkspace(otherWs.id);
+            else window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 };
