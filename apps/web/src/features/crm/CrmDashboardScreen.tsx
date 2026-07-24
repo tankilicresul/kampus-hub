@@ -475,16 +475,16 @@ export const CrmDashboardScreen: React.FC = () => {
       </div>
 
       {/* Control bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)', padding: '12px 16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', flexWrap: 'wrap', gap: '10px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: '140px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '10px', top: '11px', color: 'var(--text-muted)' }} />
+          <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
           <input
             type="text"
             placeholder="İşletme ara..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="form-input"
-            style={{ paddingLeft: '34px', fontSize: '0.85rem' }}
+            style={{ paddingLeft: '44px' }}
           />
         </div>
         <button className="btn btn-primary" onClick={() => { setFormError(null); setShowAddModal(true); }}>

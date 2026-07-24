@@ -258,7 +258,7 @@ export const DailyUpdatesScreen: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
       {/* Header */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '14px 16px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
         <div>
           <h2 style={{ fontWeight: 800, fontSize: '1.1rem' }}>Günlük Raporlar</h2>
           <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Ekibin günlük çalışma özetleri</p>

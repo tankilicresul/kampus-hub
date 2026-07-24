@@ -139,10 +139,10 @@ export const MessagesScreen: React.FC = () => {
       {/* Header */}
       <div style={{
         backgroundColor: 'var(--bg-surface)',
-        padding: '14px 20px',
+        padding: '16px 20px',
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-glass)',
-        marginBottom: '12px',
+        marginBottom: '16px',
         display: 'flex',
         alignItems: 'center',
         gap: '10px',
