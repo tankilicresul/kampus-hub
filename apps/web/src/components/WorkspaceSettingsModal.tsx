@@ -11,7 +11,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../context/AuthContext';
-import { X, Save, Trash2, LogOut, Crown, Shield, User, ChevronDown, AlertTriangle, Check } from 'lucide-react';
+import { X, Save, Trash2, LogOut, Crown, ChevronDown, AlertTriangle, Check } from 'lucide-react';
 
 interface Member {
   user_id: string;

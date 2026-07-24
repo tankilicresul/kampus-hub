@@ -884,7 +884,7 @@ export const AppLayout: React.FC = () => {
           workspaceName={activeWorkspace.name}
           currentUserId={user.id}
           onClose={() => setShowWsSettings(false)}
-          onWorkspaceUpdated={(newName) => {
+          onWorkspaceUpdated={(_newName) => {
             // AuthContext'teki workspace adını güncelle
             selectWorkspace(activeWorkspace.id);
             setShowWsSettings(false);
