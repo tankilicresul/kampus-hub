@@ -211,10 +211,10 @@ export const ProfileScreen: React.FC = () => {
   const completedTasksCount = tasks.filter((t) => t.status === 'completed').length;
 
   const priorityLabels: Record<string, string> = {
-    critical: 'Kritik',
-    high: 'Yüksek',
+    critical: 'Acil',
+    high: 'Önemli',
     normal: 'Normal',
-    low: 'Düşük',
+    low: 'Acil Değil',
   };
 
   const statusLabels: Record<string, { title: string; color: string }> = {

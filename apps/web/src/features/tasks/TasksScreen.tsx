@@ -131,10 +131,10 @@ export const TasksScreen: React.FC = () => {
   });
 
   const priorityLabels: Record<string, string> = {
-    critical: 'Kritik',
-    high: 'Yüksek',
+    critical: 'Acil',
+    high: 'Önemli',
     normal: 'Normal',
-    low: 'Düşük',
+    low: 'Acil Değil',
   };
 
   const columns = [
@@ -324,10 +324,10 @@ export const TasksScreen: React.FC = () => {
                   onChange={(e) => setNewPriority(e.target.value as any)}
                   className="form-input"
                 >
-                  <option value="critical">Kritik (Acil)</option>
-                  <option value="high">Yüksek</option>
+                  <option value="critical">Acil</option>
+                  <option value="high">Önemli</option>
                   <option value="normal">Normal</option>
-                  <option value="low">Düşük</option>
+                  <option value="low">Acil Değil</option>
                 </select>
               </div>
               <div className="modal-footer">
