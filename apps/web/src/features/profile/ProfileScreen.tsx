@@ -16,7 +16,7 @@ import {
   Mail,
   Building,
   Bell,
-  BellOff
+  X
 } from 'lucide-react';
 
 interface UserTask {
@@ -70,7 +70,8 @@ export const ProfileScreen: React.FC = () => {
   const [tasks, setTasks] = useState<UserTask[]>([]);
   const [dailyUpdates, setDailyUpdates] = useState<UserDailyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_updates' | 'settings'>('settings');
+  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_updates'>('my_tasks');
+  const [showEditModal, setShowEditModal] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -381,7 +382,7 @@ export const ProfileScreen: React.FC = () => {
 
           <button 
             className="btn btn-secondary" 
-            onClick={() => setActiveSubTab('settings')}
+            onClick={() => setShowEditModal(true)}
             style={{ fontSize: '0.82rem', padding: '8px 14px' }}
           >
             <UserIcon size={15} />
@@ -462,263 +463,6 @@ export const ProfileScreen: React.FC = () => {
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
           <RefreshCw className="animate-spin" size={32} style={{ color: 'var(--accent-color)' }} />
-        </div>
-      ) : activeSubTab === 'settings' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
-          
-          {/* Profile Name & Meta Settings Form */}
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            padding: '24px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-glass)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
-              <UserIcon size={18} style={{ color: 'var(--accent-color)' }} />
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>Profil Bilgilerini Düzenle</h3>
-            </div>
-
-            {nameFeedback && (
-              <div className={`alert ${nameFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                backgroundColor: nameFeedback.success ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-                color: nameFeedback.success ? '#10b981' : '#ef4444',
-              }}>
-                {nameFeedback.message}
-              </div>
-            )}
-
-            <form onSubmit={handleSaveName} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="form-group">
-                <label className="form-label">Ad Soyad</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Örn: Ahmet Yılmaz"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">E-posta (Salt Okunur)</label>
-                <input
-                  type="email"
-                  disabled
-                  value={user?.email || ''}
-                  className="form-input"
-                  style={{ opacity: 0.7, cursor: 'not-allowed' }}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Rolünüz</label>
-                <input
-                  type="text"
-                  disabled
-                  value={userRoleDisplay}
-                  className="form-input"
-                  style={{ opacity: 0.7, cursor: 'not-allowed' }}
-                />
-              </div>
-
-              <button type="submit" className="btn btn-primary" disabled={isSavingName} style={{ marginTop: '8px' }}>
-                {isSavingName ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                <span>Ad Soyadı Kaydet</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Password Security Form */}
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            padding: '24px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-glass)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
-              <Lock size={18} style={{ color: 'var(--accent-color)' }} />
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>Parola Yenile</h3>
-            </div>
-
-            {passwordFeedback && (
-              <div className={`alert ${passwordFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                backgroundColor: passwordFeedback.success ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-                color: passwordFeedback.success ? '#10b981' : '#ef4444',
-              }}>
-                {passwordFeedback.message}
-              </div>
-            )}
-
-            <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="form-group">
-                <label className="form-label">Yeni Parola</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="En az 6 karakter"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Yeni Parola (Tekrar)</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Parolanızı tekrar girin"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="form-input"
-                />
-              </div>
-
-              <button type="submit" className="btn btn-secondary" disabled={isUpdatingPassword} style={{ marginTop: '8px' }}>
-                {isUpdatingPassword ? <RefreshCw className="animate-spin" size={16} /> : <Lock size={16} />}
-                <span>Parolayı Güncelle</span>
-              </button>
-            </form>
-          </div>
-
-          {/* Web Push & Quiet Hours Notifications Card */}
-          <div style={{
-            backgroundColor: 'var(--bg-surface)',
-            padding: '24px',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border-glass)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '16px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
-              <Bell size={18} style={{ color: 'var(--accent-color)' }} />
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-primary)' }}>Bildirim ve Sessiz Saat Ayarları</h3>
-            </div>
-
-            {settingsFeedback && (
-              <div className={`alert ${settingsFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
-                padding: '10px 14px',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                backgroundColor: settingsFeedback.success ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)',
-                color: settingsFeedback.success ? '#10b981' : '#ef4444',
-              }}>
-                {settingsFeedback.message}
-              </div>
-            )}
-
-            {/* Quiet Hours Form */}
-            <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>Bildirimleri Etkinleştir</span>
-                <input 
-                  type="checkbox" 
-                  checked={notifsEnabled} 
-                  onChange={(e) => setNotifsEnabled(e.target.checked)} 
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label">Sessizlik Başlangıç</label>
-                  <select 
-                    value={quietStart} 
-                    onChange={(e) => setQuietStart(parseInt(e.target.value))}
-                    className="form-input"
-                    disabled={!notifsEnabled}
-                  >
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Sessizlik Bitiş</label>
-                  <select 
-                    value={quietEnd} 
-                    onChange={(e) => setQuietEnd(parseInt(e.target.value))}
-                    className="form-input"
-                    disabled={!notifsEnabled}
-                  >
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <button type="submit" className="btn btn-primary" disabled={savingSettings} style={{ marginTop: '4px' }}>
-                {savingSettings ? <RefreshCw className="animate-spin" size={16} /> : <Save size={16} />}
-                <span>Ayarları Kaydet</span>
-              </button>
-            </form>
-
-            <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '4px 0' }} />
-
-            {/* Web Push */}
-            {!pushSupported ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                  Tarayıcınız anlık bildirimleri desteklemiyor.
-                </p>
-              </div>
-            ) : (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px',
-                backgroundColor: 'var(--bg-surface-accent)',
-                borderRadius: 'var(--radius-md)',
-              }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                    {pushEnabled ? 'Push Bildirimleri Etkin' : 'Push Bildirimleri Devre Dışı'}
-                  </span>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                    Tarayıcı izin durumu
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  className={`btn ${pushEnabled ? 'btn-secondary' : 'btn-primary'}`}
-                  disabled={pushLoading}
-                  onClick={pushEnabled ? disablePush : enablePush}
-                  style={{ fontSize: '0.8rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  {pushLoading ? (
-                    <RefreshCw className="animate-spin" size={14} />
-                  ) : pushEnabled ? (
-                    <>
-                      <BellOff size={14} />
-                      <span>Kapat</span>
-                    </>
-                  ) : (
-                    <>
-                      <Bell size={14} />
-                      <span>Etkinleştir</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       ) : activeSubTab === 'my_tasks' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -818,6 +562,258 @@ export const ProfileScreen: React.FC = () => {
               </div>
             ))
           )}
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
+          <div 
+            className="modal-content" 
+            style={{ maxWidth: '640px', width: '96%', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800 }}>Profili Düzenle</span>
+              <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+              {/* Profile Name & Meta Settings Form */}
+              <div style={{
+                backgroundColor: 'var(--bg-surface-accent)',
+                padding: '20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-glass)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>
+                  <UserIcon size={16} style={{ color: 'var(--accent-color)' }} />
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Profil Bilgilerini Düzenle</h4>
+                </div>
+
+                {nameFeedback && (
+                  <div className={`alert ${nameFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    backgroundColor: nameFeedback.success ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                    color: nameFeedback.success ? '#10b981' : '#ef4444',
+                  }}>
+                    {nameFeedback.message}
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveName} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Ad Soyad</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ad Soyad..."
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="form-input"
+                      style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">E-posta (Salt Okunur)</label>
+                    <input
+                      type="email"
+                      disabled
+                      value={user?.email || ''}
+                      className="form-input"
+                      style={{ opacity: 0.7, cursor: 'not-allowed', padding: '8px 12px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Rolünüz</label>
+                    <input
+                      type="text"
+                      disabled
+                      value={userRoleDisplay}
+                      className="form-input"
+                      style={{ opacity: 0.7, cursor: 'not-allowed', padding: '8px 12px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={isSavingName} style={{ padding: '8px 14px', fontSize: '0.82rem', marginTop: '4px' }}>
+                    {isSavingName ? <RefreshCw className="animate-spin" size={14} /> : <Save size={14} />}
+                    <span>Bilgileri Kaydet</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Password Security Form */}
+              <div style={{
+                backgroundColor: 'var(--bg-surface-accent)',
+                padding: '20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-glass)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>
+                  <Lock size={16} style={{ color: 'var(--accent-color)' }} />
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Parolayı Yenile</h4>
+                </div>
+
+                {passwordFeedback && (
+                  <div className={`alert ${passwordFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    backgroundColor: passwordFeedback.success ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                    color: passwordFeedback.success ? '#10b981' : '#ef4444',
+                  }}>
+                    {passwordFeedback.message}
+                  </div>
+                )}
+
+                <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div className="form-group">
+                    <label className="form-label">Yeni Parola</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Yeni parola girin..."
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      className="form-input"
+                      style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Parola Tekrar</label>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Yeniden girin..."
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="form-input"
+                      style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-secondary" disabled={isUpdatingPassword} style={{ padding: '8px 14px', fontSize: '0.82rem', marginTop: '4px' }}>
+                    {isUpdatingPassword ? <RefreshCw className="animate-spin" size={14} /> : <Lock size={14} />}
+                    <span>Parolayı Güncelle</span>
+                  </button>
+                </form>
+              </div>
+
+              {/* Web Push & Quiet Hours Notifications Card */}
+              <div style={{
+                backgroundColor: 'var(--bg-surface-accent)',
+                padding: '20px',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-glass)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '8px' }}>
+                  <Bell size={16} style={{ color: 'var(--accent-color)' }} />
+                  <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>Bildirim ve Sessiz Saat Ayarları</h4>
+                </div>
+
+                {settingsFeedback && (
+                  <div className={`alert ${settingsFeedback.success ? 'alert-success' : 'alert-danger'}`} style={{
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    fontSize: '0.8rem',
+                    backgroundColor: settingsFeedback.success ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                    color: settingsFeedback.success ? '#10b981' : '#ef4444',
+                  }}>
+                    {settingsFeedback.message}
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>Bildirimleri Etkinleştir</span>
+                    <input 
+                      type="checkbox" 
+                      checked={notifsEnabled} 
+                      onChange={(e) => setNotifsEnabled(e.target.checked)} 
+                      style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Başlangıç</label>
+                      <select 
+                        value={quietStart} 
+                        onChange={(e) => setQuietStart(parseInt(e.target.value))}
+                        className="form-input"
+                        disabled={!notifsEnabled}
+                        style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                      >
+                        {Array.from({ length: 24 }).map((_, i) => (
+                          <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.75rem' }}>Bitiş</label>
+                      <select 
+                        value={quietEnd} 
+                        onChange={(e) => setQuietEnd(parseInt(e.target.value))}
+                        className="form-input"
+                        disabled={!notifsEnabled}
+                        style={{ padding: '6px 10px', fontSize: '0.8rem' }}
+                      >
+                        {Array.from({ length: 24 }).map((_, i) => (
+                          <option key={i} value={i}>{String(i).padStart(2, '0')}:00</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="btn btn-primary" disabled={savingSettings} style={{ padding: '8px 14px', fontSize: '0.82rem', marginTop: '4px' }}>
+                    {savingSettings ? <RefreshCw className="animate-spin" size={14} /> : <Save size={14} />}
+                    <span>Ayarları Kaydet</span>
+                  </button>
+                </form>
+
+                <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '4px 0' }} />
+
+                {!pushSupported ? (
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>Tarayıcınız anlık bildirimleri desteklemiyor.</p>
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 10px',
+                    backgroundColor: 'var(--bg-surface)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px solid var(--border-glass)',
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>Push Bildirimler</span>
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>{pushEnabled ? 'Etkin' : 'Pasif'}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className={`btn ${pushEnabled ? 'btn-secondary' : 'btn-primary'}`}
+                      disabled={pushLoading}
+                      onClick={pushEnabled ? disablePush : enablePush}
+                      style={{ fontSize: '0.75rem', padding: '4px 8px' }}
+                    >
+                      {pushEnabled ? 'Kapat' : 'Aç'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
