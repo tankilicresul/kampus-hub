@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
   Search, Plus, List, Kanban, RefreshCw, AlertCircle, X,
-  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock,
+  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, ChevronRight
 } from 'lucide-react';
 import {
   DndContext,
@@ -203,6 +203,117 @@ const TaskDetailModal: React.FC<{
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'comments' | 'attachments'>('comments');
 
+  // Subtasks (Pipeline Stages) State
+  const [subtasks, setSubtasks] = useState<any[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+
+  const loadSubtasks = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('subtasks')
+        .select('*')
+        .eq('task_id', task.id)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      setSubtasks(data || []);
+    } catch (err) {
+      console.error('Fetch subtasks failed:', err);
+    }
+  }, [task.id]);
+
+  useEffect(() => {
+    loadSubtasks();
+  }, [loadSubtasks]);
+
+  const cycleSubtaskStatus = async (subtask: any) => {
+    let nextStatus = 'todo';
+    if (subtask.status === 'todo') nextStatus = 'doing';
+    else if (subtask.status === 'doing') nextStatus = 'done';
+
+    const isCompleted = nextStatus === 'done';
+
+    try {
+      const { error } = await supabase
+        .from('subtasks')
+        .update({ status: nextStatus, is_completed: isCompleted, updated_at: new Date().toISOString() })
+        .eq('id', subtask.id);
+      if (error) throw error;
+      loadSubtasks();
+    } catch (err) {
+      console.error('Update subtask failed:', err);
+    }
+  };
+
+  const handleAddSubtask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newSubtaskTitle.trim()) return;
+    try {
+      const { error } = await supabase
+        .from('subtasks')
+        .insert({
+          task_id: task.id,
+          title: newSubtaskTitle.trim(),
+          status: 'todo',
+          is_completed: false
+        });
+      if (error) throw error;
+      setNewSubtaskTitle('');
+      loadSubtasks();
+    } catch (err) {
+      console.error('Add subtask failed:', err);
+    }
+  };
+
+  const handleDeleteSubtask = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('subtasks')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      loadSubtasks();
+    } catch (err) {
+      console.error('Delete subtask failed:', err);
+    }
+  };
+
+  const handleLoadTemplate = async () => {
+    const templates = [
+      "İşletmeler ile görüşebilmek için okullardan tanıdık bulunması",
+      "Görüşmeye gitmek için bir gün belirlenmesi",
+      "Tanıdık varsa okula gidip işletme ile görüşülmesi",
+      "İşletmenin teklifi onaylayıp onaylamaması",
+      "Teklif onaylanırsa yemek menülerinin alınması",
+      "Kampüs kapında sisteminin kurulması",
+      "Çekim yapılması için içerik fikri belirlenmesi",
+      "İçerik için uygun ekip ve zaman bulunması",
+      "Çekime gidilip çekim yapılması",
+      "Çekimlerin editöre aktarılması",
+      "Çekimlerin editlenmesi",
+      "Paylaşım günü belirlenmesi",
+      "Paylaşım için ücret belirlenmesi",
+      "Paylaşılması ve sürecin bitmesi"
+    ];
+
+    try {
+      const rows = templates.map((title) => ({
+        task_id: task.id,
+        title,
+        status: 'todo',
+        is_completed: false
+      }));
+
+      const { error } = await supabase
+        .from('subtasks')
+        .insert(rows);
+
+      if (error) throw error;
+      loadSubtasks();
+    } catch (err) {
+      console.error('Load template failed:', err);
+    }
+  };
+
   const loadComments = useCallback(async () => {
     const { data } = await supabase
       .from('task_comments')
@@ -287,6 +398,171 @@ const TaskDetailModal: React.FC<{
               ))}
             </div>
           )}
+
+          {/* Aşamalar Yılanı (Snake Pipeline) */}
+          <div style={{ marginTop: '4px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                🐍 Görev Süreç Aşamaları (Durum Değişimi İçin Tıklayın)
+              </span>
+              {subtasks.length === 0 && (
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  onClick={handleLoadTemplate}
+                  style={{ padding: '3px 8px', fontSize: '0.7rem' }}
+                >
+                  ✨ Pazarlama Şablonu Yükle
+                </button>
+              )}
+            </div>
+
+            {subtasks.length === 0 ? (
+              <div style={{
+                backgroundColor: 'var(--bg-surface-accent)',
+                padding: '12px',
+                borderRadius: 'var(--radius-md)',
+                textAlign: 'center',
+                fontSize: '0.78rem',
+                color: 'var(--text-muted)',
+                border: '1px dashed var(--border-glass)'
+              }}>
+                Aşama eklenmemiş. Aşağıdan ekleyin veya örnek pazarlama şablonunu yükleyin.
+              </div>
+            ) : (
+              <div className="snake-container" style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                overflowX: 'auto',
+                padding: '10px 4px',
+                backgroundColor: 'var(--bg-surface-accent)',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-glass)',
+                scrollbarWidth: 'thin'
+              }}>
+                {subtasks.map((st, idx) => {
+                  let badgeColor = '#ef4444'; // todo (red)
+                  let bgColor = 'rgba(239, 68, 68, 0.06)';
+                  let borderColor = 'rgba(239, 68, 68, 0.3)';
+                  let statusText = 'Yapılmadı';
+
+                  if (st.status === 'doing') {
+                    badgeColor = '#f59e0b'; // doing (yellow)
+                    bgColor = 'rgba(245, 158, 11, 0.06)';
+                    borderColor = 'rgba(245, 158, 11, 0.3)';
+                    statusText = 'Yapılıyor';
+                  } else if (st.status === 'done') {
+                    badgeColor = '#10b981'; // done (green)
+                    bgColor = 'rgba(16, 185, 129, 0.06)';
+                    borderColor = 'rgba(16, 185, 129, 0.3)';
+                    statusText = 'Yapıldı';
+                  }
+
+                  return (
+                    <React.Fragment key={st.id}>
+                      {/* Step Box */}
+                      <div 
+                        onClick={() => cycleSubtaskStatus(st)}
+                        style={{
+                          flex: '0 0 145px',
+                          backgroundColor: bgColor,
+                          border: `2px solid ${borderColor}`,
+                          borderRadius: '10px',
+                          padding: '8px 10px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          height: '82px',
+                          position: 'relative',
+                          transition: 'all 0.2s ease',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}
+                        title="Durumu değiştirmek için tıkla (Yapılmadı -> Yapılıyor -> Yapıldı)"
+                      >
+                        {/* Title */}
+                        <div style={{
+                          fontSize: '0.74rem',
+                          fontWeight: 600,
+                          color: 'var(--text-primary)',
+                          lineHeight: '1.25',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: 'vertical',
+                          marginBottom: '2px'
+                        }}>
+                          {st.title}
+                        </div>
+
+                        {/* Status / Delete row */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{
+                            fontSize: '0.62rem',
+                            fontWeight: 700,
+                            color: badgeColor,
+                            backgroundColor: 'var(--bg-surface)',
+                            padding: '1px 5px',
+                            borderRadius: '8px',
+                            border: `1px solid ${borderColor}`
+                          }}>
+                            {statusText}
+                          </span>
+                          
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteSubtask(st.id); }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              color: 'var(--text-muted)',
+                              cursor: 'pointer',
+                              padding: '2px',
+                              fontSize: '0.75rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            title="Aşamayı sil"
+                          >
+                            <X size={11} />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Arrow between boxes */}
+                      {idx < subtasks.length - 1 && (
+                        <div style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                          <ChevronRight size={16} />
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add new subtask input form */}
+            <form onSubmit={handleAddSubtask} style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Yeni aşama ekle..."
+                value={newSubtaskTitle}
+                onChange={e => setNewSubtaskTitle(e.target.value)}
+                style={{ fontSize: '0.78rem', padding: '5px 10px', height: '32px' }}
+              />
+              <button 
+                type="submit" 
+                className="btn btn-primary"
+                style={{ padding: '0 12px', fontSize: '0.78rem', height: '32px', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                <Plus size={12} /> Ekle
+              </button>
+            </form>
+          </div>
 
           {/* Sub-tabs */}
           <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0' }}>
