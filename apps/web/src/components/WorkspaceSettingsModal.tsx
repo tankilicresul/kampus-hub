@@ -62,6 +62,8 @@ export const WorkspaceSettingsModal: React.FC<Props> = ({
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null); // user_id
   const [changingRole, setChangingRole] = useState<string | null>(null); // user_id
   const [transferTarget, setTransferTarget] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleteNameInput, setDeleteNameInput] = useState('');
 
   const myMember = members.find((m) => m.user_id === currentUserId);
   const isOwner = myMember?.permission_role === 'owner';
@@ -184,6 +186,22 @@ export const WorkspaceSettingsModal: React.FC<Props> = ({
       setConfirmLeave(false);
     } else {
       onWorkspaceLeft();
+    }
+  };
+
+  // ── Ekibi Sil ──────────────────────────────────────────────────────────────
+  const handleDeleteWorkspace = async () => {
+    if (deleteNameInput.trim() !== workspaceName) {
+      showFeedback('error', 'Ekip adı eşleşmiyor. Silme iptal edildi.');
+      return;
+    }
+    const { error } = await supabase.rpc('delete_workspace_as_owner', {
+      p_workspace_id: workspaceId,
+    });
+    if (error) {
+      showFeedback('error', 'Ekip silinemedi: ' + error.message);
+    } else {
+      onWorkspaceLeft(); // parent: başka workspace'e geç veya reload
     }
   };
 
@@ -515,6 +533,78 @@ export const WorkspaceSettingsModal: React.FC<Props> = ({
                 Ekipten Ayrıl
               </button>
             )
+          )}
+
+          {/* ⚠️ EKİBİ SİL — sadece owner için */}
+          {isOwner && (
+            <div
+              style={{
+                marginTop: '4px',
+                padding: '14px',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(239,68,68,0.07)',
+                border: '1px solid rgba(239,68,68,0.3)',
+              }}
+            >
+              {!confirmDelete ? (
+                <button
+                  className="btn btn-secondary btn-block"
+                  style={{ justifyContent: 'flex-start', gap: '10px', color: '#ef4444', border: '1px solid rgba(239,68,68,0.4)' }}
+                  onClick={() => { setConfirmDelete(true); setDeleteNameInput(''); }}
+                >
+                  <span style={{ fontSize: '1rem' }}>🗑️</span>
+                  Ekibi Kalıcı Olarak Sil
+                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#ef4444' }}>
+                    ⚠️ Bu işlem geri alınamaz!
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                    Tüm görevler, üyeler ve veriler kalıcı olarak silinir.
+                    Onayla mak için ekip adını yaz:
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)', background: 'var(--bg-surface-accent)', padding: '6px 10px', borderRadius: 'var(--radius-sm)', fontFamily: 'monospace' }}>
+                    {workspaceName}
+                  </div>
+                  <input
+                    className="form-input"
+                    placeholder="Ekip adını buraya yaz..."
+                    value={deleteNameInput}
+                    onChange={(e) => setDeleteNameInput(e.target.value)}
+                    autoFocus
+                    style={{ borderColor: deleteNameInput === workspaceName ? '#10b981' : undefined }}
+                  />
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      className="btn"
+                      style={{
+                        padding: '8px 18px',
+                        background: deleteNameInput === workspaceName ? '#ef4444' : '#9ca3af',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: deleteNameInput === workspaceName ? 'pointer' : 'not-allowed',
+                        fontWeight: 700,
+                        fontSize: '0.83rem',
+                        flex: 1,
+                      }}
+                      onClick={handleDeleteWorkspace}
+                      disabled={deleteNameInput !== workspaceName}
+                    >
+                      Kalıcı Olarak Sil
+                    </button>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: '8px 14px', fontSize: '0.83rem' }}
+                      onClick={() => { setConfirmDelete(false); setDeleteNameInput(''); }}
+                    >
+                      İptal
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
