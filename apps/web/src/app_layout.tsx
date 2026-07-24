@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './context/AuthContext';
+import { useAuth, supabase } from './context/AuthContext';
 import { TasksScreen } from './features/tasks/TasksScreen';
 import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen';
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
@@ -7,7 +7,7 @@ import { ProfileScreen } from './features/profile/ProfileScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { 
-  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, 
+  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
 } from 'lucide-react';
 
@@ -31,6 +31,35 @@ export const AppLayout: React.FC = () => {
   const [forcePwaPromptOpen, setForcePwaPromptOpen] = useState(false);
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Workspace members for drawer
+  interface WorkspaceMember {
+    user_id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    permission_role: string | null;
+  }
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+
+  useEffect(() => {
+    if (!activeWorkspace?.id || !isMobileMenuOpen) return;
+    supabase
+      .from('workspace_members')
+      .select('user_id, permission_role, profiles(full_name, avatar_url)')
+      .eq('workspace_id', activeWorkspace.id)
+      .then(({ data }) => {
+        if (data) {
+          setWorkspaceMembers(
+            data.map((m: any) => ({
+              user_id: m.user_id,
+              full_name: m.profiles?.full_name || null,
+              avatar_url: m.profiles?.avatar_url || null,
+              permission_role: m.permission_role || null,
+            }))
+          );
+        }
+      });
+  }, [activeWorkspace?.id, isMobileMenuOpen]);
   
   const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile') => {
     if (navigator.vibrate) navigator.vibrate(10);
@@ -161,10 +190,11 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Panel */}
       <div className="main-content">
-        {/* App Bar */}
-        <div className="app-bar">
-          <div className="app-bar-left" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            {/* Mobile Hamburger Drawer Trigger */}
+        {/* App Bar — 3-kolon: sol(hamburger) | orta(ekip seçici) | sağ(bildirim+desktop actions) */}
+        <div className="app-bar" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+          {/* SOL — hamburger */}
+          <div style={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
             <button 
               className="btn btn-secondary mobile-menu-toggle"
               onClick={() => setIsMobileMenuOpen(true)}
@@ -173,100 +203,94 @@ export const AppLayout: React.FC = () => {
             >
               <Menu size={20} />
             </button>
-
-            {/* App Logo Brand */}
-            <div className="app-bar-brand" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <img 
-                src="/logo.svg" 
-                alt="Kampüs Hub" 
-                style={{ width: '28px', height: '28px', objectFit: 'contain', filter: 'brightness(0) invert(1)', flexShrink: 0 }} 
-              />
-            </div>
-            
-            {/* Team Selector Dropdown (Quick select) */}
-            <div className="mobile-workspace-selector" style={{ marginLeft: '4px' }}>
-              <select 
-                value={activeWorkspace?.id || '__none__'} 
-                onChange={(e) => {
-                  if (e.target.value === '__add_new_workspace__') {
-                    setShowWorkspaceModal(true);
-                  } else if (e.target.value === '__invite_team__') {
-                    setShowTeamModal(true);
-                  } else if (e.target.value !== '__none__') {
-                    selectWorkspace(e.target.value);
-                  }
-                }}
-                className="form-input"
-                style={{ 
-                  padding: '5px 10px', 
-                  fontSize: '0.8rem', 
-                  maxWidth: '140px', 
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--bg-surface-accent)',
-                  border: '1px solid var(--border-glass)',
-                  color: 'var(--text-primary)',
-                  fontWeight: 600
-                }}
-              >
-                {!activeWorkspace && <option value="__none__">Ekip Seçilmedi</option>}
-                {workspaces.map((ws) => (
-                  <option key={ws.id} value={ws.id}>{ws.name}</option>
-                ))}
-                <option value="__invite_team__">+ Üye Davet</option>
-                <option value="__add_new_workspace__">+ Yeni Ekip</option>
-              </select>
-            </div>
           </div>
-          
-          <div className="app-bar-actions">
-            {/* PWA Install Button */}
+
+          {/* ORTA — workspace selector (absolute center) */}
+          <div style={{ 
+            position: 'absolute', 
+            left: '50%', 
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+            <select 
+              value={activeWorkspace?.id || '__none__'} 
+              onChange={(e) => {
+                if (e.target.value === '__add_new_workspace__') {
+                  setShowWorkspaceModal(true);
+                } else if (e.target.value === '__invite_team__') {
+                  setShowTeamModal(true);
+                } else if (e.target.value !== '__none__') {
+                  selectWorkspace(e.target.value);
+                }
+              }}
+              className="form-input"
+              style={{ 
+                padding: '6px 12px', 
+                fontSize: '0.85rem', 
+                maxWidth: '160px', 
+                borderRadius: '14px',
+                backgroundColor: 'var(--bg-surface-accent)',
+                border: '1px solid var(--border-glass)',
+                color: 'var(--text-primary)',
+                fontWeight: 700,
+                textAlign: 'center',
+              }}
+            >
+              {!activeWorkspace && <option value="__none__">Ekip Seçilmedi</option>}
+              {workspaces.map((ws) => (
+                <option key={ws.id} value={ws.id}>{ws.name}</option>
+              ))}
+              <option value="__invite_team__">+ Üye Davet</option>
+              <option value="__add_new_workspace__">+ Yeni Ekip</option>
+            </select>
+          </div>
+
+          {/* SAĞ — mobilde: sadece bildirim zili (davet sayısı dahil). Masaüstünde ekstra düğmeler */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: '0 0 auto' }}>
+            {/* Davet + Bildirim zili (mobil+masaüstü) */}
+            <div style={{ position: 'relative' }}>
+              <NotificationBell />
+              {/* Davet rozeti zil üzerinde */}
+              {pendingInvitations.length > 0 && (
+                <span
+                  onClick={() => setShowTeamModal(true)}
+                  style={{
+                    position: 'absolute',
+                    top: '-2px',
+                    right: '-2px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.6rem',
+                    fontWeight: 800,
+                    borderRadius: '50%',
+                    width: '16px',
+                    height: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid var(--bg-surface)',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    animation: 'pulse-badge 1.5s infinite',
+                  }}
+                  title={`${pendingInvitations.length} bekleyen davet`}
+                >
+                  {pendingInvitations.length}
+                </span>
+              )}
+            </div>
+
+            {/* Masaüstüne özgü düğmeler */}
             <button 
               className="btn btn-primary desktop-only-btn" 
-              onClick={() => {
-                if (navigator.vibrate) navigator.vibrate(10);
-                setForcePwaPromptOpen(true);
-              }}
+              onClick={() => { if (navigator.vibrate) navigator.vibrate(10); setForcePwaPromptOpen(true); }}
               style={{ padding: '6px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
               title="Uygulamayı İndir"
             >
               <Download size={15} />
               <span>İndir</span>
             </button>
-
-            {/* Pending Invitations Badge Button */}
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setShowTeamModal(true)}
-              style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}
-              title="Davetler"
-            >
-              <UserPlus size={16} />
-              <span className="desktop-workspace-title">Davetler</span>
-              {pendingInvitations.length > 0 && (
-                <span className="invitation-badge-pulse" style={{
-                  position: 'absolute',
-                  top: '-4px',
-                  right: '-4px',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  borderRadius: '50%',
-                  width: '18px',
-                  height: '18px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {pendingInvitations.length}
-                </span>
-              )}
-            </button>
-
-            {/* Notification Bell */}
-            <NotificationBell />
-
-            {/* Theme Toggle Button */}
             <button 
               className="btn btn-secondary btn-icon-only desktop-only-btn" 
               onClick={toggleTheme}
@@ -274,16 +298,12 @@ export const AppLayout: React.FC = () => {
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-
-            {/* User Profile Info */}
             <div className="user-profile-info desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               <User size={16} />
-              <span className="user-email-text" style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {user?.email}
               </span>
             </div>
-
-            {/* Logout Button */}
             <button className="btn btn-secondary desktop-only-btn" style={{ padding: '8px 12px' }} onClick={logOut}>
               <LogOut size={16} />
               <span className="logout-text">Çıkış</span>
@@ -580,34 +600,83 @@ export const AppLayout: React.FC = () => {
               </div>
             </div>
 
-            <div className="workspace-list" style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                EKİPLERİNİZ ({workspaces.length})
+            <div style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+              {/* Ekip Üyeleri */}
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
+                <span style={{ fontWeight: 400, fontSize: '0.65rem', color: 'var(--accent-color)' }}>{activeWorkspace?.name}</span>
               </div>
-              {workspaces.length === 0 && (
+              {workspaceMembers.length === 0 && (
                 <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  Henüz bir ekibe dahil değilsiniz
+                  Yükleniyor...
                 </div>
               )}
-              {workspaces.map((ws) => (
-                <div 
-                  key={ws.id} 
-                  className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
-                  onClick={() => {
-                    selectWorkspace(ws.id);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  style={{ padding: '12px', marginBottom: '4px' }}
-                >
-                  <div className="workspace-avatar">
-                    {ws.name.substring(0, 2).toUpperCase()}
+              {workspaceMembers.map((member) => {
+                const name = member.full_name || 'İsimsiz Üye';
+                const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+                const isMe = member.user_id === user?.id;
+                const isAdmin = member.permission_role === 'admin' || member.permission_role === 'owner';
+                return (
+                  <div
+                    key={member.user_id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      padding: '10px 12px',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: '4px',
+                      background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.08)' : 'var(--bg-surface-accent)',
+                      border: `1px solid ${isMe ? 'var(--accent-color)' : 'var(--border-glass)'}`,
+                    }}
+                  >
+                    {/* Avatar */}
+                    <div style={{
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      backgroundColor: isMe ? 'var(--accent-color)' : 'var(--bg-card)',
+                      backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      color: isMe ? 'white' : 'var(--text-secondary)',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      border: '2px solid var(--border-glass)',
+                    }}>
+                      {!member.avatar_url && initials}
+                    </div>
+
+                    {/* İsim + Rol */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontWeight: isMe ? 700 : 500,
+                        fontSize: '0.88rem',
+                        color: 'var(--text-primary)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                      }}>
+                        {name}
+                        {isMe && <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', fontWeight: 700 }}>Sen</span>}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {isAdmin ? 'Yönetici' : 'Üye'}
+                      </div>
+                    </div>
+
+                    {/* Admin ikonu */}
+                    {isAdmin && <Crown size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />}
                   </div>
-                  <span style={{ fontSize: '0.9rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {ws.name}
-                  </span>
-                  {activeWorkspace?.id === ws.id && <Check size={16} />}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="mobile-drawer-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-glass)' }}>
