@@ -149,7 +149,7 @@ export const DailyUpdatesScreen: React.FC = () => {
     if (!activeWorkspace?.id) return;
     const { data } = await supabase
       .from('workspace_members')
-      .select('user_id, profiles(full_name)')
+      .select('user_id, profiles:profiles!workspace_members_user_id_fkey(full_name)')
       .eq('workspace_id', activeWorkspace.id);
     if (data) {
       setMembers(data.map((m: any) => ({ user_id: m.user_id, full_name: m.profiles?.full_name || null })));
@@ -194,6 +194,16 @@ export const DailyUpdatesScreen: React.FC = () => {
     loadUpdates();
     loadMembers();
   }, [loadUpdates, loadMembers]);
+
+  useEffect(() => {
+    const handleTriggerAdd = () => {
+      setShowAddModal(true);
+    };
+    window.addEventListener('trigger-add-report', handleTriggerAdd);
+    return () => {
+      window.removeEventListener('trigger-add-report', handleTriggerAdd);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,7 +280,7 @@ export const DailyUpdatesScreen: React.FC = () => {
           <button className="btn btn-secondary" onClick={handleExport} style={{ padding: '7px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }} title="CSV İndir">
             <Download size={14} /> CSV
           </button>
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+          <button className="btn btn-primary hide-on-mobile" onClick={() => setShowAddModal(true)}>
             <Plus size={18} /><span className="btn-text">Rapor Ekle</span>
           </button>
         </div>

@@ -420,7 +420,7 @@ export const TasksScreen: React.FC = () => {
     if (!activeWorkspace?.id) return;
     const { data } = await supabase
       .from('workspace_members')
-      .select('user_id, profiles(full_name, avatar_url)')
+      .select('user_id, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
       .eq('workspace_id', activeWorkspace.id);
     if (data) {
       setMembers(data.map((m: any) => ({
@@ -435,6 +435,16 @@ export const TasksScreen: React.FC = () => {
     loadTasks();
     loadMembers();
   }, [loadTasks, loadMembers]);
+
+  useEffect(() => {
+    const handleTriggerAdd = () => {
+      setShowAddModal(true);
+    };
+    window.addEventListener('trigger-add-task', handleTriggerAdd);
+    return () => {
+      window.removeEventListener('trigger-add-task', handleTriggerAdd);
+    };
+  }, []);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -575,7 +585,7 @@ export const TasksScreen: React.FC = () => {
           <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
             <RefreshCw size={16} />
           </button>
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+          <button className="btn btn-primary hide-on-mobile" onClick={() => setShowAddModal(true)}>
             <Plus size={18} />
             <span className="btn-text">Yeni Görev</span>
           </button>

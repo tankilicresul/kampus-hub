@@ -525,6 +525,23 @@ export const AppLayout: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Floating Action Button (FAB) */}
+      {(activeTab === 'tasks' || activeTab === 'updates') && (
+        <button
+          className="mobile-fab animate-fade-in"
+          onClick={() => {
+            if (activeTab === 'tasks') {
+              window.dispatchEvent(new CustomEvent('trigger-add-task'));
+            } else if (activeTab === 'updates') {
+              window.dispatchEvent(new CustomEvent('trigger-add-report'));
+            }
+          }}
+          title={activeTab === 'tasks' ? 'Yeni Görev Ekle' : 'Yeni Rapor Yaz'}
+        >
+          <Plus size={24} />
+        </button>
+      )}
+
       {/* Sticky Bottom Navigation Bar (Mobile View) */}
       <div className="mobile-nav-bar">
         <button 

@@ -1406,5 +1406,43 @@ html, body, #root {
   }
 }
 
+/* Mobile FAB & Hide Utility */
+.mobile-fab {
+  display: none;
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-color) 0%, #d81b24 100%);
+  color: white;
+  border: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(183, 1, 22, 0.4);
+  cursor: pointer;
+  z-index: 999;
+  transition: var(--transition-smooth);
+}
+
+.mobile-fab:hover {
+  transform: scale(1.06);
+}
+
+.mobile-fab:active {
+  transform: scale(0.94);
+}
+
+@media (max-width: 768px) {
+  .mobile-fab {
+    display: flex;
+  }
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+
 
 
