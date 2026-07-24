@@ -12,7 +12,6 @@ import {
   Camera,
   User as UserIcon,
   Lock,
-  Upload,
   Save,
   Mail,
   Building,
@@ -382,12 +381,11 @@ export const ProfileScreen: React.FC = () => {
 
           <button 
             className="btn btn-secondary" 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploadingPhoto}
+            onClick={() => setActiveSubTab('settings')}
             style={{ fontSize: '0.82rem', padding: '8px 14px' }}
           >
-            <Upload size={15} />
-            <span>Fotoğraf Yükle</span>
+            <UserIcon size={15} />
+            <span>Profili Düzenle</span>
           </button>
         </div>
 
@@ -440,17 +438,7 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
       <div className="scroll-x" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px', paddingRight: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
-        <button
-          className={`btn ${activeSubTab === 'settings' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('settings')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
-        >
-          <UserIcon size={15} />
-          <span>Profil & Düzenle</span>
-        </button>
-
         <button
           className={`btn ${activeSubTab === 'my_tasks' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setActiveSubTab('my_tasks')}
