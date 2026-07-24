@@ -152,7 +152,7 @@ export const AppLayout: React.FC = () => {
           <img 
             src="/logo.svg" 
             alt="Kampüs Hub Logo" 
-            style={{ width: '36px', height: '36px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+            style={{ width: '36px', height: '36px', objectFit: 'contain' }} 
           />
           <span className="sidebar-logo">Kampüs Hub</span>
         </div>
@@ -584,7 +584,7 @@ export const AppLayout: React.FC = () => {
                 <img 
                   src="/logo.svg" 
                   alt="Kampüs Hub" 
-                  style={{ width: '30px', height: '30px', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} 
+                  style={{ width: '30px', height: '30px', objectFit: 'contain' }} 
                 />
                 <span className="sidebar-logo">Kampüs Hub</span>
               </div>

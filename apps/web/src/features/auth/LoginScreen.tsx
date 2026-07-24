@@ -40,7 +40,7 @@ export const LoginScreen: React.FC = () => {
           {/* Mobile-Only Header with Large Logo (Transparent Background) */}
           <div className="auth-mobile-brand">
             <div className="brand-logo-large mobile-logo">
-              <img src="/logo.svg" alt="Kampüs Hub Logo" style={{ filter: 'brightness(0) invert(1)' }} />
+              <img src="/logo.svg" alt="Kampüs Hub Logo" style={{ objectFit: 'contain' }} />
             </div>
             <div className="auth-brand-title mobile-title">Kampüs Hub</div>
           </div>
