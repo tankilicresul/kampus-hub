@@ -27,7 +27,8 @@ export const AppLayout: React.FC = () => {
     declineInvitation,
     logOut, 
     user,
-    role
+    role,
+    refreshWorkspaces
   } = useAuth();
   
   const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin'>('tasks');
@@ -943,17 +944,13 @@ export const AppLayout: React.FC = () => {
           workspaceName={activeWorkspace.name}
           currentUserId={user.id}
           onClose={() => setShowWsSettings(false)}
-          onWorkspaceUpdated={(_newName) => {
-            // AuthContext'teki workspace adını güncelle
-            selectWorkspace(activeWorkspace.id);
+          onWorkspaceUpdated={async (_newName) => {
+            await refreshWorkspaces();
             setShowWsSettings(false);
           }}
-          onWorkspaceLeft={() => {
+          onWorkspaceLeft={async () => {
             setShowWsSettings(false);
-            // Başka bir workspace'e geç veya sayfayı yenile
-            const otherWs = workspaces.find((w) => w.id !== activeWorkspace.id);
-            if (otherWs) selectWorkspace(otherWs.id);
-            else window.location.reload();
+            await refreshWorkspaces();
           }}
         />
       )}
