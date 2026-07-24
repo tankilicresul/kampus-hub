@@ -18,6 +18,7 @@ export const TasksScreen: React.FC = () => {
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   
   // Create task modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -127,7 +128,8 @@ export const TasksScreen: React.FC = () => {
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesPriority = !selectedPriority || t.priority === selectedPriority;
-    return matchesSearch && matchesPriority;
+    const matchesStatus = !selectedStatus || t.status === selectedStatus;
+    return matchesSearch && matchesPriority && matchesStatus;
   });
 
   const priorityLabels: Record<string, string> = {
@@ -170,47 +172,87 @@ export const TasksScreen: React.FC = () => {
           </button>
         </div>
         
-        {/* Priority Filter Chips */}
-        <div className="scroll-x" style={{ display: 'flex', gap: '8px', paddingRight: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
-          <span 
-            className={`badge ${!selectedPriority ? 'active' : ''}`} 
-            style={{ 
-              cursor: 'pointer', 
-              border: '1px solid var(--border-glass)', 
-              padding: '6px 14px', 
-              borderRadius: '20px', 
-              fontSize: '0.75rem',
+        {/* Filter Chips: Tümü | Acil | Önemli | Yap */}
+        <div style={{ display: 'flex', gap: '8px', paddingRight: '8px', overflowX: 'auto' }}>
+          {/* Tümü */}
+          <span
+            style={{
+              cursor: 'pointer',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
               fontWeight: 600,
               flexShrink: 0,
               whiteSpace: 'nowrap',
-              backgroundColor: !selectedPriority ? 'var(--accent-color)' : 'var(--bg-surface-accent)', 
-              color: !selectedPriority ? 'white' : 'var(--text-secondary)' 
+              border: '1px solid var(--border-glass)',
+              backgroundColor: !selectedPriority && !selectedStatus ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+              color: !selectedPriority && !selectedStatus ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.15s',
             }}
-            onClick={() => setSelectedPriority(null)}
+            onClick={() => { setSelectedPriority(null); setSelectedStatus(null); }}
           >
             Tümü
           </span>
-          {['critical', 'high', 'normal', 'low'].map((p) => (
-            <span 
-              key={p}
-              className={`badge ${selectedPriority === p ? 'active' : ''}`} 
-              style={{ 
-                cursor: 'pointer', 
-                border: '1px solid var(--border-glass)', 
-                padding: '6px 14px', 
-                borderRadius: '20px', 
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                flexShrink: 0,
-                whiteSpace: 'nowrap',
-                backgroundColor: selectedPriority === p ? 'var(--accent-color)' : 'var(--bg-surface-accent)', 
-                color: selectedPriority === p ? 'white' : 'var(--text-secondary)' 
-              }}
-              onClick={() => setSelectedPriority(p)}
-            >
-              {priorityLabels[p]}
-            </span>
-          ))}
+
+          {/* Acil */}
+          <span
+            style={{
+              cursor: 'pointer',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              border: `1px solid ${selectedPriority === 'critical' ? '#ef4444' : 'var(--border-glass)'}`,
+              backgroundColor: selectedPriority === 'critical' ? '#ef4444' : 'var(--bg-surface-accent)',
+              color: selectedPriority === 'critical' ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.15s',
+            }}
+            onClick={() => { setSelectedPriority('critical'); setSelectedStatus(null); }}
+          >
+            🔴 Acil
+          </span>
+
+          {/* Önemli */}
+          <span
+            style={{
+              cursor: 'pointer',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              border: `1px solid ${selectedPriority === 'high' ? '#f59e0b' : 'var(--border-glass)'}`,
+              backgroundColor: selectedPriority === 'high' ? '#f59e0b' : 'var(--bg-surface-accent)',
+              color: selectedPriority === 'high' ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.15s',
+            }}
+            onClick={() => { setSelectedPriority('high'); setSelectedStatus(null); }}
+          >
+            🟡 Önemli
+          </span>
+
+          {/* Yap (Yapılacak / todo) */}
+          <span
+            style={{
+              cursor: 'pointer',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 600,
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+              border: `1px solid ${selectedStatus === 'todo' ? '#38bdf8' : 'var(--border-glass)'}`,
+              backgroundColor: selectedStatus === 'todo' ? '#38bdf8' : 'var(--bg-surface-accent)',
+              color: selectedStatus === 'todo' ? 'white' : 'var(--text-secondary)',
+              transition: 'all 0.15s',
+            }}
+            onClick={() => { setSelectedStatus('todo'); setSelectedPriority(null); }}
+          >
+            ✅ Yap
+          </span>
         </div>
       </div>
 
