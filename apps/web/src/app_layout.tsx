@@ -4,12 +4,15 @@ import { TasksScreen } from './features/tasks/TasksScreen';
 import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen';
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
+import { MessagesScreen } from './features/messages/MessagesScreen';
+import { AdminScreen } from './features/admin/AdminScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown, Settings,
-  Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu 
+  Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
+  MessageSquare, Shield
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -23,10 +26,11 @@ export const AppLayout: React.FC = () => {
     acceptInvitation,
     declineInvitation,
     logOut, 
-    user 
+    user,
+    role
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin'>('tasks');
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showWsSettings, setShowWsSettings] = useState(false);
@@ -63,7 +67,7 @@ export const AppLayout: React.FC = () => {
       });
   }, [activeWorkspace?.id, isMobileMenuOpen]);
   
-  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile') => {
+  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
   };
@@ -392,13 +396,31 @@ export const AppLayout: React.FC = () => {
             <Calendar size={16} />
             <span>Raporlar</span>
           </div>
+          {role && ['owner', 'admin', 'manager'].includes(role) && (
+            <div 
+              className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
+              onClick={() => handleTabChange('crm')}
+            >
+              <BarChart4 size={16} />
+              <span>CRM</span>
+            </div>
+          )}
           <div 
-            className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => handleTabChange('crm')}
+            className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+            onClick={() => handleTabChange('messages')}
           >
-            <BarChart4 size={16} />
-            <span>CRM</span>
+            <MessageSquare size={16} />
+            <span>Sohbet</span>
           </div>
+          {role && ['owner', 'admin'].includes(role) && (
+            <div 
+              className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+              onClick={() => handleTabChange('admin')}
+            >
+              <Shield size={16} />
+              <span>Admin</span>
+            </div>
+          )}
           <div 
             className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => handleTabChange('profile')}
@@ -494,8 +516,10 @@ export const AppLayout: React.FC = () => {
             <>
               {activeTab === 'tasks' && <TasksScreen />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
-              {activeTab === 'crm' && <CrmDashboardScreen />}
+              {activeTab === 'crm' && role && ['owner', 'admin', 'manager'].includes(role) && <CrmDashboardScreen />}
               {activeTab === 'profile' && <ProfileScreen />}
+              {activeTab === 'messages' && <MessagesScreen />}
+              {activeTab === 'admin' && role && ['owner', 'admin'].includes(role) && <AdminScreen />}
             </>
           )}
         </div>
@@ -517,13 +541,31 @@ export const AppLayout: React.FC = () => {
           <Calendar size={20} />
           <span>Raporlar</span>
         </button>
+        {role && ['owner', 'admin', 'manager'].includes(role) && (
+          <button 
+            className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
+            onClick={() => handleTabChange('crm')}
+          >
+            <BarChart4 size={20} />
+            <span>CRM</span>
+          </button>
+        )}
         <button 
-          className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-          onClick={() => handleTabChange('crm')}
+          className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+          onClick={() => handleTabChange('messages')}
         >
-          <BarChart4 size={20} />
-          <span>CRM</span>
+          <MessageSquare size={20} />
+          <span>Sohbet</span>
         </button>
+        {role && ['owner', 'admin'].includes(role) && (
+          <button 
+            className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => handleTabChange('admin')}
+          >
+            <Shield size={20} />
+            <span>Admin</span>
+          </button>
+        )}
         <button 
           className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => handleTabChange('profile')}
