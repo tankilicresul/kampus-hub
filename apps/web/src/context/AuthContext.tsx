@@ -1,18 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createClient, type User, type SupabaseClient } from '@supabase/supabase-js';
 
+export const isEnvMissing = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 // ── Supabase Client (Cloud) ───────────────────────────────────────────────────
 export const supabase: SupabaseClient = (() => {
-  const url = import.meta.env.VITE_SUPABASE_URL as string;
-  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-
-  if (!url || !anonKey) {
-    throw new Error(
-      '[Kampüs Kapında CRM] Supabase env vars eksik!\n' +
-      'VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY tanımlanmış olmalı.\n' +
-      'Vercel → Settings → Environment Variables bölümüne ekle.'
-    );
-  }
+  const url = (import.meta.env.VITE_SUPABASE_URL as string) || 'https://placeholder-project.supabase.co';
+  const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || 'placeholder-key';
 
   const globalVar = window as unknown as Record<string, unknown>;
   if (!globalVar.__supabaseClient) {
@@ -154,6 +148,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    if (isEnvMissing) {
+      setErrorMessage(
+        'Supabase env vars eksik! VITE_SUPABASE_URL ve VITE_SUPABASE_ANON_KEY tanımlanmış olmalı. Lütfen Vercel → Settings → Environment Variables bölümüne ekleyin.'
+      );
+      setStatus('error');
+      return;
+    }
+
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
