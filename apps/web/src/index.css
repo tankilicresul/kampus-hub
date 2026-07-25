@@ -1,31 +1,59 @@
 :root {
   /* TanCoreLab Design Standard Specs */
-  --bg-main: #f6f7f9; /* Yumuşak Zemin (Soft Background) */
-  --bg-surface: #ffffff; /* Beyaz Zemin (White Panel) */
+  --bg-main: #f6f8fa; /* Yumuşak Zemin */
+  --bg-surface: #ffffff; /* Beyaz Zemin (35% White) */
   --bg-surface-accent: #f1f5f9;
   --border-glass: #e2e8f0;
-  --border-color: #e2e8f0;
+  --border-color: #cbd5e1;
   
-  --text-primary: #111113; /* Başlık Siyahı (Header Black) */
-  --text-secondary: #676d78; /* Metin Grisi */
+  --text-primary: #0b131f; /* Başlık Koyu Rengi */
+  --text-secondary: #475569; /* Metin Grisi */
   --text-muted: #94a3b8;
   
-  --accent-color: #b70116; /* Brand Red */
-  --accent-hover: #990112;
-  --accent-gradient: #b70116;
+  --accent-color: #ff9f0a; /* Brand Orange (45% Orange) */
+  --accent-hover: #e58a00;
+  --accent-gradient: linear-gradient(135deg, #ff9f0a 0%, #ff6b00 100%);
   
   --color-success: #10b981;
   --color-warning: #f59e0b;
-  --color-danger: #b70116;
+  --color-danger: #ef4444; /* Clean red for alerts */
+  
+  /* Sidebar Specific (15% Dark/Black) */
+  --bg-sidebar: #090e17; /* Dark from logo background */
+  --bg-sidebar-hover: #151e2e;
+  --text-sidebar: #94a3b8;
+  --text-sidebar-active: #090e17;
+  --border-sidebar-glass: #1e293b;
   
   --font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   --transition-smooth: all 0.2s ease-in-out;
-  --shadow-sm: 0 2px 8px rgba(17, 17, 19, 0.04);
-  --shadow-md: 0 8px 24px rgba(17, 17, 19, 0.06);
-  --shadow-lg: 0 16px 40px rgba(17, 17, 19, 0.1);
+  --shadow-sm: 0 2px 8px rgba(11, 19, 31, 0.04);
+  --shadow-md: 0 8px 24px rgba(11, 19, 31, 0.06);
+  --shadow-lg: 0 16px 40px rgba(11, 19, 31, 0.1);
   --radius-sm: 10px;
   --radius-md: 16px;
   --radius-lg: 24px;
+}
+
+[data-theme="dark"] {
+  --bg-main: #0b131f; /* Logo Background Dark (15% Black/Dark) */
+  --bg-surface: #121a28; /* White surfaces turn into Slate dark surfaces */
+  --bg-surface-accent: #1e293b;
+  --border-glass: #1e293b;
+  --border-color: #334155;
+  
+  --text-primary: #ffffff; /* White (35% White text & highlights in dark mode) */
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --bg-sidebar: #070c14;
+  --bg-sidebar-hover: #121a28;
+  --text-sidebar: #94a3b8;
+  --border-sidebar-glass: #121a28;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -37,13 +65,19 @@
 body {
   background-color: var(--bg-main);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(183, 1, 22, 0.03) 0px, transparent 40%),
-    radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.05) 0px, transparent 45%);
+    radial-gradient(at 0% 0%, rgba(255, 159, 10, 0.03) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, rgba(11, 19, 31, 0.05) 0px, transparent 45%);
   color: var(--text-primary);
   font-family: var(--font-family);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+}
+
+[data-theme="dark"] body {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(255, 159, 10, 0.05) 0px, transparent 40%),
+    radial-gradient(at 100% 100%, rgba(11, 19, 31, 0.15) 0px, transparent 45%);
 }
 
 /* Scrollbar customization */
@@ -73,9 +107,9 @@ body {
 
 .sidebar {
   width: 260px;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  border-right: 1px solid var(--border-glass);
+  background-color: var(--bg-sidebar);
+  color: var(--text-sidebar);
+  border-right: 1px solid var(--border-sidebar-glass);
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -85,7 +119,7 @@ body {
 
 .sidebar-header {
   padding: 24px 20px;
-  border-bottom: 1px solid var(--border-glass);
+  border-bottom: 1px solid var(--border-sidebar-glass);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -118,22 +152,23 @@ body {
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: var(--transition-smooth);
-  color: var(--text-secondary);
+  color: var(--text-sidebar);
   border: 1px solid transparent;
   font-weight: 500;
 }
 
 .workspace-item:hover {
-  background-color: var(--bg-surface-accent);
-  color: var(--text-primary);
-  border-color: var(--border-glass);
+  background-color: var(--bg-sidebar-hover);
+  color: white;
+  border-color: var(--border-sidebar-glass);
   transform: scale(1.02) translateX(4px);
 }
 
 .workspace-item.active {
   background: var(--accent-gradient);
-  color: white;
-  box-shadow: var(--shadow-md);
+  color: var(--text-sidebar-active);
+  box-shadow: 0 4px 14px rgba(255, 159, 10, 0.35);
+  font-weight: 600;
 }
 
 .workspace-avatar {
@@ -150,7 +185,7 @@ body {
 
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid var(--border-glass);
+  border-top: 1px solid var(--border-sidebar-glass);
 }
 
 /* Main Panel */
@@ -704,8 +739,8 @@ body {
   width: 290px;
   max-width: 85vw;
   height: 100%;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
+  background-color: var(--bg-sidebar);
+  color: var(--text-sidebar);
   display: flex;
   flex-direction: column;
   box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);

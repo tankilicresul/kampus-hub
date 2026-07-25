@@ -6,8 +6,8 @@
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "theme_color": "#b70116",
-  "background_color": "#0f172a",
+  "theme_color": "#ff9f0a",
+  "background_color": "#0b131f",
   "categories": ["business", "productivity", "utilities"],
   "icons": [
     {

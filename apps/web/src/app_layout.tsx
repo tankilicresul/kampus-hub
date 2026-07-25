@@ -597,7 +597,7 @@ export const AppLayout: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-glass)' }}>
+            <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-sidebar-glass)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img 
                   src="/logo.svg" 
@@ -756,7 +756,7 @@ export const AppLayout: React.FC = () => {
               })}
             </div>
 
-            <div className="mobile-drawer-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-glass)' }}>
+            <div className="mobile-drawer-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-sidebar-glass)' }}>
               <button 
                 className="btn btn-primary btn-block" 
                 onClick={() => {
@@ -778,7 +778,7 @@ export const AppLayout: React.FC = () => {
                 <span>Yeni Ekip Oluştur</span>
               </button>
 
-              <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '4px 0' }} />
+              <div style={{ height: '1px', backgroundColor: 'var(--border-sidebar-glass)', margin: '4px 0' }} />
 
               <button 
                 className="btn btn-secondary btn-block" 
