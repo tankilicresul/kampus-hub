@@ -48,7 +48,7 @@ class DeviceLimitScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             const Text(
-              'Kapında Hub hesabınız aynı anda en fazla 2 aktif cihazda kullanılabilir. Giriş yapmak için aşağıdaki aktif cihazlarınızdan birini iptal etmeniz gerekmektedir.',
+              'TanCoreLab hesabınız aynı anda en fazla 2 aktif cihazda kullanılabilir. Giriş yapmak için aşağıdaki aktif cihazlarınızdan birini iptal etmeniz gerekmektedir.',
               style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
             ),
             const SizedBox(height: 24),

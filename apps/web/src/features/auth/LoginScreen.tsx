@@ -139,7 +139,7 @@ export const LoginScreen: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="form-input"
                   style={{ paddingLeft: '44px', height: '48px', fontSize: '0.95rem' }}
-                  placeholder="isim@kampuskapinda.com"
+                  placeholder="isim@tancorelab.com"
                 />
               </div>
             </div>

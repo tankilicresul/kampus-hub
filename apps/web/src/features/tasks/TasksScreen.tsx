@@ -284,7 +284,7 @@ const TaskDetailModal: React.FC<{
       "Tanıdık varsa okula gidip işletme ile görüşülmesi",
       "İşletmenin teklifi onaylayıp onaylamaması",
       "Teklif onaylanırsa yemek menülerinin alınması",
-      "Kampüs kapında sisteminin kurulması",
+      "TanCoreLab sisteminin kurulması",
       "Çekim yapılması için içerik fikri belirlenmesi",
       "İçerik için uygun ekip ve zaman bulunması",
       "Çekime gidilip çekim yapılması",

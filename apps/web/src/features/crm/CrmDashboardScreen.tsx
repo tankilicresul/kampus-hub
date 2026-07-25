@@ -604,7 +604,7 @@ export const CrmDashboardScreen: React.FC = () => {
             <form onSubmit={handleCreateBusiness} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
                 <label className="form-label">İşletme Adı *</label>
-                <input type="text" required placeholder="Örn: Kampüs Kafe" value={name} onChange={e => setName(e.target.value)} className="form-input" />
+                <input type="text" required placeholder="Örn: Teknoloji Kafe" value={name} onChange={e => setName(e.target.value)} className="form-input" />
               </div>
               <div className="form-group">
                 <label className="form-label">Yetkili Kişi</label>

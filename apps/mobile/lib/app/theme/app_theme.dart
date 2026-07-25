@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // TODO: Replace temporary neutral palette with official Kampüs Kapında brand tokens.
+  // TODO: Replace temporary neutral palette with official TanCoreLab brand tokens.
   static const Color primaryColor = Color(
     0xFF343A40,
   ); // Temporary neutral primary (dark gray)

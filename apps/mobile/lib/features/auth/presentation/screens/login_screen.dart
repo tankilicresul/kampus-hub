@@ -86,7 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Kapında Hub',
+                      'TanCoreLab',
                       style: TextStyle(
                         color: Theme.of(context).textTheme.headlineMedium?.color,
                         fontSize: 28,
@@ -97,7 +97,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Kampüs Kapında İç Operasyon Platformu',
+                      'İç Operasyon Platformu',
                       style: TextStyle(
                         color: Theme.of(context).textTheme.bodyMedium?.color?.withAlpha(200),
                         fontSize: 14,

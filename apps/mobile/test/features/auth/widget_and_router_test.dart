@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -208,9 +208,9 @@ void main() {
           child: const MaterialApp(home: LoginScreen()),
         ),
       );
-      expect(find.text('Kapında Hub'), findsOneWidget);
+      expect(find.text('TanCoreLab'), findsOneWidget);
       expect(
-        find.text('Kampüs Kapında İç Operasyon Platformu'),
+        find.text('İç Operasyon Platformu'),
         findsOneWidget,
       );
       expect(find.text('Google ile Giriş Yap'), findsOneWidget);

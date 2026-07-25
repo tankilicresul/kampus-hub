@@ -47,7 +47,7 @@ class _BiometricPromptScreenState extends ConsumerState<BiometricPromptScreen> {
 
       final bool didAuthenticate = await _localAuth.authenticate(
         localizedReason:
-            'Kapında Hub oturumunu açmak için biyometrik doğrulama gereklidir.',
+            'TanCoreLab oturumunu açmak için biyometrik doğrulama gereklidir.',
         options: const AuthenticationOptions(
           biometricOnly: true,
           useErrorDialogs: true,

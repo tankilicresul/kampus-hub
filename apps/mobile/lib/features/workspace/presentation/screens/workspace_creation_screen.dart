@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kapindahub/core/result/app_result.dart';
@@ -141,7 +141,7 @@ class _WorkspaceCreationScreenState extends ConsumerState<WorkspaceCreationScree
                   controller: _nameController,
                   onChanged: _onNameChanged,
                   style: const TextStyle(color: Colors.white),
-                  decoration: _inputDecoration('Örn: Kampüs Kapında Merkez'),
+                  decoration: _inputDecoration('Örn: TanCoreLab Merkez'),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
                       return 'Lütfen çalışma alanı adını girin';

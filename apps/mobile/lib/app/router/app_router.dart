@@ -30,6 +30,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isLoggingIn = state.matchedLocation == '/login';
 
       if (status == AuthStatus.unauthenticated) {
+        if (!isLoggingIn) {
+          return '/login';
+        }
         return null;
       }
 
@@ -305,7 +308,7 @@ class MainHomeView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        title: const Text('Kapında Hub Dashboard'),
+        title: const Text('TanCoreLab Dashboard'),
         backgroundColor: const Color(0xFF1E293B),
       ),
       body: isLoadingWorkspace

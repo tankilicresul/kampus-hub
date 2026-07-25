@@ -870,7 +870,7 @@ export const AppLayout: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="ekip-arkadasi@kampuskapinda.com"
+                  placeholder="ekip-arkadasi@tancorelab.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   className="form-input"
