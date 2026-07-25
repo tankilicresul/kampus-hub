@@ -5,18 +5,18 @@ Related milestone: 3C-Bridge-A
 Source of truth status: authoritative
 ---
 
-# Kapında Hub — AI Start Here
+# TanCoreLab — AI Start Here
 
-Yapay zekâ asistanları ve yeni geliştiriciler için Kapında Hub projesine giriş ve çalışma protokolü rehberidir.
+Yapay zekâ asistanları ve yeni geliştiriciler için TanCoreLab projesine giriş ve çalışma protokolü rehberidir.
 
 ---
 
 ## 1. Proje ve Ürün Tanımı
-* **Proje Adı**: Kapında Hub
+* **Proje Adı**: TanCoreLab
 * **Ürün**: Çoklu çalışma alanı (multi-workspace/multi-tenant) destekli, saha ekipleri ve operasyon yönetimi odaklı mobil SaaS uygulaması.
 * **Mobil Teknoloji**: Flutter (Dart)
 * **Backend**: Supabase (PostgreSQL, RLS yetkilendirmesi, pgTAP testleri, RPC API'leri)
-* **İlk Çalışma Alanı**: Kampüs Kapında (Varsayılan ID: `'df39e73b-bf72-4d1a-9694-82bd8996b797'`)
+* **İlk Çalışma Alanı**: TanCoreLab (Varsayılan ID: `'df39e73b-bf72-4d1a-9694-82bd8996b797'`)
 * **Hedef Platformlar**: Android (Emulator/Cihaz doğrulandı) ve iOS (Gelecekte doğrulanacak)
 
 ---

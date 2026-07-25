@@ -1,6 +1,6 @@
-# Kapında Hub
+# TanCoreLab
 
-Kapında Hub is the internal mobile application for the **Kampüs Kapında** team to manage projects, tasks, university openings, partner CRM, technical development, advertisement production, Google Drive files, Google Calendar availability, daily updates, and performance tracking.
+TanCoreLab is the internal application to manage projects, tasks, university openings, partner CRM, technical development, advertisement production, Google Drive files, Google Calendar availability, daily updates, and performance tracking.
 
 The initial pilot will start with 10 users, scaling to support a minimum of 25 users.
 

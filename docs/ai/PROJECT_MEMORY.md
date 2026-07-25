@@ -1,11 +1,11 @@
-﻿---
+---
 Last updated: 2026-07-11
 Updated by: Antigravity
 Related milestone: 3C-Bridge-A
 Source of truth status: authoritative
 ---
 
-# Kapında Hub — Product Memory
+# TanCoreLab — Product Memory
 
 Bu doküman, Kapında Hub platformunun uzun ömürlü ürün mantığını, iş kurallarını ve kavramsal modelini tanımlar.
 

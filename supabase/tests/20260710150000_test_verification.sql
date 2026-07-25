@@ -11,7 +11,7 @@ SELECT plan(9);
 -- =========================================================================
 SET ROLE postgres;
 
--- 1. Seeding mock data using PL/pgSQL to dynamically retrieve 'kampus-kapinda' workspace
+-- 1. Seeding mock data using PL/pgSQL to dynamically retrieve 'tancorelab' workspace
 DO $$
 DECLARE
     v_ws_id UUID;
@@ -19,9 +19,9 @@ DECLARE
     v_member_rep_id UUID := gen_random_uuid();
     v_member_owner_id UUID := gen_random_uuid();
 BEGIN
-    SELECT id INTO v_ws_id FROM public.workspaces WHERE slug = 'kampus-kapinda' LIMIT 1;
+    SELECT id INTO v_ws_id FROM public.workspaces WHERE slug = 'tancorelab' LIMIT 1;
     IF v_ws_id IS NULL THEN
-        RAISE EXCEPTION 'Workspace kampus-kapinda not found';
+        RAISE EXCEPTION 'Workspace tancorelab not found';
     END IF;
 
     -- access_invitations seeding

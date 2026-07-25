@@ -1,4 +1,4 @@
-﻿# Project Tasks - Kapında Hub
+# Project Tasks - TanCoreLab
 
 ## Milestone 2: Database Schema & RLS Deployment (Completed)
 - [x] Configure local Supabase environment (Docker config).

@@ -27,7 +27,7 @@ SELECT is(
 -- TEST 3: Inserting duplicate workspace slug throws unique constraint violation
 -- =========================================================================
 SELECT throws_ok(
-    $$INSERT INTO public.workspaces (name, slug) VALUES ('Duplicate WS', 'kampus-kapinda')$$,
+    $$INSERT INTO public.workspaces (name, slug) VALUES ('Duplicate WS', 'tancorelab')$$,
     '23505',
     NULL,
     'Inserting duplicate workspace slug throws unique constraint violation'
@@ -143,7 +143,7 @@ SELECT is(
 -- TEST 12: No invitations were lost during migration mapping
 -- =========================================================================
 SELECT is(
-    (SELECT count(*) FROM public.workspace_invitations WHERE workspace_id = (SELECT id FROM public.workspaces WHERE slug = 'kampus-kapinda' LIMIT 1) AND normalized_email = 'invite1@test.com'),
+    (SELECT count(*) FROM public.workspace_invitations WHERE workspace_id = (SELECT id FROM public.workspaces WHERE slug = 'tancorelab' LIMIT 1) AND normalized_email = 'invite1@test.com'),
     1::bigint,
     'Verification invitation invite1@test.com is mapped in default workspace'
 );

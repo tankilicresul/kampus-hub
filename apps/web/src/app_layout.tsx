@@ -152,10 +152,10 @@ export const AppLayout: React.FC = () => {
         <div className="sidebar-header">
           <img 
             src="/logo.svg" 
-            alt="Kampüs Hub Logo" 
+            alt="TanCoreLab Logo" 
             style={{ width: '36px', height: '36px', objectFit: 'contain' }} 
           />
-          <span className="sidebar-logo">Kampüs Hub</span>
+          <span className="sidebar-logo">TanCoreLab</span>
         </div>
         
         <div className="workspace-list">
@@ -439,7 +439,7 @@ export const AppLayout: React.FC = () => {
                 <Users size={36} />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>
-                Kampüs Hub'a Hoş Geldiniz!
+                TanCoreLab'a Hoş Geldiniz!
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 24px' }}>
                 Henüz herhangi bir ekibe dahil değilsiniz. Kendi ekibinizi oluşturabilir veya başkalarının gönderdiği davetlere katılarak hemen çalışmaya başlayabilirsiniz.
@@ -601,10 +601,10 @@ export const AppLayout: React.FC = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img 
                   src="/logo.svg" 
-                  alt="Kampüs Hub" 
+                  alt="TanCoreLab" 
                   style={{ width: '30px', height: '30px', objectFit: 'contain' }} 
                 />
-                <span className="sidebar-logo">Kampüs Hub</span>
+                <span className="sidebar-logo">TanCoreLab</span>
               </div>
               <button 
                 className="btn btn-secondary btn-icon-only" 
