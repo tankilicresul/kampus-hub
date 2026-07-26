@@ -15,7 +15,7 @@ import {
   Building,
   Bell,
   X,
-  MessageSquare,
+
   Calendar,
   ChevronLeft,
   ChevronRight
@@ -93,7 +93,7 @@ export const ProfileScreen: React.FC = () => {
   const [settingsFeedback, setSettingsFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
 
   const [tasks, setTasks] = useState<UserTask[]>([]);
-  const [dailyUpdates, setDailyUpdates] = useState<UserDailyUpdate[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_calendar'>('my_tasks');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -138,16 +138,7 @@ export const ProfileScreen: React.FC = () => {
         setTasks(taskData as UserTask[]);
       }
 
-      const { data: updateData } = await supabase
-        .from('daily_updates')
-        .select('*, profile:user_id(full_name, avatar_url)')
-        .eq('workspace_id', activeWorkspace.id)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
 
-      if (updateData) {
-        setDailyUpdates(updateData as UserDailyUpdate[]);
-      }
 
       // Load quiet hours and notification settings
       const { data: profileData } = await supabase
