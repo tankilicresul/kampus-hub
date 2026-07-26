@@ -12,6 +12,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -160,6 +161,28 @@ const SortableTaskCard: React.FC<{
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+const DroppableCardsArea: React.FC<{
+  id: string;
+  children: React.ReactNode;
+}> = ({ id, children }) => {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div 
+      ref={setNodeRef} 
+      className="column-cards"
+      style={{ 
+        flex: 1,
+        minHeight: '150px',
+        backgroundColor: isOver ? 'rgba(255, 159, 10, 0.04)' : 'transparent',
+        borderRadius: 'var(--radius-md)',
+        transition: 'var(--transition-smooth)'
+      }}
+    >
+      {children}
     </div>
   );
 };
@@ -488,7 +511,7 @@ export const TasksScreen: React.FC = () => {
     if (!over || active.id === over.id) return;
 
     // over.id could be a column key or a task id — determine target column
-    const columns = ['todo', 'in_progress', 'waiting', 'completed'];
+    const columns = ['todo', 'in_progress', 'waiting', 'completed', 'revision_required'];
     let targetCol: string | null = null;
     if (columns.includes(String(over.id))) {
       targetCol = String(over.id);
@@ -603,7 +626,7 @@ export const TasksScreen: React.FC = () => {
                     <span className="column-badge">{columnTasks.length}</span>
                   </div>
                   <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                    <div className="column-cards">
+                    <DroppableCardsArea id={col.key}>
                       {columnTasks.map(task => (
                         <SortableTaskCard
                           key={task.id}
@@ -612,7 +635,7 @@ export const TasksScreen: React.FC = () => {
                           onDetailClick={setDetailTask}
                         />
                       ))}
-                    </div>
+                    </DroppableCardsArea>
                   </SortableContext>
                 </div>
               );

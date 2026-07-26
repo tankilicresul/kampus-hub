@@ -531,4 +531,27 @@ npm run lint
 ```
 *Result*: **PASS** (Zero lint errors detected on the modified task screen module).
 
+---
+
+## 🛠️ Changes Implemented (Empty Column Droppable Kanban)
+
+### 1. Droppable Empty Columns
+- Imported `useDroppable` from `@dnd-kit/core` in [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx).
+- Created a `DroppableCardsArea` component that wraps the sortable item list in each column. This acts as a droppable zone, allowing tasks to be dragged and dropped into columns that currently contain no tasks.
+- Enhanced the UX of droppable regions: when dragging a card over an empty column, the column background transitions smoothly to a subtle brand-accented orange highlight (`rgba(255, 159, 10, 0.04)`).
+
+### 2. Completed Columns Array Mapping Bugfix
+- Updated the columns list mapping inside the `handleDragEnd` function to include `'revision_required'`, which was previously missing. This resolves the bug where dragging to the empty "Tekrar Yapılıyor" column was completely blocked.
+
+---
+
+## 🧪 Verification Runs (Empty Column Droppable Kanban)
+
+### Step 1: Web Build Verification
+- Ran Vite compilation: **PASS** (built successfully in production environment).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, warnings are unrelated dependencies warnings).
+
+
 
