@@ -476,3 +476,25 @@ Set-Location "C:\Projects\kampus-hub\apps\web"
 npm run lint
 ```
 *Result*: **PASS** (oxlint finishes with 0 errors).
+
+---
+
+## 🛠️ Changes Implemented (Logo and Splash Screen Scaling)
+
+### 1. Vector Logo Center and Scale Modification
+- Modified [Logomuz.svg](file:///c:/Projects/tancorelab/Logomuz.svg), [logo.svg](file:///c:/Projects/tancorelab/apps/web/public/logo.svg), and [favicon.svg](file:///c:/Projects/tancorelab/apps/web/public/favicon.svg) to wrap the logo geometry inside a transform group `<g transform="translate(50, 50) scale(0.7) translate(-50, -50)">`.
+- This centers the logo and scales it down to exactly 70% of its original size on the 100x100 canvas, increasing the safe zone margin from 4.75% to 18.3% on each side.
+
+### 2. High-Quality Launcher Icons Generation
+- Created a Python script `generate_icons.py` utilizing PIL (Pillow) to draw the logo using supersampling (drawing at 2000x2000 size and resizing down using Lanczos interpolation) to ensure pixel-perfect anti-aliased margins.
+- Regenerated all Android launcher icons (`apps/mobile/android/app/src/main/res/mipmap-*/ic_launcher.png`) with transparent backgrounds and a 70% scale factor.
+- Regenerated all iOS launcher icons (`apps/mobile/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-*.png`) with solid white backgrounds and a 70% scale factor.
+- Regenerated the web PWA manifest logo (`apps/web/public/logo.png`) and PWA shortcut icon (`apps/web/public/favicon.ico`).
+
+---
+
+## 🧪 Verification Runs (Logo Resizing)
+
+### Step 1: Git and Build Cleanliness
+- Committed and pushed all regenerated logo assets and SVGs to GitHub (`origin main`), triggering automated deployment cycles.
+
