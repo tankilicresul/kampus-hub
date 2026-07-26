@@ -321,6 +321,16 @@ body {
   background: var(--border-glass);
 }
 
+.btn-logout {
+  color: #b70116 !important;
+  border-color: rgba(183, 1, 22, 0.3) !important;
+}
+
+.btn-logout:hover {
+  background: rgba(183, 1, 22, 0.08) !important;
+  border-color: #b70116 !important;
+}
+
 .btn-icon-only {
   padding: 8px;
   border-radius: 50%;

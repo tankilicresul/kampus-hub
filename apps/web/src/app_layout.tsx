@@ -307,11 +307,11 @@ export const AppLayout: React.FC = () => {
             </button>
             <div className="user-profile-info desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
               <User size={16} />
-              <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ whiteSpace: 'nowrap' }}>
                 {user?.email}
               </span>
             </div>
-            <button className="btn btn-secondary desktop-only-btn" style={{ padding: '8px 12px' }} onClick={logOut}>
+            <button className="btn btn-secondary btn-logout desktop-only-btn" style={{ padding: '8px 12px' }} onClick={logOut}>
               <LogOut size={16} />
               <span className="logout-text">Çıkış</span>
             </button>
@@ -790,12 +790,12 @@ export const AppLayout: React.FC = () => {
               </button>
 
               <button 
-                className="btn btn-secondary btn-block" 
+                className="btn btn-secondary btn-logout btn-block" 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   logOut();
                 }}
-                style={{ justifyContent: 'flex-start', gap: '10px', color: 'var(--color-danger)' }}
+                style={{ justifyContent: 'flex-start', gap: '10px' }}
               >
                 <LogOut size={16} />
                 <span>Çıkış Yap</span>
