@@ -531,9 +531,8 @@ export const MessagesScreen: React.FC = () => {
           display: 'flex',
           alignItems: 'center',
           backgroundColor: 'var(--bg-surface)',
-          border: `1px solid ${isFocused ? 'rgba(0, 168, 132, 0.5)' : 'var(--border-glass)'}`,
-          boxShadow: isFocused ? '0 0 0 3px rgba(0, 168, 132, 0.15)' : 'none',
-          borderRadius: '24px',
+          border: `1px solid ${isFocused ? 'var(--accent-color)' : 'var(--border-glass)'}`,
+          borderRadius: 'var(--radius-md)',
           padding: '2px 14px',
           transition: 'var(--transition-smooth)',
         }}>
@@ -587,7 +586,6 @@ export const MessagesScreen: React.FC = () => {
           />
         </div>
 
-        {/* Circular Send/Mic Button */}
         <button
           onClick={handleSend}
           disabled={sending}
@@ -602,12 +600,11 @@ export const MessagesScreen: React.FC = () => {
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0, 168, 132, 0.3)',
             transition: 'all 0.2s ease',
             flexShrink: 0
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.06)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#008f72'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#00a884'; }}
           title={content.trim() ? "Gönder" : "Ses kaydet"}
         >
           {sending ? (
