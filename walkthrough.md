@@ -846,6 +846,32 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (5-Column Reordering & "Beklemede" Status Column Removal)
+
+### 1. Updated Kanban Columns Order and Removed "Beklemede" (Waiting)
+- Modified [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx):
+  - Set the active columns layout array to include exactly 5 columns in the user-specified order:
+    1. **Sürüyor** (`in_progress`, yellow/gold `#f59e0b`)
+    2. **Yapılacak** (`todo`, light blue `#38bdf8`)
+    3. **Tarihi Geçti** (`overdue`, orange `#f97316`)
+    4. **Bitti** (`completed`, green `#10b981`)
+    5. **Tekrar Yapılıyor** (`revision_required`, purple `#a78bfa`)
+  - Excluded the `'waiting'` (Beklemede) column from DND drag destination validations and board rendering.
+  - Removed the `'waiting'` option from the task status modification select dropdown inside `TaskDetailModal`.
+
+---
+
+## 🧪 Verification Runs (5-Column Layout Reorder)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 

@@ -366,10 +366,9 @@ const TaskDetailModal: React.FC<{
                 className="form-input"
                 style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
               >
-                <option value="overdue">Tarihi Geçti</option>
                 <option value="in_progress">Sürüyor</option>
                 <option value="todo">Yapılacak</option>
-                <option value="waiting">Beklemede</option>
+                <option value="overdue">Tarihi Geçti</option>
                 <option value="completed">Bitti</option>
                 <option value="revision_required">Tekrar Yapılıyor</option>
               </select>
@@ -694,7 +693,7 @@ export const TasksScreen: React.FC = () => {
     if (!over || active.id === over.id) return;
 
     // over.id could be a column key or a task id — determine target column
-    const columns = ['todo', 'in_progress', 'waiting', 'completed', 'revision_required', 'overdue'];
+    const columns = ['todo', 'in_progress', 'completed', 'revision_required', 'overdue'];
     let targetCol: string | null = null;
     if (columns.includes(String(over.id))) {
       targetCol = String(over.id);
@@ -776,12 +775,11 @@ export const TasksScreen: React.FC = () => {
 
 
   const columns = [
-    { key: 'overdue', title: 'Tarihi Geçti', color: '#f97316' },
-    { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
     { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
-    { key: 'waiting', title: 'Beklemede', color: '#eab308' },
-    { key: 'revision_required', title: 'Tekrar Yapılıyor', color: '#a78bfa' },
+    { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
+    { key: 'overdue', title: 'Tarihi Geçti', color: '#f97316' },
     { key: 'completed', title: 'Bitti', color: '#10b981' },
+    { key: 'revision_required', title: 'Tekrar Yapılıyor', color: '#a78bfa' },
   ] as const;
 
   const draggedTask = tasks.find(t => t.id === activeId) || null;
