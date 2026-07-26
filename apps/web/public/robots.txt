@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://tancorelab.vercel.app/sitemap.xml
