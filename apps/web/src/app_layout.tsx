@@ -10,7 +10,7 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
-  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown, Settings,
+  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
   MessageSquare, Shield
 } from 'lucide-react';
@@ -171,7 +171,14 @@ export const AppLayout: React.FC = () => {
             <div 
               key={ws.id} 
               className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
-              onClick={() => selectWorkspace(ws.id)}
+              onClick={() => {
+                if (activeWorkspace?.id === ws.id) {
+                  setShowWsSettings(true);
+                } else {
+                  selectWorkspace(ws.id);
+                }
+              }}
+              title={activeWorkspace?.id === ws.id ? "Ekip Yönetimi ve Ayarları" : undefined}
             >
               <div className="workspace-avatar">
                 {ws.name.substring(0, 2).toUpperCase()}
@@ -186,16 +193,6 @@ export const AppLayout: React.FC = () => {
         {/* Ekip Üyeleri (Desktop only, matches mobile drawer style) */}
         <div style={{ padding: '16px 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-sidebar, #94a3b8)', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-sidebar-glass, rgba(255, 255, 255, 0.15))' }}>
           <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
-          {activeWorkspace && (
-            <button
-              className="btn btn-secondary btn-icon-only"
-              style={{ padding: '2px', borderRadius: '6px', width: '22px', height: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
-              title="Ekip Ayarları"
-              onClick={() => setShowWsSettings(true)}
-            >
-              <Settings size={12} style={{ color: 'var(--text-sidebar, #94a3b8)' }} />
-            </button>
-          )}
         </div>
 
         <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
@@ -748,22 +745,18 @@ export const AppLayout: React.FC = () => {
               {/* Ekip Üyeleri */}
               <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ fontWeight: 400, fontSize: '0.65rem', color: 'var(--accent-color)' }}>{activeWorkspace?.name}</span>
-                  {activeWorkspace && (
-                    <button
-                      className="btn btn-secondary btn-icon-only"
-                      style={{ padding: '4px', borderRadius: '8px' }}
-                      title="Ekip Ayarları"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setShowWsSettings(true);
-                      }}
-                    >
-                      <Settings size={13} />
-                    </button>
-                  )}
-                </div>
+                {activeWorkspace && (
+                  <span 
+                    style={{ fontWeight: 700, fontSize: '0.75rem', color: 'var(--accent-color)', cursor: 'pointer', textDecoration: 'underline' }}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setShowWsSettings(true);
+                    }}
+                    title="Ekip Yönetimi ve Ayarları"
+                  >
+                    {activeWorkspace.name}
+                  </span>
+                )}
               </div>
               {workspaceMembers.length === 0 && (
                 <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>

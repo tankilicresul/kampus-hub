@@ -871,6 +871,29 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Workspace Settings Gear Removal & Active Workspace Direct Click Navigation)
+
+### 1. Replaced Settings Gear Icon with Direct Active Workspace Click
+- Modified [app_layout.tsx](file:///c:/Projects/tancorelab/apps/web/src/app_layout.tsx):
+  - Removed the `Settings` icon and button from the desktop layout "EKİP ÜYELERİ" header.
+  - Removed the `Settings` icon and button from the mobile layout drawer "EKİP ÜYELERİ" header.
+  - Configured the desktop workspace items list: if the user clicks on the currently active workspace card, it immediately triggers the `WorkspaceSettingsModal` (Ekip Yönetimi). Clicking other workspace items continues to switch workspaces.
+  - Configured the mobile layout drawer: changed the active workspace name span into a clickable link that opens the `WorkspaceSettingsModal` directly.
+  - Cleaned up unused `Settings` icon import from `lucide-react` to prevent TypeScript compilation errors.
+
+---
+
+## 🧪 Verification Runs (Direct Settings Navigation)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
