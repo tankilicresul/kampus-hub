@@ -30,7 +30,7 @@ interface Task {
   status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required';
   priority: 'critical' | 'high' | 'normal' | 'low';
   primary_assignee_id?: string;
-  due_date?: string;
+  due_date?: string | null;
   tags?: string[];
   recurrence?: string;
   order_index: number;
@@ -48,6 +48,25 @@ interface TaskComment {
   created_at: string;
   profile?: { full_name: string | null };
 }
+
+const calculatePriorityFromDueDate = (dueDateStr: string | null | undefined): Task['priority'] => {
+  if (!dueDateStr) return 'normal';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const due = new Date(dueDateStr);
+  due.setHours(0, 0, 0, 0);
+  
+  const diffTime = due.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 1) {
+    return 'critical'; // Acil
+  } else if (diffDays >= 2 && diffDays <= 5) {
+    return 'high'; // Önemli
+  } else {
+    return 'normal'; // Acelesi yok
+  }
+};
 
 // ─── Sortable Task Card ───────────────────────────────────────────────────────
 const SortableTaskCard: React.FC<{
@@ -205,6 +224,14 @@ const TaskDetailModal: React.FC<{
   const [currentPriority, setCurrentPriority] = useState<Task['priority']>(task.priority);
   const [currentTitle, setCurrentTitle] = useState(task.title);
   const [currentDescription, setCurrentDescription] = useState(task.description || '');
+  const [currentDueDate, setCurrentDueDate] = useState<string | null>(task.due_date || null);
+
+  const handleDueDateChange = (val: string) => {
+    setCurrentDueDate(val || null);
+    if (val) {
+      setCurrentPriority(calculatePriorityFromDueDate(val));
+    }
+  };
 
   const loadComments = useCallback(async () => {
     const { data } = await supabase
@@ -242,7 +269,7 @@ const TaskDetailModal: React.FC<{
     try {
       const { error } = await supabase
         .from('tasks')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', task.id);
       if (error) throw error;
       onRefresh();
@@ -263,6 +290,7 @@ const TaskDetailModal: React.FC<{
         description: currentDescription.trim() || null,
         status: currentStatus,
         priority: currentPriority,
+        due_date: currentDueDate || null,
         updated_at: new Date().toISOString()
       };
 
@@ -357,12 +385,27 @@ const TaskDetailModal: React.FC<{
                 <span>{assignee.full_name || 'Atanmış'}</span>
               </div>
             )}
-            {task.due_date && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: new Date(task.due_date) < new Date() ? '#ef4444' : 'var(--text-secondary)' }}>
-                <Calendar size={14} />
-                <span>{new Date(task.due_date).toLocaleDateString('tr-TR')}</span>
-              </div>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
+              <Calendar size={14} style={{ color: currentDueDate && new Date(currentDueDate) < new Date() ? '#ef4444' : 'var(--text-secondary)' }} />
+              <input
+                type="date"
+                value={currentDueDate || ''}
+                onChange={(e) => handleDueDateChange(e.target.value)}
+                className="form-input"
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '0.78rem',
+                  color: currentDueDate && new Date(currentDueDate) < new Date() ? '#ef4444' : 'var(--text-secondary)',
+                  width: 'auto',
+                  border: '1px solid var(--border-glass)',
+                  background: 'var(--bg-surface-accent)',
+                  borderRadius: 'var(--radius-sm)',
+                  height: 'auto',
+                  display: 'inline-block',
+                  fontWeight: currentDueDate && new Date(currentDueDate) < new Date() ? 700 : 500
+                }}
+              />
+            </div>
             {task.recurrence && task.recurrence !== 'none' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                 <Repeat size={14} />
@@ -932,7 +975,18 @@ export const TasksScreen: React.FC = () => {
                 </div>
                 <div className="form-group">
                   <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Son Tarih</label>
-                  <input type="date" value={newDueDate} onChange={e => setNewDueDate(e.target.value)} className="form-input" />
+                  <input 
+                    type="date" 
+                    value={newDueDate} 
+                    onChange={e => {
+                      const val = e.target.value;
+                      setNewDueDate(val);
+                      if (val) {
+                        setNewPriority(calculatePriorityFromDueDate(val));
+                      }
+                    }} 
+                    className="form-input" 
+                  />
                 </div>
               </div>
               <div className="form-group">

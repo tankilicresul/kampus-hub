@@ -696,6 +696,37 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Task Hard Delete, Editable Deadline & Priority Auto-Calculation)
+
+### 1. Hard Delete instead of Soft Delete for Tasks
+- Changed [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) `handleDelete` function to perform a `.delete()` (hard delete) instead of soft-delete (`update({ deleted_at })`), bypassing the complex update security trigger and relying on cascading database foreign keys to clean up related comments, assignments, and attachments.
+- Created migration `20260726231200_update_tasks_delete_policy.sql` redefining tasks DELETE RLS policy to allow workspace owners, admins, and managers to delete tasks.
+
+### 2. Interactive and Editable Due Date (Deadline) Input
+- Swapped the static deadline due-date text in `TaskDetailModal` with a standard date picker `<input type="date" />` styled to change color dynamically (red if past-due, gray/secondary if future).
+- Bound the date picker to state `currentDueDate` and included it in the saved details updates in `handleSave`.
+- Changed `due_date` type in `Task` interface definition to `string | null` to prevent type constraints conflicts.
+
+### 3. Automatic Priority Calculation Based on Due Date Remaining Days
+- Implemented `calculatePriorityFromDueDate(dueDateStr)` helper function mapping:
+  - $\le 1$ day remaining: `critical` (🔴 Acil)
+  - $2$ to $5$ days remaining: `high` (🟡 Önemli)
+  - $\ge 6$ days remaining (or empty): `normal` (🔵 Acelesi Yok)
+- Configured date picker changes in both `TaskDetailModal` and Task Creation Modal to automatically calculate and set the priority state based on the selected date.
+
+---
+
+## 🧪 Verification Runs (Hard Delete & Deadline Priority)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
