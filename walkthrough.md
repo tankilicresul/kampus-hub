@@ -993,6 +993,35 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Profile Page Reports List & Edit Features)
+
+### 1. Re-styled Reports List to match "Bugün Neler Yaptım"
+- Modified [ProfileScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/profile/ProfileScreen.tsx):
+  - Changed reports query to load user profile details: `select('*, profile:user_id(full_name, avatar_url)')`.
+  - Added filter `.eq('user_id', user.id)` to load only the logged-in user's own reports in "Raporlarım" tab.
+  - Re-designed the report cards list into the new **4-part horizontal grid layout** showing:
+    1. Member name, profile abbreviation/avatar, and timestamp.
+    2. Eşleşen Görev (ongoing task or custom note).
+    3. Bugün Neler Yaptı detail text area content (matching database column `completed_today` instead of the outdated/empty `today_summary` field).
+    4. Status colored badge (Bitirildi, Başlandı, Sürüyor) matching status code in `tomorrow_plan`.
+  - Added a far-right comments button to open "Yönetici Yorumu" modal directly from the profile page.
+
+### 2. Enabled Click-to-Edit & Deletion on Profile Reports
+- Added state handlers, submit logic (`handleReportEditSubmit`), and deletion logic (`handleReportDelete`).
+- Click on any report row opens the `EditReportModal` overlay to allow updating fields or deleting the report with alert confirmation.
+
+---
+
+## 🧪 Verification Runs (Profile Reports Update)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
 
 
 
