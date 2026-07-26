@@ -39,6 +39,7 @@ interface NotificationContextType {
   disablePush: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
   sendPushToWorkspace: (params: {
     workspace_id: string;
     title: string;
@@ -266,6 +267,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const deleteNotification = async (id: string): Promise<void> => {
+    try {
+      const { error } = await supabase.from('notifications').delete().eq('id', id);
+      if (error) throw error;
+      setNotifications((prev) => prev.filter((n) => n.id !== id));
+    } catch (err) {
+      console.error('Delete notification failed:', err);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
@@ -281,6 +292,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         disablePush,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
         sendPushToWorkspace,
       }}
     >

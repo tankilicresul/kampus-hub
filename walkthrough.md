@@ -674,6 +674,29 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Notification Deletion & Encoding Fixes)
+
+### 1. Notification Deletion Option
+- Added a `deleteNotification(id: string)` method in [NotificationContext.tsx](file:///c:/Projects/tancorelab/apps/web/src/context/NotificationContext.tsx) to handle deleting a notification by record id in Supabase and updating local state accordingly.
+- Equipped the dropdown item list in [NotificationBell.tsx](file:///c:/Projects/tancorelab/apps/web/src/components/NotificationBell.tsx) with a red **"Sil"** (Delete) button next to each notification, including double-confirmation popup alerts.
+
+### 2. UTF-8 Character Encoding Fix
+- Created migration `20260726230000_fix_accept_workspace_invitation_encoding.sql` redefining `accept_current_user_workspace_invitation` to output Turkish UTF-8 notifications correctly without corrupted bytes.
+- Cleaned up corrupted entries (e.g. `Ekibe katÄ±ldÄ±nÄ±z`) in the `notifications` table on the live database.
+
+---
+
+## 🧪 Verification Runs (Notification Deletion & Encoding)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 

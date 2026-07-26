@@ -11,7 +11,7 @@ import { Bell, CheckCheck, BellOff } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 
 export const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -185,8 +185,33 @@ export const NotificationBell: React.FC = () => {
                       {notif.body}
                     </div>
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', flexShrink: 0 }}>
-                    {formatTime(notif.created_at)}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 }}>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      {formatTime(notif.created_at)}
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm('Bu bildirimi silmek istiyor musunuz?')) {
+                          deleteNotification(notif.id);
+                        }
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: 'none',
+                        borderRadius: '4px',
+                        color: '#ef4444',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '2px 6px',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.2)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+                    >
+                      Sil
+                    </button>
                   </div>
                 </div>
               ))
