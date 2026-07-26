@@ -529,8 +529,8 @@ export const WorkspaceSettingsModal: React.FC<Props> = ({
             )
           )}
 
-          {/* ⚠️ EKİBİ SİL — sadece owner için */}
-          {isOwner && (
+          {/* ⚠️ EKİBİ SİL — owner veya admin (kurucu/yönetici) için */}
+          {isAdmin && (
             <div
               style={{
                 marginTop: '4px',

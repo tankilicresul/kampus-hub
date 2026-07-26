@@ -158,7 +158,7 @@ export const AppLayout: React.FC = () => {
           <span className="sidebar-logo">TanCoreLab</span>
         </div>
         
-        <div className="workspace-list">
+        <div className="workspace-list" style={{ flex: '0 0 auto', maxHeight: '200px' }}>
           <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
             EKİPLER
           </div>
@@ -181,6 +181,87 @@ export const AppLayout: React.FC = () => {
               </span>
             </div>
           ))}
+        </div>
+
+        {/* Ekip Üyeleri (Desktop only, matches mobile drawer style) */}
+        <div style={{ padding: '16px 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-glass)' }}>
+          <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
+          {activeWorkspace && (
+            <button
+              className="btn btn-secondary btn-icon-only"
+              style={{ padding: '2px', borderRadius: '6px', width: '22px', height: '22px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              title="Ekip Ayarları"
+              onClick={() => setShowWsSettings(true)}
+            >
+              <Settings size={12} />
+            </button>
+          )}
+        </div>
+
+        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {workspaceMembers.length === 0 && (
+            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+              Yükleniyor...
+            </div>
+          )}
+          {workspaceMembers.map((member) => {
+            const name = member.full_name || 'İsimsiz Üye';
+            const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+            const isMe = member.user_id === user?.id;
+            const isAdmin = member.permission_role === 'admin' || member.permission_role === 'owner';
+            return (
+              <div
+                key={member.user_id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '6px 8px',
+                  borderRadius: 'var(--radius-md)',
+                  background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.04)' : 'transparent',
+                  border: isMe ? '1px solid rgba(var(--accent-rgb, 183,1,22), 0.15)' : '1px solid transparent',
+                }}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  backgroundColor: isMe ? 'var(--accent-color)' : 'var(--bg-card)',
+                  backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  color: isMe ? 'white' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  fontSize: '0.72rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  border: '1px solid var(--border-glass)',
+                }}>
+                  {!member.avatar_url && initials}
+                </div>
+
+                {/* İsim + Rol */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: isMe ? 700 : 500,
+                    fontSize: '0.8rem',
+                    color: 'var(--text-primary)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {name}
+                  </div>
+                </div>
+
+                {/* Admin ikonu */}
+                {isAdmin && <Crown size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />}
+              </div>
+            );
+          })}
         </div>
 
         <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

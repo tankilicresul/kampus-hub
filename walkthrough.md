@@ -646,6 +646,35 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Editable Details and Desktop Sidebar Members)
+
+### 1. Editable Task Title and Description/Notes in Modal
+- Updated [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) to declare `currentTitle` and `currentDescription` state hooks inside `TaskDetailModal`.
+- Swapped the static task title header and description paragraph with clean text inputs and textareas that allow users to change the title and description/initial notes locally.
+- Updated `handleSave` to save these edited fields to the Supabase database.
+- Expanded the `Task` type definition interface `description` attribute to be optional or nullable (`string | null | undefined`) to perfectly align with Supabase DB payload typing.
+
+### 2. Desktop Sidebar Team Members Section
+- Added the `EKİP ÜYELERİ` list and settings gear icon directly inside the desktop layout sidebar in [app_layout.tsx](file:///c:/Projects/tancorelab/apps/web/src/app_layout.tsx) under the teams list, mirroring the mobile layout.
+- If a user is a member of the active workspace, they can immediately view all team members and their initials/avatars.
+
+### 3. Expanded Team Deletion Policy (Owner & Admin)
+- Created migration `20260726225700_update_delete_workspace_permission.sql` redefining `delete_workspace_as_owner` to allow both workspace `owner` and `admin` roles to delete the team.
+- Updated [WorkspaceSettingsModal.tsx](file:///c:/Projects/tancorelab/apps/web/src/components/WorkspaceSettingsModal.tsx) UI to show the "Ekibi Kalıcı Olarak Sil" button to all workspace administrators (`isAdmin`), instead of restricting it strictly to owners.
+
+---
+
+## 🧪 Verification Runs (Editable Details & Sidebar Members)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 

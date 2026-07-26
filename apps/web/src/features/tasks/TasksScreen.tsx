@@ -26,7 +26,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface Task {
   id: string;
   title: string;
-  description?: string;
+  description?: string | null;
   status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required';
   priority: 'critical' | 'high' | 'normal' | 'low';
   primary_assignee_id?: string;
@@ -203,6 +203,8 @@ const TaskDetailModal: React.FC<{
   const [activeTab, setActiveTab] = useState<'comments' | 'attachments'>('comments');
   const [currentStatus, setCurrentStatus] = useState<Task['status']>(task.status);
   const [currentPriority, setCurrentPriority] = useState<Task['priority']>(task.priority);
+  const [currentTitle, setCurrentTitle] = useState(task.title);
+  const [currentDescription, setCurrentDescription] = useState(task.description || '');
 
   const loadComments = useCallback(async () => {
     const { data } = await supabase
@@ -251,8 +253,14 @@ const TaskDetailModal: React.FC<{
   };
 
   const handleSave = async () => {
+    if (!currentTitle.trim()) {
+      alert('Görev başlığı boş bırakılamaz.');
+      return;
+    }
     try {
       const updates: Partial<Task> & { updated_at: string } = {
+        title: currentTitle.trim(),
+        description: currentDescription.trim() || null,
         status: currentStatus,
         priority: currentPriority,
         updated_at: new Date().toISOString()
@@ -290,9 +298,28 @@ const TaskDetailModal: React.FC<{
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Task info */}
-          <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)' }}>{task.title}</h3>
-          {task.description && <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)' }}>{task.description}</p>}
+          {/* Task info (Editable Title and Note) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label className="form-label" style={{ marginBottom: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>GÖREV BAŞLIĞI</label>
+            <input 
+              type="text" 
+              value={currentTitle} 
+              onChange={e => setCurrentTitle(e.target.value)} 
+              className="form-input" 
+              placeholder="Görev başlığı"
+              style={{ fontWeight: 700, fontSize: '1.0rem', color: 'var(--text-primary)', width: '100%' }} 
+            />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label className="form-label" style={{ marginBottom: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>AÇIKLAMA / İLK EKLENEN NOT</label>
+            <textarea 
+              value={currentDescription} 
+              onChange={e => setCurrentDescription(e.target.value)} 
+              className="form-input" 
+              placeholder="Açıklama veya ilk notu ekleyin..."
+              style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', width: '100%', minHeight: '60px', resize: 'vertical' }} 
+            />
+          </div>
 
           {/* Meta row */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
