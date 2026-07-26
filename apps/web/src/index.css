@@ -381,7 +381,7 @@ body {
 /* Kanban / CRM Pipelines (Minimalist and scrollable) */
 .board-container {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   overflow-x: auto;
   align-items: flex-start;
   padding: 8px 0 20px;
@@ -389,12 +389,12 @@ body {
 }
 
 .board-column {
-  width: 290px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 220px;
   background-color: var(--bg-surface);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  padding: 12px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;

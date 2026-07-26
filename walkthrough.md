@@ -791,6 +791,34 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (6-Column Kanban Board & Automatic "Tarihi Geçti" Status at 06:00 AM)
+
+### 1. Created the "Tarihi Geçti" (Overdue) Column
+- Added `'overdue'` status value to the `task_status` enum type in the database.
+- Expanded `Task['status']` union type inside [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) to accept `'overdue'`.
+- Inserted `{ key: 'overdue', title: 'Tarihi Geçti', color: '#f97316' }` (orange) as the first column in the `columns` array.
+- Shifted `'waiting'` (Beklemede) column indicator color to `#eab308` (amber) to keep columns visually distinct.
+- Adjusted `.board-column` CSS rule inside [index.css](file:///c:/Projects/tancorelab/apps/web/src/index.css) to use `flex: 1` and `min-width: 220px` to divide the screen width into 6 equal parts on desktop screens automatically.
+
+### 2. Automatic Overdue Task Status Transition (06:00 AM Threshold)
+- Implemented real-time synchronization in `loadTasks()` inside [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx):
+  - Calculates the effective threshold date based on the current hour: if local hour is $< 6$ AM, the threshold is yesterday's date, otherwise today's date.
+  - Automatically queries and updates any task whose `due_date` is less than the threshold (i.e. due date has passed) and whose status is not already completed (`'completed'`) or overdue (`'overdue'`) to `'overdue'` in the database.
+  - This ensures that if a task remains incomplete by 06:00 AM on the day following its due date, it automatically transitions to the "Tarihi Geçti" (overdue) status.
+
+---
+
+## 🧪 Verification Runs (6-Column Board & 06:00 AM Overdue Status)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
