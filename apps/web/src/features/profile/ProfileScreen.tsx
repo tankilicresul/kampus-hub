@@ -23,7 +23,7 @@ interface UserTask {
   id: string;
   title: string;
   description?: string;
-  status: 'todo' | 'in_progress' | 'waiting' | 'completed';
+  status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required';
   priority: 'critical' | 'high' | 'normal' | 'low';
   created_at: string;
 }
@@ -254,18 +254,14 @@ export const ProfileScreen: React.FC = () => {
 
   const completedTasksCount = tasks.filter((t) => t.status === 'completed').length;
 
-  const priorityLabels: Record<string, string> = {
-    critical: 'Acil',
-    high: 'Önemli',
-    normal: 'Normal',
-    low: 'Acil Değil',
-  };
+
 
   const statusLabels: Record<string, { title: string; color: string }> = {
-    todo: { title: 'Yapılacak', color: '#38bdf8' },
     in_progress: { title: 'Sürüyor', color: '#f59e0b' },
-    waiting: { title: 'Bekliyor', color: '#f97316' },
+    todo: { title: 'Yapılacak', color: '#38bdf8' },
+    waiting: { title: 'Beklemede', color: '#f97316' },
     completed: { title: 'Bitti', color: '#10b981' },
+    revision_required: { title: 'Tekrar Yapılıyor', color: '#a78bfa' },
   };
 
   const displayName = fullName.trim() || user?.email?.split('@')[0] || 'Kullanıcı';
@@ -485,9 +481,28 @@ export const ProfileScreen: React.FC = () => {
                   gap: '8px'
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                    <span className={`badge badge-${task.priority}`} style={{ fontSize: '0.7rem' }}>
-                      {priorityLabels[task.priority] || task.priority}
-                    </span>
+                    {task.priority === 'critical' ? (
+                      <span 
+                        title="Acil" 
+                        style={{ 
+                          width: '10px', 
+                          height: '10px', 
+                          borderRadius: '50%', 
+                          backgroundColor: '#ef4444', 
+                          display: 'inline-block'
+                        }} 
+                      />
+                    ) : task.priority === 'high' ? (
+                      <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                        Önemli
+                      </span>
+                    ) : (
+                      <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                        Acelesi Yok
+                      </span>
+                    )}
                     <span style={{
                       fontSize: '0.72rem',
                       fontWeight: 700,

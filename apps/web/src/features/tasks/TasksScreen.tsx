@@ -25,7 +25,7 @@ interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'todo' | 'in_progress' | 'waiting' | 'completed';
+  status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required';
   priority: 'critical' | 'high' | 'normal' | 'low';
   primary_assignee_id?: string;
   due_date?: string;
@@ -50,9 +50,8 @@ interface TaskComment {
 const SortableTaskCard: React.FC<{
   task: Task;
   members: WorkspaceMember[];
-  priorityLabels: Record<string, string>;
   onDetailClick: (task: Task) => void;
-}> = ({ task, members, priorityLabels, onDetailClick }) => {
+}> = ({ task, members, onDetailClick }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -66,8 +65,30 @@ const SortableTaskCard: React.FC<{
   return (
     <div ref={setNodeRef} style={style} className="task-card" {...attributes}>
       {/* Drag handle + header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <span className={`badge badge-${task.priority}`}>{priorityLabels[task.priority] || task.priority}</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {task.priority === 'critical' ? (
+          <span 
+            title="Acil" 
+            style={{ 
+              width: '10px', 
+              height: '10px', 
+              borderRadius: '50%', 
+              backgroundColor: '#ef4444', 
+              display: 'inline-block',
+              margin: '6px'
+            }} 
+          />
+        ) : task.priority === 'high' ? (
+          <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+            Önemli
+          </span>
+        ) : (
+          <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+            Acelesi Yok
+          </span>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {task.recurrence && task.recurrence !== 'none' && (
             <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex' }}>
@@ -250,10 +271,28 @@ const TaskDetailModal: React.FC<{
                 className="form-input"
                 style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
               >
-                <option value="todo">Yapılacak</option>
                 <option value="in_progress">Sürüyor</option>
-                <option value="waiting">Bekliyor</option>
+                <option value="todo">Yapılacak</option>
+                <option value="waiting">Beklemede</option>
                 <option value="completed">Bitti</option>
+                <option value="revision_required">Tekrar Yapılıyor</option>
+              </select>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
+              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Öncelik:</span>
+              <select 
+                value={task.priority} 
+                onChange={async (e) => {
+                  const newPriority = e.target.value as Task['priority'];
+                  await supabase.from('tasks').update({ priority: newPriority, updated_at: new Date().toISOString() }).eq('id', task.id);
+                  onRefresh();
+                }}
+                className="form-input"
+                style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
+              >
+                <option value="critical">🔴 Acil</option>
+                <option value="high">🟡 Önemli</option>
+                <option value="normal">🔵 Acelesi Yok</option>
               </select>
             </div>
             {assignee && (
@@ -374,8 +413,6 @@ export const TasksScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
   // Create task modal
@@ -509,20 +546,17 @@ export const TasksScreen: React.FC = () => {
     const matchesSearch = !searchQuery ||
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesPriority = !selectedPriority || t.priority === selectedPriority;
-    const matchesStatus = !selectedStatus || t.status === selectedStatus;
-    return matchesSearch && matchesPriority && matchesStatus;
+    return matchesSearch;
   });
 
-  const priorityLabels: Record<string, string> = {
-    critical: '🔴 Acil', high: '🟡 Önemli', normal: '⚪ Normal', low: '🟢 Düşük',
-  };
+
 
   const columns = [
-    { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
     { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
-    { key: 'waiting', title: 'Bekliyor', color: '#f97316' },
+    { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
+    { key: 'waiting', title: 'Beklemede', color: '#f97316' },
     { key: 'completed', title: 'Bitti', color: '#10b981' },
+    { key: 'revision_required', title: 'Tekrar Yapılıyor', color: '#a78bfa' },
   ] as const;
 
   const draggedTask = tasks.find(t => t.id === activeId) || null;
@@ -531,7 +565,7 @@ export const TasksScreen: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
       {/* Search & Filter Header */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)' }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
             <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -555,33 +589,6 @@ export const TasksScreen: React.FC = () => {
             <Plus size={18} />
             <span className="btn-text">Yeni Görev</span>
           </button>
-        </div>
-
-        {/* Filter chips */}
-        <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '2px' }}>
-          {[
-            { label: 'Tümü', onClick: () => { setSelectedPriority(null); setSelectedStatus(null); }, active: !selectedPriority && !selectedStatus, color: 'var(--accent-color)' },
-            { label: '🔴 Acil', onClick: () => { setSelectedPriority('critical'); setSelectedStatus(null); }, active: selectedPriority === 'critical', color: '#ef4444' },
-            { label: '🟡 Önemli', onClick: () => { setSelectedPriority('high'); setSelectedStatus(null); }, active: selectedPriority === 'high', color: '#f59e0b' },
-            { label: '✅ Yapılacak', onClick: () => { setSelectedStatus('todo'); setSelectedPriority(null); }, active: selectedStatus === 'todo', color: '#38bdf8' },
-            { label: '🔄 Sürüyor', onClick: () => { setSelectedStatus('in_progress'); setSelectedPriority(null); }, active: selectedStatus === 'in_progress', color: '#f97316' },
-            { label: '✔ Bitti', onClick: () => { setSelectedStatus('completed'); setSelectedPriority(null); }, active: selectedStatus === 'completed', color: '#10b981' },
-          ].map(chip => (
-            <span
-              key={chip.label}
-              style={{
-                cursor: 'pointer', padding: '5px 14px', borderRadius: 'var(--radius-md)',
-                fontSize: '0.76rem', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap',
-                border: `1px solid ${chip.active ? chip.color : 'var(--border-glass)'}`,
-                backgroundColor: chip.active ? chip.color : 'var(--bg-surface-accent)',
-                color: chip.active ? 'white' : 'var(--text-secondary)',
-                transition: 'all 0.15s',
-              }}
-              onClick={chip.onClick}
-            >
-              {chip.label}
-            </span>
-          ))}
         </div>
       </div>
 
@@ -622,7 +629,6 @@ export const TasksScreen: React.FC = () => {
                           key={task.id}
                           task={task}
                           members={members}
-                          priorityLabels={priorityLabels}
                           onDetailClick={setDetailTask}
                         />
                       ))}
@@ -635,7 +641,28 @@ export const TasksScreen: React.FC = () => {
           <DragOverlay>
             {draggedTask && (
               <div className="task-card" style={{ opacity: 0.9, boxShadow: 'var(--shadow-lg)', transform: 'rotate(2deg)' }}>
-                <span className={`badge badge-${draggedTask.priority}`}>{priorityLabels[draggedTask.priority]}</span>
+                {draggedTask.priority === 'critical' ? (
+                  <span 
+                    style={{ 
+                      width: '10px', 
+                      height: '10px', 
+                      borderRadius: '50%', 
+                      backgroundColor: '#ef4444', 
+                      display: 'inline-block',
+                      margin: '6px'
+                    }} 
+                  />
+                ) : draggedTask.priority === 'high' ? (
+                  <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                    Önemli
+                  </span>
+                ) : (
+                  <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                    Acelesi Yok
+                  </span>
+                )}
                 <div className="card-title" style={{ marginTop: '6px' }}>{draggedTask.title}</div>
               </div>
             )}
@@ -662,9 +689,30 @@ export const TasksScreen: React.FC = () => {
               }}
               onClick={() => setDetailTask(task)}
               >
-                <span className={`badge badge-${task.priority}`} style={{ flexShrink: 0 }}>
-                  {priorityLabels[task.priority]?.replace(/🔴|🟡|⚪|🟢/g, '').trim()}
-                </span>
+                {task.priority === 'critical' ? (
+                  <span 
+                    title="Acil" 
+                    style={{ 
+                      width: '10px', 
+                      height: '10px', 
+                      borderRadius: '50%', 
+                      backgroundColor: '#ef4444', 
+                      display: 'inline-block',
+                      marginRight: '6px',
+                      flexShrink: 0
+                    }} 
+                  />
+                ) : task.priority === 'high' ? (
+                  <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                    Önemli
+                  </span>
+                ) : (
+                  <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                    Acelesi Yok
+                  </span>
+                )}
                 <span style={{ flex: 1, fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{task.title}</span>
                 {assignee && (
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -713,8 +761,7 @@ export const TasksScreen: React.FC = () => {
                   <select value={newPriority} onChange={e => setNewPriority(e.target.value as Task['priority'])} className="form-input">
                     <option value="critical">🔴 Acil</option>
                     <option value="high">🟡 Önemli</option>
-                    <option value="normal">⚪ Normal</option>
-                    <option value="low">🟢 Düşük</option>
+                    <option value="normal">🔵 Acelesi Yok</option>
                   </select>
                 </div>
                 <div className="form-group">
