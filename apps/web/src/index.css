@@ -1,59 +1,67 @@
 :root {
-  /* TanCoreLab Design Standard Specs */
-  --bg-main: #f6f8fa; /* Yumuşak Zemin */
-  --bg-surface: #ffffff; /* Beyaz Zemin (35% White) */
-  --bg-surface-accent: #f1f5f9;
-  --border-glass: #e2e8f0;
-  --border-color: #cbd5e1;
+  /* TanCoreLab Glassmorphism & GitHub Primer Design Standard Specs */
+  --bg-main: #f6f8fa; /* Soft background */
+  --bg-surface: rgba(255, 255, 255, 0.7); /* Translucent white surface */
+  --bg-surface-accent: rgba(246, 248, 250, 0.6);
+  --border-glass: rgba(208, 215, 222, 0.45);
+  --border-color: rgba(208, 215, 222, 0.65);
   
-  --text-primary: #0b131f; /* Başlık Koyu Rengi */
-  --text-secondary: #475569; /* Metin Grisi */
-  --text-muted: #94a3b8;
+  --text-primary: #24292f; /* GitHub Primary Text */
+  --text-secondary: #57606a; /* GitHub Secondary Text */
+  --text-muted: #8c959f;
   
-  --accent-color: #ff9f0a; /* Brand Orange (45% Orange) */
-  --accent-hover: #e58a00;
-  --accent-gradient: linear-gradient(135deg, #ff9f0a 0%, #ff6b00 100%);
+  --accent-color: #0969da; /* GitHub Primer Accent Blue */
+  --accent-hover: #0953b0;
+  --accent-gradient: linear-gradient(135deg, #0969da 0%, #05499e 100%);
   
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-danger: #ef4444; /* Clean red for alerts */
+  --color-success: #1f883d;
+  --color-warning: #9a6700;
+  --color-danger: #cf222e;
   
-  /* Sidebar Specific (15% Dark/Black) */
-  --bg-sidebar: #090e17; /* Dark from logo background */
-  --bg-sidebar-hover: #151e2e;
-  --text-sidebar: #94a3b8;
-  --text-sidebar-active: #090e17;
-  --border-sidebar-glass: #1e293b;
+  /* Sidebar Specific (Glassmorphism Light / Grey) */
+  --bg-sidebar: rgba(246, 248, 250, 0.75);
+  --bg-sidebar-hover: rgba(208, 215, 222, 0.35);
+  --text-sidebar: #24292f;
+  --text-sidebar-active: #0969da;
+  --border-sidebar-glass: rgba(208, 215, 222, 0.5);
   
-  --font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-  --transition-smooth: all 0.2s ease-in-out;
-  --shadow-sm: 0 2px 8px rgba(11, 19, 31, 0.04);
-  --shadow-md: 0 8px 24px rgba(11, 19, 31, 0.06);
-  --shadow-lg: 0 16px 40px rgba(11, 19, 31, 0.1);
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --shadow-sm: 0 1px 0 rgba(27,31,35,0.04);
+  --shadow-md: 0 3px 6px rgba(140, 149, 159, 0.12);
+  --shadow-lg: 0 8px 24px rgba(140, 149, 159, 0.16);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 }
 
 [data-theme="dark"] {
-  --bg-main: #0b131f; /* Logo Background Dark (15% Black/Dark) */
-  --bg-surface: #121a28; /* White surfaces turn into Slate dark surfaces */
-  --bg-surface-accent: #1e293b;
-  --border-glass: #1e293b;
-  --border-color: #334155;
+  --bg-main: #0d1117; /* GitHub Dark BG */
+  --bg-surface: rgba(22, 27, 34, 0.75); /* Translucent black surface */
+  --bg-surface-accent: rgba(13, 17, 23, 0.55);
+  --border-glass: rgba(48, 54, 61, 0.45);
+  --border-color: rgba(48, 54, 61, 0.75);
   
-  --text-primary: #ffffff; /* White (35% White text & highlights in dark mode) */
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #c9d1d9; /* GitHub Dark Text Primary */
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
   
-  --bg-sidebar: #070c14;
-  --bg-sidebar-hover: #121a28;
-  --text-sidebar: #94a3b8;
-  --border-sidebar-glass: #121a28;
+  --accent-color: #58a6ff;
+  --accent-hover: #388bfd;
+  --accent-gradient: linear-gradient(135deg, #58a6ff 0%, #1f6feb 100%);
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.4);
+  --color-success: #3fb950;
+  --color-warning: #d29922;
+  --color-danger: #f85149;
+  
+  --bg-sidebar: rgba(22, 27, 34, 0.8);
+  --bg-sidebar-hover: rgba(48, 54, 61, 0.35);
+  --text-sidebar: #c9d1d9;
+  --border-sidebar-glass: rgba(48, 54, 61, 0.5);
+  
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -108,6 +116,8 @@ body {
 .sidebar {
   width: 260px;
   background-color: var(--bg-sidebar);
+  backdrop-filter: blur(20px) saturate(120%);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
   color: var(--text-sidebar);
   border-right: 1px solid var(--border-sidebar-glass);
   display: flex;
@@ -201,8 +211,10 @@ body {
 .app-bar {
   height: 64px;
   background-color: var(--bg-surface);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
   color: var(--text-primary);
-  border-bottom: 2px solid var(--accent-color);
+  border-bottom: 1px solid var(--border-glass);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -250,6 +262,8 @@ body {
 .nav-tabs {
   display: flex;
   background-color: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-glass);
   padding: 0 24px;
 }
@@ -533,6 +547,8 @@ body {
 
 .modal-content {
   background-color: var(--bg-surface);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
   width: 100%;
