@@ -553,5 +553,25 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, warnings are unrelated dependencies warnings).
 
+---
+
+## 🛠️ Changes Implemented (Loading Screen Customization)
+
+### 1. Minimalist App Loading State
+- Modified [App.tsx](file:///c:/Projects/tancorelab/apps/web/src/App.tsx) to remove the spinning `RefreshCw` icon and default "Yükleniyor..." text during the initial auth check.
+- Replaced the loading elements with a clean, flat text string centered on the screen: `"daha yenilikçi ve modern bir yükleniyor animasyonu ekler misin."` as requested.
+- Cleaned up the unused `RefreshCw` import in `App.tsx` to ensure type check compatibility.
+
+---
+
+## 🧪 Verification Runs (Loading Screen Customization)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
