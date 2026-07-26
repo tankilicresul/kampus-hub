@@ -724,10 +724,12 @@ export const ProfileScreen: React.FC = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
                 {cells.map((cell, idx) => {
                   const cellDateStr = getLocalDate(cell.date);
-                  const cellTasks = myTasks.filter(t => {
+                  const cellTasks = tasks.filter(t => {
+                    // Prefer due_date, then start_date, then fall back to created_at
                     const dueDate = t.due_date ? t.due_date.slice(0, 10) : null;
                     const startDate = t.start_date ? t.start_date.slice(0, 10) : null;
-                    return dueDate === cellDateStr || startDate === cellDateStr;
+                    const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+                    return dueDate === cellDateStr || startDate === cellDateStr || (!dueDate && !startDate && fallbackDate === cellDateStr);
                   });
                   const isToday = cellDateStr === todayStr;
 
