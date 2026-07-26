@@ -5,7 +5,6 @@ import {
   ShieldCheck, 
   CheckCircle2, 
   Clock, 
-  FileText, 
   RefreshCw,
   AlertCircle,
   Camera,
@@ -16,15 +15,23 @@ import {
   Building,
   Bell,
   X,
-  MessageSquare
+  MessageSquare,
+  Calendar,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface UserTask {
   id: string;
   title: string;
-  description?: string;
-  status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required';
+  description?: string | null;
+  status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required' | 'overdue';
   priority: 'critical' | 'high' | 'normal' | 'low';
+  start_date?: string | null;
+  due_date?: string | null;
+  completed_at?: string | null;
+  primary_assignee_id?: string | null;
+  created_by?: string | null;
   created_at: string;
 }
 
@@ -88,17 +95,20 @@ export const ProfileScreen: React.FC = () => {
   const [tasks, setTasks] = useState<UserTask[]>([]);
   const [dailyUpdates, setDailyUpdates] = useState<UserDailyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_updates'>('my_tasks');
+  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_calendar'>('my_tasks');
   const [showEditModal, setShowEditModal] = useState(false);
 
-  // Report Edit modal states
-  const [showReportEditModal, setShowReportEditModal] = useState(false);
-  const [editingReportUpdate, setEditingReportUpdate] = useState<UserDailyUpdate | null>(null);
-  const [editSelectedTask, setEditSelectedTask] = useState('');
-  const [editCustomTaskNote, setEditCustomTaskNote] = useState('');
-  const [editReportDetail, setEditReportDetail] = useState('');
-  const [editReportStatus, setEditReportStatus] = useState<'completed' | 'started' | 'ongoing'>('ongoing');
-  const [reportSubmitting, setReportSubmitting] = useState(false);
+  // Calendar navigation state
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
+
+  // Task click-to-edit modal states
+  const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
+  const [editTaskTitle, setEditTaskTitle] = useState('');
+  const [editTaskDesc, setEditTaskDesc] = useState('');
+  const [editTaskStatus, setEditTaskStatus] = useState<UserTask['status']>('todo');
+  const [editTaskPriority, setEditTaskPriority] = useState<UserTask['priority']>('normal');
+  const [editTaskStartDate, setEditTaskStartDate] = useState<string>('');
+  const [editTaskDueDate, setEditTaskDueDate] = useState<string>('');
 
   // Comment modal state
   const [commentUpdate, setCommentUpdate] = useState<UserDailyUpdate | null>(null);
@@ -120,7 +130,7 @@ export const ProfileScreen: React.FC = () => {
     try {
       const { data: taskData } = await supabase
         .from('tasks')
-        .select('*')
+        .select('id, title, description, status, priority, start_date, due_date, completed_at, primary_assignee_id, created_by, created_at')
         .eq('workspace_id', activeWorkspace.id)
         .order('created_at', { ascending: false });
 
@@ -157,56 +167,96 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const handleReportEditSubmit = async (e: React.FormEvent) => {
+  const handleTaskEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingReportUpdate || !editReportDetail.trim()) return;
-
-    setReportSubmitting(true);
+    if (!selectedTask || !editTaskTitle.trim()) return;
     try {
-      const matchedTask = editSelectedTask === '__other__' 
-        ? (editCustomTaskNote.trim() || 'Diğer') 
-        : (editSelectedTask || 'Belirtilmemiş');
-
-      const { error } = await supabase
-        .from('daily_updates')
-        .update({
-          completed_today: editReportDetail.trim(),
-          ongoing_work: matchedTask,
-          tomorrow_plan: editReportStatus,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editingReportUpdate.id);
-
+      const updates: any = {
+        title: editTaskTitle.trim(),
+        description: editTaskDesc.trim() || null,
+        status: editTaskStatus,
+        priority: editTaskPriority,
+        start_date: editTaskStartDate || null,
+        due_date: editTaskDueDate || null,
+        completed_at: editTaskStatus === 'completed'
+          ? (selectedTask.completed_at || new Date().toISOString())
+          : null,
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await supabase.from('tasks').update(updates).eq('id', selectedTask.id);
       if (error) throw error;
-      setShowReportEditModal(false);
+      setSelectedTask(null);
       await loadUserData();
     } catch (err) {
-      console.error('Update daily update failed:', err);
-    } finally {
-      setReportSubmitting(false);
+      console.error('Update task failed:', err);
     }
   };
 
-  const handleReportDelete = async () => {
-    if (!editingReportUpdate) return;
-    if (!window.confirm("Bu raporu silmek istediğinize emin misiniz?")) return;
-
-    setReportSubmitting(true);
+  const handleTaskDelete = async () => {
+    if (!selectedTask) return;
+    if (!window.confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
     try {
-      const { error } = await supabase
-        .from('daily_updates')
-        .delete()
-        .eq('id', editingReportUpdate.id);
-
+      const { error } = await supabase.from('tasks').delete().eq('id', selectedTask.id);
       if (error) throw error;
-      setShowReportEditModal(false);
+      setSelectedTask(null);
       await loadUserData();
     } catch (err) {
-      console.error('Delete daily update failed:', err);
-    } finally {
-      setReportSubmitting(false);
+      console.error('Delete task failed:', err);
     }
   };
+
+  const openTaskEdit = (task: UserTask) => {
+    setSelectedTask(task);
+    setEditTaskTitle(task.title);
+    setEditTaskDesc(task.description || '');
+    setEditTaskStatus(task.status);
+    setEditTaskPriority(task.priority);
+    setEditTaskStartDate(task.start_date || '');
+    setEditTaskDueDate(task.due_date || '');
+  };
+
+  const getLocalDate = (date: Date): string => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const getCalendarCells = (year: number, month: number) => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const adjustedFirst = firstDay === 0 ? 6 : firstDay - 1;
+    const totalDays = new Date(year, month + 1, 0).getDate();
+    const prevTotal = new Date(year, month, 0).getDate();
+    const cells: { day: number; date: Date; isCurrentMonth: boolean }[] = [];
+    for (let i = adjustedFirst - 1; i >= 0; i--) {
+      const d = prevTotal - i;
+      const pm = month === 0 ? 11 : month - 1;
+      const py = month === 0 ? year - 1 : year;
+      cells.push({ day: d, date: new Date(py, pm, d), isCurrentMonth: false });
+    }
+    for (let d = 1; d <= totalDays; d++) {
+      cells.push({ day: d, date: new Date(year, month, d), isCurrentMonth: true });
+    }
+    const remaining = cells.length % 7 === 0 ? 0 : 7 - (cells.length % 7);
+    for (let d = 1; d <= remaining; d++) {
+      const nm = month === 11 ? 0 : month + 1;
+      const ny = month === 11 ? year + 1 : year;
+      cells.push({ day: d, date: new Date(ny, nm, d), isCurrentMonth: false });
+    }
+    return cells;
+  };
+
+  const getStatusColor = (status: string): string => {
+    switch (status) {
+      case 'completed': return '#22c55e';
+      case 'in_progress': return '#3b82f6';
+      case 'overdue': return '#f97316';
+      case 'revision_required': return '#ef4444';
+      case 'waiting': return '#a78bfa';
+      default: return '#6366f1';
+    }
+  };
+
 
   useEffect(() => {
     loadUserData();
@@ -334,7 +384,10 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const completedTasksCount = tasks.filter((t) => t.status === 'completed').length;
+  const myTasks = tasks.filter(t => !t.primary_assignee_id || t.primary_assignee_id === user?.id || t.created_by === user?.id);
+  const myCompletedCount = myTasks.filter(t => t.status === 'completed').length;
+  const myActiveCount = myTasks.filter(t => t.status !== 'completed').length;
+
 
 
 
@@ -492,7 +545,7 @@ export const ProfileScreen: React.FC = () => {
         }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {tasks.length}
+              {myTasks.length}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
               Toplam Görev
@@ -500,7 +553,7 @@ export const ProfileScreen: React.FC = () => {
           </div>
           <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border-glass)', borderRight: '1px solid var(--border-glass)' }}>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-success)' }}>
-              {completedTasksCount}
+              {myCompletedCount}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
               Tamamlanan
@@ -508,10 +561,10 @@ export const ProfileScreen: React.FC = () => {
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-color)' }}>
-              {dailyUpdates.length}
+              {myActiveCount}
             </div>
             <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Günlük Rapor
+              Aktif Görev
             </div>
           </div>
         </div>
@@ -524,16 +577,16 @@ export const ProfileScreen: React.FC = () => {
           style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <CheckCircle2 size={15} />
-          <span>Görevlerim ({tasks.length})</span>
+          <span>Görevlerim ({myTasks.length})</span>
         </button>
 
         <button
-          className={`btn ${activeSubTab === 'my_updates' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('my_updates')}
+          className={`btn ${activeSubTab === 'my_calendar' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setActiveSubTab('my_calendar')}
           style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
-          <FileText size={15} />
-          <span>Raporlarım ({dailyUpdates.length})</span>
+          <Calendar size={15} />
+          <span>Görev Takvimi</span>
         </button>
       </div>
 
@@ -544,35 +597,41 @@ export const ProfileScreen: React.FC = () => {
         </div>
       ) : activeSubTab === 'my_tasks' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {tasks.length === 0 ? (
+          {myTasks.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
               <AlertCircle size={36} style={{ margin: '0 auto 8px', color: 'var(--text-muted)' }} />
               <p style={{ margin: 0, fontWeight: 600 }}>Henüz eklenmiş bir görev bulunmuyor.</p>
             </div>
           ) : (
-            tasks.map((task) => {
+            myTasks.map((task) => {
               const statusInfo = statusLabels[task.status] || { title: task.status, color: '#94a3b8' };
               return (
-                <div key={task.id} style={{
-                  backgroundColor: 'var(--bg-surface)',
-                  padding: '14px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-glass)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}>
+                <div
+                  key={task.id}
+                  onClick={() => openTaskEdit(task)}
+                  style={{
+                    backgroundColor: 'var(--bg-surface)',
+                    padding: '14px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border-glass)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.2s'
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
                     {task.priority === 'critical' ? (
-                      <span 
-                        title="Acil" 
-                        style={{ 
-                          width: '10px', 
-                          height: '10px', 
-                          borderRadius: '50%', 
-                          backgroundColor: '#ef4444', 
+                      <span
+                        title="Acil"
+                        style={{
+                          width: '10px',
+                          height: '10px',
+                          borderRadius: '50%',
+                          backgroundColor: '#ef4444',
                           display: 'inline-block'
-                        }} 
+                        }}
                       />
                     ) : task.priority === 'high' ? (
                       <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
@@ -607,9 +666,21 @@ export const ProfileScreen: React.FC = () => {
                     </p>
                   )}
 
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                    <Clock size={12} />
-                    <span>{new Date(task.created_at).toLocaleDateString('tr-TR')}</span>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <Clock size={12} />
+                      {task.start_date ? new Date(task.start_date).toLocaleDateString('tr-TR') : new Date(task.created_at).toLocaleDateString('tr-TR')}
+                    </span>
+                    {task.due_date && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#f97316' }}>
+                        → {new Date(task.due_date).toLocaleDateString('tr-TR')}
+                      </span>
+                    )}
+                    {task.completed_at && (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#22c55e' }}>
+                        ✓ {new Date(task.completed_at).toLocaleDateString('tr-TR')}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -617,149 +688,140 @@ export const ProfileScreen: React.FC = () => {
           )}
         </div>
       ) : (
-        /* Daily updates sub-tab */
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {dailyUpdates.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
-              <FileText size={36} style={{ margin: '0 auto 8px', color: 'var(--text-muted)' }} />
-              <p style={{ margin: 0, fontWeight: 600 }}>Henüz gönderilmiş bir günlük raporunuz yok.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
-              {dailyUpdates.map(update => (
-                <div 
-                  key={update.id} 
-                  onClick={() => {
-                    setEditingReportUpdate(update);
-                    const hasTask = tasks.some(t => t.title === update.ongoing_work);
-                    setEditSelectedTask(hasTask ? (update.ongoing_work || '') : (update.ongoing_work ? '__other__' : ''));
-                    setEditCustomTaskNote(hasTask ? '' : (update.ongoing_work || ''));
-                    setEditReportDetail(update.completed_today);
-                    setEditReportStatus(update.tomorrow_plan as any || 'ongoing');
-                    setShowReportEditModal(true);
-                  }}
-                  style={{
-                    backgroundColor: 'var(--bg-card, #ffffff)',
-                    borderRadius: 'var(--radius-lg)',
-                    border: '1px solid var(--border-glass)',
-                    padding: '16px 20px',
-                    boxShadow: 'var(--shadow-sm)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '20px',
-                    flexWrap: 'wrap',
-                    cursor: 'pointer'
-                  }}
-                  title="Rapor Detayları & Düzenle"
+        /* Calendar View */
+        (() => {
+          const year = calendarDate.getFullYear();
+          const month = calendarDate.getMonth();
+          const cells = getCalendarCells(year, month);
+          const todayStr = getLocalDate(new Date());
+          const monthNames = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+          const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+
+          return (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Calendar Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+                <button
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 10px', borderRadius: '10px' }}
+                  onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
                 >
-                  {/* Part 1: İsim & Tarih */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '10px', 
-                    flex: '0 0 auto', 
-                    minWidth: '160px',
-                    justifyContent: 'flex-start'
-                  }}>
-                    <div style={{
-                      width: '32px', height: '32px', borderRadius: '50%',
-                      backgroundColor: 'var(--accent-color)', color: 'white',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '0.75rem', fontWeight: 800, flexShrink: 0
-                    }}>
-                      {(update.profile?.full_name || user?.user_metadata?.full_name || '?').slice(0, 2).toUpperCase()}
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
-                        {update.profile?.full_name || user?.user_metadata?.full_name || 'Ekip Üyesi'}
-                      </span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {new Date(update.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
+                  <ChevronLeft size={16} />
+                </button>
+                <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                  {monthNames[month]} {year}
+                </span>
+                <button
+                  className="btn btn-secondary"
+                  style={{ padding: '6px 10px', borderRadius: '10px' }}
+                  onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
 
-                  {/* Part 2: Eşleşen Görev */}
-                  <div style={{ 
-                    flex: '1 1 180px', 
-                    fontSize: '0.85rem', 
-                    color: 'var(--text-primary)',
-                    fontWeight: 500
-                  }}>
-                    <span style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 700 }}>EŞLEŞEN GÖREV</span>
-                    {update.ongoing_work || 'Diğer / Belirtilmemiş'}
+              {/* Day Headers */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                {dayNames.map(d => (
+                  <div key={d} style={{ textAlign: 'center', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', padding: '4px 0' }}>
+                    {d}
                   </div>
+                ))}
+              </div>
 
-                  {/* Part 3: Yaptığı Şey (En Uzun Kısım) */}
-                  <div style={{ 
-                    flex: '2 1 280px', 
-                    fontSize: '0.85rem', 
-                    color: 'var(--text-primary)', 
-                    whiteSpace: 'pre-wrap',
-                    lineHeight: '1.4'
-                  }}>
-                    <span style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 700 }}>BUGÜN NELER YAPTI</span>
-                    {update.completed_today}
-                  </div>
+              {/* Calendar Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
+                {cells.map((cell, idx) => {
+                  const cellDateStr = getLocalDate(cell.date);
+                  const cellTasks = myTasks.filter(t => {
+                    const dueDate = t.due_date ? t.due_date.slice(0, 10) : null;
+                    const startDate = t.start_date ? t.start_date.slice(0, 10) : null;
+                    return dueDate === cellDateStr || startDate === cellDateStr;
+                  });
+                  const isToday = cellDateStr === todayStr;
 
-                  {/* Part 4: Raporun Rengi (Durum) */}
-                  {(() => {
-                    const statusVal = update.tomorrow_plan;
-                    let color = '#f97316';
-                    let text = 'Sürüyor';
-                    if (statusVal === 'completed') {
-                      color = '#22c55e';
-                      text = 'Bitirildi';
-                    } else if (statusVal === 'started') {
-                      color = '#3b82f6';
-                      text = 'Başlandı';
-                    }
-                    return (
-                      <div style={{ 
-                        flex: '0 0 auto', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: '6px',
-                        padding: '4px 10px',
-                        borderRadius: '12px',
-                        backgroundColor: `${color}15`,
-                        border: `1px solid ${color}35`,
-                        color: color,
-                        fontSize: '0.75rem',
-                        fontWeight: 700
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        minHeight: '72px',
+                        backgroundColor: isToday
+                          ? 'rgba(183,1,22,0.07)'
+                          : cell.isCurrentMonth
+                          ? 'var(--bg-surface)'
+                          : 'var(--bg-surface-accent)',
+                        borderRadius: '8px',
+                        border: isToday
+                          ? '2px solid var(--accent-color)'
+                          : '1px solid var(--border-glass)',
+                        padding: '4px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <span style={{
+                        fontSize: '0.7rem',
+                        fontWeight: isToday ? 800 : 600,
+                        color: isToday ? 'var(--accent-color)' : cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)',
+                        textAlign: 'right',
+                        paddingRight: '2px'
                       }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: color, display: 'inline-block' }} />
-                        {text}
-                      </div>
-                    );
-                  })()}
+                        {cell.day}
+                      </span>
+                      {cellTasks.map((t, ti) => {
+                        const isDue = t.due_date && t.due_date.slice(0, 10) === cellDateStr;
+                        const color = getStatusColor(t.status);
+                        return (
+                          <div
+                            key={ti}
+                            onClick={() => openTaskEdit(t)}
+                            title={t.title}
+                            style={{
+                              fontSize: '0.63rem',
+                              fontWeight: 700,
+                              color: 'white',
+                              backgroundColor: color,
+                              borderRadius: '4px',
+                              padding: '1px 4px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              cursor: 'pointer',
+                              opacity: isDue ? 1 : 0.75
+                            }}
+                          >
+                            {isDue ? '⏳' : '▶'} {t.title}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
 
-                  {/* Far Right: Yorum Butonu ("Yönetici Yorumu") */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCommentUpdate(update);
-                    }}
-                    className="btn btn-secondary"
-                    style={{ 
-                      padding: '6px 12px', 
-                      fontSize: '0.75rem', 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '4px',
-                      flexShrink: 0
-                    }}
-                  >
-                    <MessageSquare size={13} />
-                    <span>Yönetici Yorumu</span>
-                  </button>
-                </div>
-              ))}
+              {/* Color legend */}
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '8px 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
+                {[
+                  { color: '#6366f1', label: 'Yapılacak' },
+                  { color: '#3b82f6', label: 'Yapılıyor' },
+                  { color: '#22c55e', label: 'Bitti' },
+                  { color: '#f97316', label: 'Tarihi Geçti' },
+                  { color: '#ef4444', label: 'Revizyon' },
+                  { color: '#a78bfa', label: 'Beklemede' },
+                ].map(item => (
+                  <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: item.color, display: 'inline-block' }} />
+                    {item.label}
+                  </span>
+                ))}
+              </div>
             </div>
-          )}
-        </div>
+          );
+        })()
       )}
+
 
       {/* Edit Profile Modal */}
       {showEditModal && (
@@ -1012,114 +1074,110 @@ export const ProfileScreen: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Edit/Detail Report Modal */}
-      {showReportEditModal && editingReportUpdate && (
-        <div className="modal-backdrop" onClick={() => setShowReportEditModal(false)}>
+      {/* Task Edit Modal */}
+      {selectedTask && (
+        <div className="modal-backdrop" onClick={() => setSelectedTask(null)}>
           <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Rapor Detayları & Düzenle</span>
-              <button onClick={() => setShowReportEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
+              <span>Görevi Düzenle</span>
+              <button onClick={() => setSelectedTask(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
             </div>
 
-            <form onSubmit={handleReportEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form onSubmit={handleTaskEdit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label className="form-label">Eşleşen Görev</label>
-                <select 
-                  value={editSelectedTask} 
-                  onChange={e => {
-                    setEditSelectedTask(e.target.value);
-                    if (e.target.value !== '__other__') {
-                      setEditCustomTaskNote('');
-                    }
-                  }} 
+                <label className="form-label">Görev Adı *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Görev adı..."
+                  value={editTaskTitle}
+                  onChange={e => setEditTaskTitle(e.target.value)}
                   className="form-input"
                   style={{ fontSize: '0.85rem' }}
-                >
-                  <option value="">Görev Seçin...</option>
-                  {tasks.map(t => (
-                    <option key={t.id} value={t.title}>{t.title}</option>
-                  ))}
-                  <option value="__other__">Diğer (Not Ekle)</option>
-                </select>
-              </div>
-
-              {editSelectedTask === '__other__' && (
-                <div className="form-group">
-                  <label className="form-label">Not / İş Tanımı *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    placeholder="Yaptığınız iş veya konu..." 
-                    value={editCustomTaskNote} 
-                    onChange={e => setEditCustomTaskNote(e.target.value)} 
-                    className="form-input" 
-                  />
-                </div>
-              )}
-
-              <div className="form-group">
-                <label className="form-label">Bugün Neler Yaptım (Yapılan İşin Detayı) *</label>
-                <textarea 
-                  required 
-                  placeholder="Bugün yaptığın işin detaylı açıklaması..." 
-                  value={editReportDetail} 
-                  onChange={e => setEditReportDetail(e.target.value)} 
-                  className="form-input" 
-                  rows={4} 
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">İş Durumu / Raporun Rengi</label>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="editReportStatus" 
-                      value="completed" 
-                      checked={editReportStatus === 'completed'} 
-                      onChange={() => setEditReportStatus('completed')} 
-                    />
-                    <span style={{ color: '#22c55e', fontWeight: 700 }}>Bitirildi (Yeşil)</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="editReportStatus" 
-                      value="started" 
-                      checked={editReportStatus === 'started'} 
-                      onChange={() => setEditReportStatus('started')} 
-                    />
-                    <span style={{ color: '#3b82f6', fontWeight: 700 }}>Başlandı (Mavi)</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="editReportStatus" 
-                      value="ongoing" 
-                      checked={editReportStatus === 'ongoing'} 
-                      onChange={() => setEditReportStatus('ongoing')} 
-                    />
-                    <span style={{ color: '#f97316', fontWeight: 700 }}>Sürüyor (Turuncu)</span>
-                  </label>
+                <label className="form-label">Açıklama</label>
+                <textarea
+                  placeholder="Açıklama..."
+                  value={editTaskDesc}
+                  onChange={e => setEditTaskDesc(e.target.value)}
+                  className="form-input"
+                  rows={3}
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">Durum</label>
+                  <select
+                    value={editTaskStatus}
+                    onChange={e => setEditTaskStatus(e.target.value as UserTask['status'])}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <option value="todo">Yapılacak</option>
+                    <option value="in_progress">Yapılıyor</option>
+                    <option value="waiting">Beklemede</option>
+                    <option value="completed">Bitti</option>
+                    <option value="revision_required">Tekrar Yapılacak</option>
+                    <option value="overdue">Tarihi Geçti</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Öncelik</label>
+                  <select
+                    value={editTaskPriority}
+                    onChange={e => setEditTaskPriority(e.target.value as UserTask['priority'])}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <option value="low">Acelesi Yok</option>
+                    <option value="normal">Normal</option>
+                    <option value="high">Önemli</option>
+                    <option value="critical">Acil</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">Başlangıç Tarihi</label>
+                  <input
+                    type="date"
+                    value={editTaskStartDate}
+                    onChange={e => setEditTaskStartDate(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Son Tarih</label>
+                  <input
+                    type="date"
+                    value={editTaskDueDate}
+                    onChange={e => setEditTaskDueDate(e.target.value)}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  />
                 </div>
               </div>
 
               <div className="modal-footer" style={{ marginTop: '10px', justifyContent: 'space-between' }}>
-                <button 
-                  type="button" 
-                  className="btn btn-danger" 
-                  onClick={handleReportDelete}
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={handleTaskDelete}
                   style={{ padding: '8px 16px' }}
                 >
                   Sil
                 </button>
-                
                 <div style={{ display: 'flex', gap: '8px' }}>
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowReportEditModal(false)}>Kapat</button>
-                  <button type="submit" className="btn btn-primary" disabled={reportSubmitting}>
-                    {reportSubmitting ? <RefreshCw className="animate-spin" size={16} /> : 'Kaydet'}
-                  </button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setSelectedTask(null)}>Kapat</button>
+                  <button type="submit" className="btn btn-primary">Kaydet</button>
                 </div>
               </div>
             </form>
