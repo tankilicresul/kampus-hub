@@ -33,6 +33,7 @@ interface Task {
   due_date?: string;
   tags?: string[];
   recurrence?: string;
+  order_index: number;
 }
 
 interface WorkspaceMember {
@@ -444,9 +445,10 @@ export const TasksScreen: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, primary_assignee_id, due_date, tags, recurrence')
+        .select('id, title, description, status, priority, primary_assignee_id, due_date, tags, recurrence, order_index')
         .eq('workspace_id', activeWorkspace.id)
-        .is('deleted_at', null);
+        .is('deleted_at', null)
+        .order('order_index', { ascending: true });
       if (error) throw error;
       setTasks((data as Task[]) || []);
     } catch (err) {
@@ -480,6 +482,10 @@ export const TasksScreen: React.FC = () => {
     e.preventDefault();
     if (!activeWorkspace || !newTitle.trim()) return;
     try {
+      const todoTasks = tasks.filter(t => t.status === 'todo');
+      const maxIdx = todoTasks.length > 0 ? Math.max(...todoTasks.map(t => t.order_index)) : 0.0;
+      const newOrderIdx = maxIdx + 1.0;
+
       const { error } = await supabase.from('tasks').insert({
         workspace_id: activeWorkspace.id,
         title: newTitle.trim(),
@@ -491,6 +497,7 @@ export const TasksScreen: React.FC = () => {
         due_date: newDueDate || null,
         tags: newTags.length > 0 ? newTags : [],
         recurrence: newRecurrence,
+        order_index: newOrderIdx,
       });
       if (error) throw error;
       setShowAddModal(false);
@@ -521,13 +528,46 @@ export const TasksScreen: React.FC = () => {
     }
 
     const draggedTask = tasks.find(t => t.id === active.id);
-    if (!draggedTask || !targetCol || draggedTask.status === targetCol) return;
+    if (!draggedTask || !targetCol) return;
 
-    // Optimistic update
-    setTasks(prev => prev.map(t => t.id === active.id ? { ...t, status: targetCol as Task['status'] } : t));
+    // Get all tasks in target column (excluding the dragged task) sorted by order_index
+    const colTasks = tasks
+      .filter(t => t.status === targetCol && t.id !== active.id)
+      .sort((a, b) => a.order_index - b.order_index);
+
+    let newOrderIndex = 0.0;
+
+    if (colTasks.length === 0) {
+      newOrderIndex = 1.0;
+    } else {
+      const overIndex = colTasks.findIndex(t => t.id === over.id);
+
+      if (overIndex !== -1) {
+        if (overIndex === 0) {
+          // Placed at the very top
+          newOrderIndex = colTasks[0].order_index - 1.0;
+        } else {
+          // Placed between overIndex - 1 and overIndex
+          newOrderIndex = (colTasks[overIndex - 1].order_index + colTasks[overIndex].order_index) / 2.0;
+        }
+      } else {
+        // Dropped onto empty column cards container (which receives targetCol as over.id)
+        newOrderIndex = colTasks[colTasks.length - 1].order_index + 1.0;
+      }
+    }
+
+    // Optimistic update (sort locally right away)
+    setTasks(prev => {
+      const updated = prev.map(t => t.id === active.id ? { ...t, status: targetCol as Task['status'], order_index: newOrderIndex } : t);
+      return updated.sort((a, b) => a.order_index - b.order_index);
+    });
 
     try {
-      await supabase.from('tasks').update({ status: targetCol, updated_at: new Date().toISOString() }).eq('id', active.id);
+      await supabase.from('tasks').update({ 
+        status: targetCol, 
+        order_index: newOrderIndex,
+        updated_at: new Date().toISOString() 
+      }).eq('id', active.id);
     } catch (err) {
       console.error('Drag update failed:', err);
       loadTasks();

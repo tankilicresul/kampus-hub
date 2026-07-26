@@ -572,6 +572,36 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Kanban Custom Sorting / Reordering)
+
+### 1. Database Schema Update
+- Created migration `20260726223600_add_order_index_to_tasks.sql` adding `order_index` column (type `DOUBLE PRECISION`, default `0.0`, not null) to the `tasks` table.
+- Initialized `order_index` for all existing tasks partitioning by workspace and status, ordering by creation date to preserve historical sequence.
+- Applied the migration successfully to the live database using Supabase client tools.
+
+### 2. Frontend Task Order Logic
+- Updated `Task` interface in [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) to declare `order_index`.
+- Updated `loadTasks` to fetch `order_index` and sort by it ascending (`.order('order_index', { ascending: true })`).
+- Updated `handleCreateTask` to calculate next index when inserting a new task so it lands at the bottom of the "Yapılacak" column.
+- Rewrote `handleDragEnd` sorting handler to compute fractional index values (average of neighbors) when dragging within the same column or across columns:
+  - If dropped at the top: `first_item.order_index - 1.0`.
+  - If dropped between A and B: `(A.order_index + B.order_index) / 2.0`.
+  - If dropped at the bottom or in an empty column: `last_item.order_index + 1.0` (or `1.0` if empty).
+- Added automatic state sorting on state mutation to instantly apply the new position.
+
+---
+
+## 🧪 Verification Runs (Kanban Custom Sorting)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
