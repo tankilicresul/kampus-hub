@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
   Search, Plus, List, Kanban, RefreshCw, AlertCircle, X,
-  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock,
+  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, Trash2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -191,15 +191,18 @@ const DroppableCardsArea: React.FC<{
 // ─── Task Detail Modal ────────────────────────────────────────────────────────
 const TaskDetailModal: React.FC<{
   task: Task;
+  allTasks: Task[];
   members: WorkspaceMember[];
   onClose: () => void;
   onRefresh: () => void;
-}> = ({ task, members, onClose, onRefresh }) => {
+}> = ({ task, allTasks, members, onClose, onRefresh }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'comments' | 'attachments'>('comments');
+  const [currentStatus, setCurrentStatus] = useState<Task['status']>(task.status);
+  const [currentPriority, setCurrentPriority] = useState<Task['priority']>(task.priority);
 
   const loadComments = useCallback(async () => {
     const { data } = await supabase
@@ -232,6 +235,48 @@ const TaskDetailModal: React.FC<{
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', task.id);
+      if (error) throw error;
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error('Delete task failed:', err);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      const updates: Partial<Task> & { updated_at: string } = {
+        status: currentStatus,
+        priority: currentPriority,
+        updated_at: new Date().toISOString()
+      };
+
+      if (currentStatus !== task.status) {
+        const colTasks = allTasks.filter(t => t.status === currentStatus && t.id !== task.id);
+        const maxIdx = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.order_index)) : 0.0;
+        updates.order_index = maxIdx + 1.0;
+      }
+
+      const { error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', task.id);
+
+      if (error) throw error;
+      onRefresh();
+      onClose();
+    } catch (err) {
+      console.error('Save task details failed:', err);
+    }
+  };
+
   const assignee = members.find(m => m.user_id === task.primary_assignee_id);
 
   return (
@@ -254,12 +299,8 @@ const TaskDetailModal: React.FC<{
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
               <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Durum:</span>
               <select 
-                value={task.status} 
-                onChange={async (e) => {
-                  const newStatus = e.target.value as Task['status'];
-                  await supabase.from('tasks').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', task.id);
-                  onRefresh();
-                }}
+                value={currentStatus} 
+                onChange={(e) => setCurrentStatus(e.target.value as Task['status'])}
                 className="form-input"
                 style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
               >
@@ -273,12 +314,8 @@ const TaskDetailModal: React.FC<{
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
               <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Öncelik:</span>
               <select 
-                value={task.priority} 
-                onChange={async (e) => {
-                  const newPriority = e.target.value as Task['priority'];
-                  await supabase.from('tasks').update({ priority: newPriority, updated_at: new Date().toISOString() }).eq('id', task.id);
-                  onRefresh();
-                }}
+                value={currentPriority} 
+                onChange={(e) => setCurrentPriority(e.target.value as Task['priority'])}
                 className="form-input"
                 style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
               >
@@ -392,6 +429,40 @@ const TaskDetailModal: React.FC<{
               <p>Dosya ekleri yakında kullanıma girecek.</p>
             </div>
           )}
+
+          {/* Modal Footer with Action Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
+            <button 
+              type="button"
+              className="btn" 
+              style={{ 
+                backgroundColor: '#ef4444', 
+                color: '#ffffff', 
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '0.85rem'
+              }}
+              onClick={handleDelete}
+            >
+              <Trash2 size={16} />
+              Sil
+            </button>
+            
+            <button 
+              type="button"
+              className="btn btn-primary"
+              style={{ padding: '8px 24px', fontSize: '0.85rem' }}
+              onClick={handleSave}
+            >
+              Kaydet
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -876,6 +947,7 @@ export const TasksScreen: React.FC = () => {
       {detailTask && (
         <TaskDetailModal
           task={detailTask}
+          allTasks={tasks}
           members={members}
           onClose={() => setDetailTask(null)}
           onRefresh={loadTasks}

@@ -601,6 +601,34 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Task Detail Modal Deletion & Local State Saving)
+
+### 1. Stateful Dropdowns in Task Detail Modal
+- Modified [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) to introduce internal React state (`currentStatus` and `currentPriority`) inside `TaskDetailModal`.
+- Changed the status and priority select tags to bind to these state variables instead of writing directly to Supabase on change. This keeps the background kanban panel isolated and prevents any immediate status/priority changes on the board until saved.
+
+### 2. Task Details "Kaydet" (Save) Button
+- Added a "Kaydet" button at the bottom right of the modal.
+- Configured it to write the updated `status` and `priority` to Supabase, automatically recalculate `order_index` if the column status changes (placing it at the bottom of the new column), and trigger the board refresh (`onRefresh`) and modal close (`onClose`).
+
+### 3. Task "Sil" (Delete) Button
+- Imported `Trash2` icon from `lucide-react`.
+- Added a prominent red action button ("Sil") in the bottom left of the modal footer.
+- Added browser confirmation popup (`window.confirm`) to verify before executing a soft-delete (setting `deleted_at = new Date()`), refreshing, and closing the modal.
+
+---
+
+## 🧪 Verification Runs (Task Detail Modal)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
