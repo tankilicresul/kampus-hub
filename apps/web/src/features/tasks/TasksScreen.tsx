@@ -659,6 +659,188 @@ export const TasksScreen: React.FC = () => {
       
       {/* 3D and minimal styling overrides */}
       <style dangerouslySetInnerHTML={{ __html: `
+        /* GitHub Primer Typography & Design System Overrides */
+        .app-container, .app-container * {
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji" !important;
+        }
+
+        /* Primer Button Overrides */
+        .app-container .btn-primary {
+          background-color: #1f883d !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(27,31,35,0.15) !important;
+          box-shadow: 0 1px 0 rgba(27,31,35,0.1), inset 0 1px 0 rgba(255,255,255,0.03) !important;
+          border-radius: 6px !important;
+          font-weight: 600 !important;
+          height: 32px !important;
+          padding: 0 12px !important;
+          font-size: 0.78rem !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 6px !important;
+          transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1) !important;
+        }
+        .app-container .btn-primary:hover {
+          background-color: #1a7f37 !important;
+        }
+
+        .app-container .btn-secondary {
+          background-color: #f6f8fa !important;
+          color: #24292f !important;
+          border: 1px solid #d0d7de !important;
+          box-shadow: 0 1px 0 rgba(27,31,35,0.04) !important;
+          border-radius: 6px !important;
+          font-weight: 600 !important;
+          height: 32px !important;
+          padding: 0 12px !important;
+          font-size: 0.78rem !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 6px !important;
+          transition: background-color 0.2s, border-color 0.2s !important;
+        }
+        .app-container .btn-secondary:hover {
+          background-color: #f3f4f6 !important;
+          border-color: #d0d7de !important;
+        }
+
+        /* Dark Mode Button Overrides */
+        [data-theme="dark"] .app-container .btn-primary {
+          background-color: #238636 !important;
+          border-color: rgba(240,246,252,0.1) !important;
+        }
+        [data-theme="dark"] .app-container .btn-primary:hover {
+          background-color: #2ea44f !important;
+        }
+
+        [data-theme="dark"] .app-container .btn-secondary {
+          background-color: #21262d !important;
+          color: #c9d1d9 !important;
+          border-color: #30363d !important;
+          box-shadow: none !important;
+        }
+        [data-theme="dark"] .app-container .btn-secondary:hover {
+          background-color: #30363d !important;
+          border-color: #8b949e !important;
+        }
+
+        /* Primer Form Inputs */
+        .app-container .form-input {
+          border-radius: 6px !important;
+          border: 1px solid #d0d7de !important;
+          background-color: #ffffff !important;
+          color: #24292f !important;
+          padding: 5px 12px !important;
+          font-size: 0.8rem !important;
+          transition: border-color 0.2s, box-shadow 0.2s !important;
+        }
+        .app-container .form-input:focus {
+          border-color: #0969da !important;
+          box-shadow: 0 0 0 3px rgba(9,105,218,0.3) !important;
+          outline: none !important;
+        }
+        [data-theme="dark"] .app-container .form-input {
+          border-color: #30363d !important;
+          background-color: #0d1117 !important;
+          color: #c9d1d9 !important;
+        }
+        [data-theme="dark"] .app-container .form-input:focus {
+          border-color: #388bfd !important;
+          box-shadow: 0 0 0 3px rgba(56,139,253,0.4) !important;
+        }
+
+        /* 3D Cell Card Status Themes */
+        .status-card-suggested {
+          border: 1px solid #0969da !important;
+          border-bottom: 5px solid #04499e !important;
+          background-color: #ddf4ff !important;
+          --badge-color: #0969da;
+        }
+        [data-theme="dark"] .status-card-suggested {
+          border: 1px solid #388bfd !important;
+          border-bottom: 5px solid #1f6feb !important;
+          background-color: rgba(56,139,253,0.1) !important;
+          --badge-color: #58a6ff;
+        }
+
+        .status-card-selected {
+          border: 1px solid #0969da !important;
+          border-bottom: 5px solid #04499e !important;
+          background-color: #ddf4ff !important;
+          --badge-color: #0969da;
+        }
+        [data-theme="dark"] .status-card-selected {
+          border: 1px solid #388bfd !important;
+          border-bottom: 5px solid #1f6feb !important;
+          background-color: rgba(56,139,253,0.1) !important;
+          --badge-color: #58a6ff;
+        }
+
+        .status-card-planned {
+          border: 1px solid #8250df !important;
+          border-bottom: 5px solid #6f3ccc !important;
+          background-color: #fbefff !important;
+          --badge-color: #8250df;
+        }
+        [data-theme="dark"] .status-card-planned {
+          border: 1px solid #bc8cff !important;
+          border-bottom: 5px solid #8957e5 !important;
+          background-color: rgba(188,140,255,0.1) !important;
+          --badge-color: #bc8cff;
+        }
+
+        .status-card-doing {
+          border: 1px solid #d4a72c !important;
+          border-bottom: 5px solid #9a6700 !important;
+          background-color: #fff8c5 !important;
+          --badge-color: #9a6700;
+        }
+        [data-theme="dark"] .status-card-doing {
+          border: 1px solid #d29922 !important;
+          border-bottom: 5px solid #9e6a03 !important;
+          background-color: rgba(210,153,34,0.1) !important;
+          --badge-color: #d29922;
+        }
+
+        .status-card-waiting {
+          border: 1px solid #bc4c00 !important;
+          border-bottom: 5px solid #8a3500 !important;
+          background-color: #fff0e6 !important;
+          --badge-color: #bc4c00;
+        }
+        [data-theme="dark"] .status-card-waiting {
+          border: 1px solid #db6d28 !important;
+          border-bottom: 5px solid #a34e15 !important;
+          background-color: rgba(219,109,40,0.1) !important;
+          --badge-color: #db6d28;
+        }
+
+        .status-card-done {
+          border: 1px solid #1a7f37 !important;
+          border-bottom: 5px solid #115e29 !important;
+          background-color: #dafbe1 !important;
+          --badge-color: #1a7f37;
+        }
+        [data-theme="dark"] .status-card-done {
+          border: 1px solid #3fb950 !important;
+          border-bottom: 5px solid #238636 !important;
+          background-color: rgba(46,160,67,0.1) !important;
+          --badge-color: #3fb950;
+        }
+
+        .status-card-not_needed {
+          border: 1px solid #d0d7de !important;
+          border-bottom: 5px solid #8c959f !important;
+          background-color: #f6f8fa !important;
+          --badge-color: #57606a;
+        }
+        [data-theme="dark"] .status-card-not_needed {
+          border: 1px solid #30363d !important;
+          border-bottom: 5px solid #484f58 !important;
+          background-color: #161b22 !important;
+          --badge-color: #8b949e;
+        }
+
         .matrix-wrapper {
           overflow: auto;
           max-width: 100%;
@@ -876,63 +1058,31 @@ export const TasksScreen: React.FC = () => {
                     const isFilteredOut = cellData && !filteredCells.some(f => f.rowIdx === rowIdx && f.colIdx === colIdx);
 
                     // Style variables based on status representing premium 3D look
-                    let borderStyle = '1px dashed var(--border-glass)';
-                    let bgStyle = 'transparent';
                     let statusBadge = '';
-                    let badgeColor = 'var(--text-muted)';
                     let opacity = isFilteredOut ? 0.3 : 1;
-                    let bottomBorderColor = 'transparent';
 
                     if (cellData && cellData.status !== 'empty') {
                       switch (cellData.status) {
                         case 'suggested':
-                          borderStyle = `1px solid #3b82f6`;
-                          bottomBorderColor = '#1d4ed8'; // Darker blue for 3D thickness
-                          bgStyle = 'rgba(59, 130, 246, 0.08)';
                           statusBadge = '✨ Öneri';
-                          badgeColor = '#3b82f6';
                           break;
                         case 'selected':
-                          borderStyle = `1px solid #6366f1`;
-                          bottomBorderColor = '#4338ca'; // Darker indigo
-                          bgStyle = 'rgba(99, 102, 241, 0.08)';
                           statusBadge = '☑ Seçildi';
-                          badgeColor = '#6366f1';
                           break;
                         case 'planned':
-                          borderStyle = `1px solid #a855f7`;
-                          bottomBorderColor = '#7e22ce'; // Darker purple
-                          bgStyle = 'rgba(168, 85, 247, 0.08)';
                           statusBadge = '📅 Plan';
-                          badgeColor = '#a855f7';
                           break;
                         case 'doing':
-                          borderStyle = `1px solid #f59e0b`;
-                          bottomBorderColor = '#b45309'; // Darker amber
-                          bgStyle = 'rgba(245, 158, 11, 0.08)';
                           statusBadge = '⚡ Süreç';
-                          badgeColor = '#f59e0b';
                           break;
                         case 'waiting':
-                          borderStyle = `1px solid #f97316`;
-                          bottomBorderColor = '#c2410c'; // Darker orange
-                          bgStyle = 'rgba(249, 115, 22, 0.08)';
                           statusBadge = '⏳ Bekle';
-                          badgeColor = '#f97316';
                           break;
                         case 'done':
-                          borderStyle = `1px solid #10b981`;
-                          bottomBorderColor = '#047857'; // Darker emerald
-                          bgStyle = 'rgba(16, 185, 129, 0.08)';
                           statusBadge = '✅ Bitti';
-                          badgeColor = '#10b981';
                           break;
                         case 'not_needed':
-                          borderStyle = '1px solid var(--border-color)';
-                          bottomBorderColor = '#64748b';
-                          bgStyle = 'rgba(148, 163, 184, 0.1)';
                           statusBadge = '🚫 Pasif';
-                          badgeColor = 'var(--text-muted)';
                           break;
                       }
                     }
@@ -949,11 +1099,8 @@ export const TasksScreen: React.FC = () => {
                           <div
                             onClick={() => handleCellClick(rowIdx, colIdx)}
                             onContextMenu={(e) => handleCellRightClick(e, rowIdx, colIdx)}
-                            className="matrix-cell-3d"
+                            className={`matrix-cell-3d status-card-${cellData.status}`}
                             style={{
-                              border: borderStyle,
-                              borderBottom: `5px solid ${bottomBorderColor}`,
-                              backgroundColor: bgStyle,
                               opacity,
                               boxShadow: '0 6px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
                               display: 'flex',
@@ -982,7 +1129,7 @@ export const TasksScreen: React.FC = () => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '100%' }}>
                               {zoom >= 0.8 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '0.62rem', fontWeight: 800, color: badgeColor }}>
+                                  <span style={{ fontSize: '0.62rem', fontWeight: 800, color: 'var(--badge-color, var(--text-muted))' }}>
                                     {statusBadge}
                                   </span>
                                   {isOverdue && (
@@ -999,7 +1146,7 @@ export const TasksScreen: React.FC = () => {
                                   <div style={{
                                     width: `${(cellData.checklist.filter(c => c.done).length / cellData.checklist.length) * 100}%`,
                                     height: '100%',
-                                    backgroundColor: badgeColor
+                                    backgroundColor: 'var(--badge-color, var(--text-muted))'
                                   }} />
                                 </div>
                               )}
@@ -1016,7 +1163,7 @@ export const TasksScreen: React.FC = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                border: borderStyle,
+                                border: '1px dashed var(--border-glass)',
                                 color: 'var(--text-muted)',
                                 fontSize: '0.7rem',
                                 opacity: 0.25,
