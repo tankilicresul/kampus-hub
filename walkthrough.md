@@ -964,6 +964,35 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (CRM Page Layout & Double Percent Icon Fixes)
+
+### 1. Fixed Metric Cards Layout Columns
+- Modified [index.css](file:///c:/Projects/tancorelab/apps/web/src/index.css):
+  - Changed `.crm-header-card` `grid-template-columns` from `repeat(3, 1fr)` to `repeat(4, 1fr)` on desktop since there are 4 stat cards (Toplam, Aktif, Başarı, Ort. Kom.). This prevents the 4th stat card from wrapping and breaking the grid.
+  - Set `grid-template-columns` to `repeat(2, 1fr)` on mobile for a clean 2x2 grid.
+  - Added clean `.stat-item:not(:first-child)` left border rules on desktop and nth-child rules on mobile to draw vertical separating lines between cells natively instead of using layout-breaking dummy markup separator tags.
+
+### 2. Resolved Layout-Breaking Separator Nodes
+- Modified [CrmDashboardScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/crm/CrmDashboardScreen.tsx):
+  - Removed the inline `<div style={{ height: '32px', width: '1px' }}>` dividers inside `.crm-header-card` which were being treated as actual grid elements, causing stats cards to wrap chaotically.
+
+### 3. Removed Redundant Double Percent Symbols
+- Modified [CrmDashboardScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/crm/CrmDashboardScreen.tsx):
+  - Replaced `<Percent />` with `<Coins />` icon for average commission rates in the header cards and detail modals to prevent rendering a `%` icon alongside `%10.0` text value.
+  - Updated Kanban card display to render `%{commission_rate} Komisyon` instead of showing `<Percent />` next to another `%` symbol.
+
+---
+
+## 🧪 Verification Runs (CRM Layout Fixes)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
 
 
 

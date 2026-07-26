@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
-  Plus, RefreshCw, BarChart3, TrendingUp, Award, User, Phone, Percent,
-  Building2, X, Calendar, MessageSquare, Users, Trash2, MapPin, Search,
+  Plus, RefreshCw, BarChart3, TrendingUp, Award, User, Phone,
+  Building2, X, Calendar, MessageSquare, Users, Trash2, MapPin, Search, Coins,
 } from 'lucide-react';
 
 interface Business {
@@ -174,7 +174,7 @@ const BusinessDetailModal: React.FC<{
             {stages.find(s => s.key === business.stage)?.title || business.stage}
           </span>
           <span style={{ fontSize: '0.78rem', color: 'var(--color-success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <Percent size={12} /> %{business.commission_rate} Komisyon
+            <Coins size={12} /> %{business.commission_rate} Komisyon
           </span>
           {business.next_followup_date && (
             <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -461,16 +461,13 @@ export const CrmDashboardScreen: React.FC = () => {
           { icon: <BarChart3 size={20} style={{ color: 'var(--accent-color)' }} />, value: totalCount, label: 'Toplam' },
           { icon: <Award size={20} style={{ color: 'var(--color-success)' }} />, value: activeCount, label: 'Aktif' },
           { icon: <TrendingUp size={20} style={{ color: 'var(--accent-color)' }} />, value: `%${winRate}`, label: 'Başarı' },
-          { icon: <Percent size={20} style={{ color: '#f59e0b' }} />, value: `%${avgCommission}`, label: 'Ort. Kom.' },
-        ].map((stat, i) => (
-          <React.Fragment key={stat.label}>
-            {i > 0 && <div style={{ height: '32px', width: '1px', backgroundColor: 'var(--border-glass)' }} />}
-            <div className="stat-item">
-              {stat.icon}
-              <span className="stat-value">{stat.value}</span>
-              <span className="stat-label">{stat.label}</span>
-            </div>
-          </React.Fragment>
+          { icon: <Coins size={20} style={{ color: '#f59e0b' }} />, value: `%${avgCommission}`, label: 'Ort. Kom.' },
+        ].map((stat) => (
+          <div key={stat.label} className="stat-item">
+            {stat.icon}
+            <span className="stat-value">{stat.value}</span>
+            <span className="stat-label">{stat.label}</span>
+          </div>
         ))}
       </div>
 
@@ -564,7 +561,7 @@ export const CrmDashboardScreen: React.FC = () => {
                           </a>
                         )}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.73rem', color: 'var(--color-success)' }}>
-                          <Percent size={11} /> %{biz.commission_rate}
+                          <Coins size={11} /> %{biz.commission_rate} Komisyon
                         </div>
 
                         <div onClick={e => e.stopPropagation()}>

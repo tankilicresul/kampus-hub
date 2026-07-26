@@ -494,7 +494,7 @@ body {
   border-radius: var(--radius-md);
   padding: 16px 20px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
@@ -505,6 +505,11 @@ body {
   align-items: center;
   gap: 4px;
   text-align: center;
+  width: 100%;
+}
+
+.stat-item:not(:first-child) {
+  border-left: 1px solid var(--border-glass);
 }
 
 .stat-value {
@@ -866,15 +871,18 @@ body {
 
   /* Compact metrics panel on mobile */
   .crm-header-card {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    padding: 10px 8px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 6px;
+    padding: 12px 8px;
     margin-bottom: 12px;
     border-radius: var(--radius-md);
   }
   
-  .crm-header-card div[style*="width: 1px"] {
-    display: none !important;
+  .stat-item {
+    border-left: none !important;
+  }
+  .stat-item:nth-child(2n) {
+    border-left: 1px solid var(--border-glass) !important;
   }
 
   .stat-value {
