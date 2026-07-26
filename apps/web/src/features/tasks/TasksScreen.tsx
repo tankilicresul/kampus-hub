@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
-  Search, Plus, List, Kanban, RefreshCw, X,
-  Calendar,
-  ZoomIn, ZoomOut, Maximize2, Minimize2, Filter, Sparkles,
-  Trash2, Download, AlertTriangle, Link, Settings, ArrowRight
+  Search, Plus, RefreshCw, X,
+  ZoomIn, ZoomOut, Maximize2, Minimize2, Sparkles,
+  Trash2, AlertTriangle, Link
 } from 'lucide-react';
 
 interface WorkspaceMember {
@@ -220,7 +219,7 @@ const getDefaultCells = (): CanvasCellData[] => {
       startDate: '2026-08-10',
       endDate: '2026-08-12',
       checklist: [],
-      successCriteria: "İlk gün 500 sipariş",
+      successCriteria: "İlk günn 500 sipariş",
       kpi: "Aktif kullanıcı > 1000",
       notes: "",
       files: [],
@@ -264,14 +263,16 @@ const getDefaultCells = (): CanvasCellData[] => {
 };
 
 export const TasksScreen: React.FC = () => {
-  const { activeWorkspace, user } = useAuth();
+  const { activeWorkspace } = useAuth();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
-  // Layout & Navigation State
-  const [viewMode, setViewMode] = useState<'matrix' | 'kanban' | 'list' | 'timeline' | 'gantt'>('matrix');
+  // Navigation & Zoom State
   const [zoom, setZoom] = useState<number>(1);
   const [showDependencies, setShowDependencies] = useState<boolean>(true);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  // Focus Mode Toggle (Collapse Matrix to selected/active items only)
+  const [showAllGrid, setShowAllGrid] = useState<boolean>(false);
 
   // Dynamic Grid Rows & Columns
   const [phases, setPhases] = useState<string[]>(DEFAULT_PHASES);
@@ -284,17 +285,8 @@ export const TasksScreen: React.FC = () => {
   // Selection & Details Panel
   const [editingCellData, setEditingCellData] = useState<CanvasCellData | null>(null);
 
-  // Search & Filters
+  // Minimal Search
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('all');
-  const [filterPriority, setFilterPriority] = useState<string>('all');
-  const [filterDept, setFilterDept] = useState<string>('all');
-  const [filterPhase, setFilterPhase] = useState<string>('all');
-  const [filterAssignee, setFilterAssignee] = useState<string>('all');
-
-  const [onlySelected, setOnlySelected] = useState(false);
-  const [onlyOverdue, setOnlyOverdue] = useState(false);
-  const [onlyMine, setOnlyMine] = useState(false);
 
   // AI Workflow Generator Modal
   const [showAIModal, setShowAIModal] = useState(false);
@@ -502,7 +494,6 @@ export const TasksScreen: React.FC = () => {
   // Create Project handler
   const handleCreateNewProject = () => {
     if (!newProjName.trim()) return;
-    // Wipe layout or default it based on selection
     let defaultCells: CanvasCellData[] = [];
     if (newProjType === 'Teknoloji girişimi' || newProjType === 'SaaS') {
       defaultCells = getDefaultCells();
@@ -516,7 +507,6 @@ export const TasksScreen: React.FC = () => {
   const runAISimulation = () => {
     setAiGenerating(true);
     setTimeout(() => {
-      // Prefilled suggestions tailored based on project type & settings
       const generated: CanvasCellData[] = [
         {
           rowIdx: 0, // Fikir ve Problem Keşfi
@@ -574,45 +564,28 @@ export const TasksScreen: React.FC = () => {
   const rowHeaderWidth = 190 * zoom;
   const colHeaderHeight = 65 * zoom;
 
-  // Filter cells based on search and filters selection
+  // Collapse grid calculations: active row and column indices
+  const activeRowIndices = showAllGrid 
+    ? phases.map((_, i) => i) 
+    : Array.from(new Set(cells.filter(c => c.status !== 'empty' && c.status !== 'not_needed').map(c => c.rowIdx))).sort((a, b) => a - b);
+
+  const activeColIndices = showAllGrid 
+    ? departments.map((_, i) => i) 
+    : Array.from(new Set(cells.filter(c => c.status !== 'empty' && c.status !== 'not_needed').map(c => c.colIdx))).sort((a, b) => a - b);
+
+  const visibleRowIndices = (activeRowIndices.length === 0) ? [0, 1, 2, 3, 4] : activeRowIndices;
+  const visibleColIndices = (activeColIndices.length === 0) ? [0, 1, 2, 3, 4] : activeColIndices;
+
+  // Filter cells based on search query
   const getFilteredCells = () => {
     return cells.filter(cell => {
-      // 1. Dışlama durumu (boşsa ve sadece seçililer aktifse)
-      if (cell.status === 'empty' && onlySelected) return false;
-
-      // 2. Arama kelimesi
+      // If search query is typed, filter accordingly
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const titleMatch = cell.workflowName?.toLowerCase().includes(query);
         const descMatch = cell.description?.toLowerCase().includes(query);
         if (!titleMatch && !descMatch) return false;
       }
-
-      // 3. Durum filtresi
-      if (filterStatus !== 'all' && cell.status !== filterStatus) return false;
-
-      // 4. Öncelik filtresi
-      if (filterPriority !== 'all' && cell.priority !== filterPriority) return false;
-
-      // 5. Departman filtresi
-      if (filterDept !== 'all' && cell.colIdx !== parseInt(filterDept)) return false;
-
-      // 6. Aşama filtresi
-      if (filterPhase !== 'all' && cell.rowIdx !== parseInt(filterPhase)) return false;
-
-      // 7. Sorumlu kişi filtresi
-      if (filterAssignee !== 'all' && cell.assigneeId !== filterAssignee) return false;
-
-      // 8. Özel filtreler
-      if (onlySelected && (cell.status === 'empty' || cell.status === 'not_needed')) return false;
-      if (onlyMine && cell.assigneeId !== user?.id) return false;
-      if (onlyOverdue) {
-        if (!cell.endDate) return false;
-        const isPast = new Date(cell.endDate) < new Date();
-        const isNotDone = cell.status !== 'done';
-        if (!(isPast && isNotDone)) return false;
-      }
-
       return true;
     });
   };
@@ -624,9 +597,9 @@ export const TasksScreen: React.FC = () => {
   const completedCells = cells.filter(c => c.status === 'done').length;
   const completionPercentage = totalTrackedCells > 0 ? Math.round((completedCells / totalTrackedCells) * 100) : 0;
 
-  // Render dependency lines inside matrix
+  // Render dependency lines inside matrix dynamically mapping index array positions
   const renderDependencyLines = () => {
-    if (!showDependencies || viewMode !== 'matrix') return null;
+    if (!showDependencies) return null;
 
     const paths: React.ReactNode[] = [];
 
@@ -637,25 +610,33 @@ export const TasksScreen: React.FC = () => {
           const target = cells.find(c => c.rowIdx === depRow && c.colIdx === depCol);
 
           if (target && target.status !== 'empty' && target.status !== 'not_needed') {
-            // Source cell coordinates (target of the dependency arrow direction: target -> cell)
-            const x1 = rowHeaderWidth + depCol * cellSize + cellSize / 2;
-            const y1 = colHeaderHeight + depRow * cellSize + cellSize / 2;
+            // Find positions in visible row/col array
+            const targetColRenderIdx = visibleColIndices.indexOf(depCol);
+            const targetRowRenderIdx = visibleRowIndices.indexOf(depRow);
+            const cellColRenderIdx = visibleColIndices.indexOf(cell.colIdx);
+            const cellRowRenderIdx = visibleRowIndices.indexOf(cell.rowIdx);
 
-            const x2 = rowHeaderWidth + cell.colIdx * cellSize + cellSize / 2;
-            const y2 = colHeaderHeight + cell.rowIdx * cellSize + cellSize / 2;
+            // Draw line only if both endpoints are currently visible in the collapsed grid!
+            if (targetColRenderIdx >= 0 && targetRowRenderIdx >= 0 && cellColRenderIdx >= 0 && cellRowRenderIdx >= 0) {
+              const x1 = rowHeaderWidth + targetColRenderIdx * cellSize + cellSize / 2;
+              const y1 = colHeaderHeight + targetRowRenderIdx * cellSize + cellSize / 2;
 
-            paths.push(
-              <path
-                key={`${depStr}->${cell.rowIdx}-${cell.colIdx}`}
-                d={`M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`}
-                fill="none"
-                stroke="var(--accent-color)"
-                strokeWidth="2.5"
-                strokeDasharray="4,4"
-                markerEnd="url(#arrow)"
-                style={{ opacity: 0.75 }}
-              />
-            );
+              const x2 = rowHeaderWidth + cellColRenderIdx * cellSize + cellSize / 2;
+              const y2 = colHeaderHeight + cellRowRenderIdx * cellSize + cellSize / 2;
+
+              paths.push(
+                <path
+                  key={`${depStr}->${cell.rowIdx}-${cell.colIdx}`}
+                  d={`M ${x1} ${y1} C ${(x1 + x2) / 2} ${y1}, ${(x1 + x2) / 2} ${y2}, ${x2} ${y2}`}
+                  fill="none"
+                  stroke="var(--accent-color)"
+                  strokeWidth="2.5"
+                  strokeDasharray="4,4"
+                  markerEnd="url(#arrow)"
+                  style={{ opacity: 0.75 }}
+                />
+              );
+            }
           }
         });
       }
@@ -676,12 +657,12 @@ export const TasksScreen: React.FC = () => {
   return (
     <div className={`app-container ${isFullscreen ? 'fullscreen-mode' : ''}`} style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%', overflowY: 'auto' }}>
       
-      {/* Dynamic inline styles for matrix grid */}
+      {/* 3D and minimal styling overrides */}
       <style dangerouslySetInnerHTML={{ __html: `
         .matrix-wrapper {
           overflow: auto;
           max-width: 100%;
-          max-height: 65vh;
+          max-height: 68vh;
           position: relative;
           border-radius: var(--radius-md);
           border: 1px solid var(--border-glass);
@@ -749,15 +730,24 @@ export const TasksScreen: React.FC = () => {
           align-items: center;
           justify-content: center;
           background-color: var(--bg-surface);
-          transition: all 0.2s ease;
           position: relative;
           user-select: none;
         }
-        .matrix-cell:hover {
-          background-color: var(--bg-surface-accent);
-          box-shadow: inset 0 0 0 2px var(--accent-color);
-          z-index: 10;
+        
+        /* Premium 3D block effects */
+        .matrix-cell-3d {
+          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transform: translateY(-2px);
+          will-change: transform, box-shadow;
+          border-radius: 12px;
+          margin: 6px;
+          height: calc(100% - 12px) !important;
+          width: calc(100% - 12px) !important;
         }
+        .matrix-cell-3d:hover {
+          transform: translateY(-6px) !important;
+        }
+        
         .fullscreen-mode {
           position: fixed;
           top: 0;
@@ -770,558 +760,302 @@ export const TasksScreen: React.FC = () => {
         }
       `}} />
 
-      {/* ── ÜST KONTROL ALANI (Header Control Panel) ────────────────────────────── */}
-      <div className="card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      {/* ── MINIMAL ÜST KONTROL ALANI (Minimal Header Control Panel) ────────────── */}
+      <div className="card" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-primary)' }}>{projectName}</h1>
-              <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>Workspace: {activeWorkspace?.name || 'Varsayılan'}</span>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-primary)' }}>{projectName}</h1>
+              <span className="badge badge-accent" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>%{completionPercentage} Tamamlandı</span>
             </div>
-            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-              Süreç İlerlemesi: <strong>%{completionPercentage}</strong> ({completedCells} / {totalTrackedCells} Aşama) • Son Güncelleme: Bugün {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              Aktif: <strong>{totalTrackedCells} Aşama</strong> • Tamamlanan: <strong>{completedCells}</strong>
             </p>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => setShowNewProjModal(true)}
-              style={{ padding: '8px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Plus size={14} /> Yeni Proje
-            </button>
-            <button 
-              className="btn btn-primary" 
-              onClick={() => setShowAIModal(true)}
-              style={{ padding: '8px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <Sparkles size={14} /> AI ile İş Akışı Oluştur
-            </button>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cells));
-                const dlAnchorElem = document.createElement('a');
-                dlAnchorElem.setAttribute("href", dataStr);
-                dlAnchorElem.setAttribute("download", `${projectName}-workflow.json`);
-                dlAnchorElem.click();
-              }}
-              style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="JSON Dışa Aktar"
-            >
-              <Download size={15} />
-            </button>
-          </div>
-        </div>
-
-        {/* Görünüm Seçici & Filtreler */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '14px', borderTop: '1px solid var(--border-glass)', paddingTop: '14px' }}>
-          
-          {/* View Selector Tabs */}
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: 'var(--bg-surface-accent)', padding: '3px', borderRadius: '10px' }}>
-            {[
-              { id: 'matrix', label: 'Matrix Canvas', icon: <Settings size={14} /> },
-              { id: 'kanban', label: 'Kanban Görünümü', icon: <Kanban size={14} /> },
-              { id: 'list', label: 'Tablo Liste', icon: <List size={14} /> },
-              { id: 'timeline', label: 'Zaman Çizgisi', icon: <Calendar size={14} /> },
-              { id: 'gantt', label: 'Gantt Şeması', icon: <ArrowRight size={14} /> }
-            ].map(v => (
-              <button
-                key={v.id}
-                onClick={() => setViewMode(v.id as any)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '6px 12px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  borderRadius: '8px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: viewMode === v.id ? 'var(--bg-surface)' : 'transparent',
-                  color: viewMode === v.id ? 'var(--accent-color)' : 'var(--text-secondary)',
-                  boxShadow: viewMode === v.id ? 'var(--shadow-sm)' : 'none',
-                  transition: 'var(--transition-smooth)'
-                }}
-              >
-                {v.icon}
-                {v.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Search bar & quick utilities */}
+          {/* Minimal Controls Row */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+            
+            {/* Minimal Search */}
             <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-muted)' }} />
+              <Search size={13} style={{ position: 'absolute', left: '10px', top: '9px', color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 placeholder="Arama..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="form-input"
-                style={{ width: '160px', paddingLeft: '30px', paddingRight: '10px', height: '32px', fontSize: '0.8rem' }}
+                style={{ width: '130px', paddingLeft: '28px', paddingRight: '8px', height: '32px', fontSize: '0.78rem' }}
               />
             </div>
 
-            {viewMode === 'matrix' && (
-              <>
-                <button 
-                  className={`btn ${showDependencies ? 'btn-primary' : 'btn-secondary'}`} 
-                  onClick={() => setShowDependencies(!showDependencies)}
-                  style={{ height: '32px', padding: '0 10px', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                >
-                  <Link size={13} />
-                  Bağımlılıklar
-                </button>
+            {/* Toggle showAllGrid (iOS pill style layout) */}
+            <button
+              onClick={() => setShowAllGrid(!showAllGrid)}
+              className={`btn ${showAllGrid ? 'btn-primary' : 'btn-secondary'}`}
+              style={{
+                height: '32px',
+                padding: '0 12px',
+                fontSize: '0.76rem',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+            >
+              {showAllGrid ? '🔒 Sadeleştir' : '🔓 Düzenleme Modu (Boşları Göster)'}
+            </button>
 
-                <div style={{ display: 'flex', gap: '2px', backgroundColor: 'var(--bg-surface-accent)', borderRadius: '8px', padding: '2px' }}>
-                  <button className="btn btn-secondary" style={{ padding: '5px 8px', border: 'none', background: 'transparent' }} onClick={() => setZoom(prev => Math.max(0.6, prev - 0.1))} title="Uzaklaştır"><ZoomOut size={14} /></button>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0 8px', alignSelf: 'center', color: 'var(--text-secondary)' }}>%{Math.round(zoom * 100)}</span>
-                  <button className="btn btn-secondary" style={{ padding: '5px 8px', border: 'none', background: 'transparent' }} onClick={() => setZoom(prev => Math.min(1.4, prev + 0.1))} title="Yakınlaştır"><ZoomIn size={14} /></button>
-                </div>
+            <button 
+              className={`btn ${showDependencies ? 'btn-primary' : 'btn-secondary'}`} 
+              onClick={() => setShowDependencies(!showDependencies)}
+              style={{ height: '32px', padding: '0 10px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+            >
+              <Link size={13} />
+              Bağımlılıklar
+            </button>
 
-                <button 
-                  className="btn btn-secondary" 
-                  onClick={() => setIsFullscreen(!isFullscreen)} 
-                  style={{ height: '32px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  title="Tam Ekran"
-                >
-                  {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
+            <div style={{ display: 'flex', gap: '2px', backgroundColor: 'var(--bg-surface-accent)', borderRadius: '8px', padding: '2px' }}>
+              <button className="btn btn-secondary" style={{ padding: '5px 8px', border: 'none', background: 'transparent' }} onClick={() => setZoom(prev => Math.max(0.6, prev - 0.1))} title="Uzaklaştır"><ZoomOut size={13} /></button>
+              <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '0 6px', alignSelf: 'center', color: 'var(--text-secondary)' }}>%{Math.round(zoom * 100)}</span>
+              <button className="btn btn-secondary" style={{ padding: '5px 8px', border: 'none', background: 'transparent' }} onClick={() => setZoom(prev => Math.min(1.4, prev + 0.1))} title="Yakınlaştır"><ZoomIn size={13} /></button>
+            </div>
 
-        {/* Gelişmiş Filtre Satırı */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center', borderTop: '1px dashed var(--border-glass)', paddingTop: '10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.76rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-            <Filter size={13} />
-            Filtrele:
-          </div>
-
-          <select className="form-input" style={{ width: '120px', height: '28px', fontSize: '0.75rem', padding: '0 6px' }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="all">Tüm Durumlar</option>
-            <option value="suggested">Önerilen</option>
-            <option value="selected">Seçildi</option>
-            <option value="planned">Planlandı</option>
-            <option value="doing">Sürüyor</option>
-            <option value="waiting">Beklemede</option>
-            <option value="done">Tamamlandı</option>
-            <option value="not_needed">Gerekli Değil</option>
-          </select>
-
-          <select className="form-input" style={{ width: '110px', height: '28px', fontSize: '0.75rem', padding: '0 6px' }} value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
-            <option value="all">Tüm Öncelikler</option>
-            <option value="low">Düşük</option>
-            <option value="normal">Normal</option>
-            <option value="high">Yüksek</option>
-          </select>
-
-          <select className="form-input" style={{ width: '130px', height: '28px', fontSize: '0.75rem', padding: '0 6px' }} value={filterDept} onChange={e => setFilterDept(e.target.value)}>
-            <option value="all">Tüm Departmanlar</option>
-            {departments.map((d, idx) => (
-              <option key={idx} value={idx}>{d}</option>
-            ))}
-          </select>
-
-          <select className="form-input" style={{ width: '130px', height: '28px', fontSize: '0.75rem', padding: '0 6px' }} value={filterPhase} onChange={e => setFilterPhase(e.target.value)}>
-            <option value="all">Tüm Aşamalar</option>
-            {phases.map((p, idx) => (
-              <option key={idx} value={idx}>{p}</option>
-            ))}
-          </select>
-
-          <select className="form-input" style={{ width: '130px', height: '28px', fontSize: '0.75rem', padding: '0 6px' }} value={filterAssignee} onChange={e => setFilterAssignee(e.target.value)}>
-            <option value="all">Tüm Atananlar</option>
-            {members.map(m => (
-              <option key={m.user_id} value={m.user_id}>{m.full_name}</option>
-            ))}
-          </select>
-
-          {/* Quick Filter Checkboxes */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginLeft: 'auto' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={onlySelected} onChange={e => setOnlySelected(e.target.checked)} />
-              Sadece Aktifler
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={onlyOverdue} onChange={e => setOnlyOverdue(e.target.checked)} />
-              Gecikenler
-            </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-              <input type="checkbox" checked={onlyMine} onChange={e => setOnlyMine(e.target.checked)} />
-              Bana Atananlar
-            </label>
+            <button className="btn btn-secondary" onClick={() => setShowNewProjModal(true)} style={{ padding: '0 10px', height: '32px', fontSize: '0.76rem' }}>Yeni Proje</button>
+            <button className="btn btn-primary" onClick={() => setShowAIModal(true)} style={{ padding: '0 12px', height: '32px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}><Sparkles size={13} /> AI Önerisi</button>
+            
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => setIsFullscreen(!isFullscreen)} 
+              style={{ height: '32px', padding: '0 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── ANA MATRIX CANVAS GÖRÜNÜMÜ ─────────────────────────────────────────── */}
+      {/* ── DİNAMİK SCROLLABLE GRID KANVAS ALANI ────────────────────────────────── */}
       <div style={{ display: 'flex', gap: '16px', flex: 1, position: 'relative' }}>
         
-        {viewMode === 'matrix' && (
-          <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div className="matrix-wrapper">
-              <div className="matrix-grid" style={{
-                gridTemplateColumns: `${rowHeaderWidth}px repeat(${departments.length}, ${cellSize}px)`,
-                gridTemplateRows: `${colHeaderHeight}px repeat(${phases.length}, ${cellSize}px)`,
-                width: `${rowHeaderWidth + departments.length * cellSize}px`,
-                height: `${colHeaderHeight + phases.length * cellSize}px`
-              }}>
-                
-                {/* SVG Connections */}
-                {renderDependencyLines()}
+        <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div className="matrix-wrapper">
+            <div className="matrix-grid" style={{
+              gridTemplateColumns: `${rowHeaderWidth}px repeat(${visibleColIndices.length}, ${cellSize}px)`,
+              gridTemplateRows: `${colHeaderHeight}px repeat(${visibleRowIndices.length}, ${cellSize}px)`,
+              width: `${rowHeaderWidth + visibleColIndices.length * cellSize}px`,
+              height: `${colHeaderHeight + visibleRowIndices.length * cellSize}px`
+            }}>
+              
+              {/* SVG Connections */}
+              {renderDependencyLines()}
 
-                {/* 1. Corner Cell */}
-                <div className="matrix-corner-cell" style={{ width: rowHeaderWidth, height: colHeaderHeight }}>
-                  Proje Aşaması /<br/>Departman
+              {/* 1. Corner Cell */}
+              <div className="matrix-corner-cell" style={{ width: rowHeaderWidth, height: colHeaderHeight }}>
+                Süreç Aşaması
+              </div>
+
+              {/* 2. Columns Header */}
+              {visibleColIndices.map((colIdx) => (
+                <div key={colIdx} className="matrix-col-header" style={{ width: cellSize, height: colHeaderHeight }}>
+                  {departments[colIdx]}
                 </div>
+              ))}
 
-                {/* 2. Columns Header */}
-                {departments.map((d, colIdx) => (
-                  <div key={colIdx} className="matrix-col-header" style={{ width: cellSize, height: colHeaderHeight }}>
-                    {d}
+              {/* 3. Grid Rows */}
+              {visibleRowIndices.map((rowIdx) => (
+                <React.Fragment key={rowIdx}>
+                  {/* Row Header */}
+                  <div className="matrix-row-header" style={{ width: rowHeaderWidth, height: cellSize }}>
+                    {phases[rowIdx]}
                   </div>
-                ))}
 
-                {/* 3. Grid Rows */}
-                {phases.map((p, rowIdx) => (
-                  <React.Fragment key={rowIdx}>
-                    {/* Row Header */}
-                    <div className="matrix-row-header" style={{ width: rowHeaderWidth, height: cellSize }}>
-                      {p}
-                    </div>
+                  {/* Matrix Cells */}
+                  {visibleColIndices.map((colIdx) => {
+                    const cellData = cells.find(c => c.rowIdx === rowIdx && c.colIdx === colIdx);
+                    const isFilteredOut = cellData && !filteredCells.some(f => f.rowIdx === rowIdx && f.colIdx === colIdx);
 
-                    {/* Matrix Cells */}
-                    {departments.map((_, colIdx) => {
-                      const cellData = cells.find(c => c.rowIdx === rowIdx && c.colIdx === colIdx);
-                      const isFilteredOut = cellData && !filteredCells.some(f => f.rowIdx === rowIdx && f.colIdx === colIdx);
+                    // Style variables based on status representing premium 3D look
+                    let borderStyle = '1px dashed var(--border-glass)';
+                    let bgStyle = 'transparent';
+                    let statusBadge = '';
+                    let badgeColor = 'var(--text-muted)';
+                    let opacity = isFilteredOut ? 0.3 : 1;
+                    let bottomBorderColor = 'transparent';
 
-                      // Style variables based on status
-                      let borderStyle = '1px solid var(--border-glass)';
-                      let bgStyle = 'var(--bg-surface)';
-                      let statusBadge = '';
-                      let badgeColor = 'var(--text-muted)';
-                      let opacity = isFilteredOut ? 0.25 : 1;
-
-                      if (cellData) {
-                        switch (cellData.status) {
-                          case 'suggested':
-                            borderStyle = `2.5px dashed #3b82f6`;
-                            bgStyle = 'rgba(59, 130, 246, 0.04)';
-                            statusBadge = '✨ Önerildi';
-                            badgeColor = '#3b82f6';
-                            break;
-                          case 'selected':
-                            borderStyle = `2.5px solid #6366f1`;
-                            bgStyle = 'rgba(99, 102, 241, 0.04)';
-                            statusBadge = '☑ Seçildi';
-                            badgeColor = '#6366f1';
-                            break;
-                          case 'planned':
-                            borderStyle = `2.5px solid #a855f7`;
-                            bgStyle = 'rgba(168, 85, 247, 0.04)';
-                            statusBadge = '📅 Planlandı';
-                            badgeColor = '#a855f7';
-                            break;
-                          case 'doing':
-                            borderStyle = `2.5px solid #f59e0b`;
-                            bgStyle = 'rgba(245, 158, 11, 0.04)';
-                            statusBadge = '⚡ Sürüyor';
-                            badgeColor = '#f59e0b';
-                            break;
-                          case 'waiting':
-                            borderStyle = `2.5px solid #f97316`;
-                            bgStyle = 'rgba(249, 115, 22, 0.04)';
-                            statusBadge = '⏳ Beklemede';
-                            badgeColor = '#f97316';
-                            break;
-                          case 'done':
-                            borderStyle = `2.5px solid #10b981`;
-                            bgStyle = 'rgba(16, 185, 129, 0.05)';
-                            statusBadge = '✅ Bitti';
-                            badgeColor = '#10b981';
-                            break;
-                          case 'not_needed':
-                            borderStyle = '1px solid var(--border-glass)';
-                            bgStyle = 'rgba(148, 163, 184, 0.15)';
-                            statusBadge = '🚫 Pasif';
-                            badgeColor = 'var(--text-muted)';
-                            break;
-                        }
+                    if (cellData && cellData.status !== 'empty') {
+                      switch (cellData.status) {
+                        case 'suggested':
+                          borderStyle = `1px solid #3b82f6`;
+                          bottomBorderColor = '#1d4ed8'; // Darker blue for 3D thickness
+                          bgStyle = 'rgba(59, 130, 246, 0.08)';
+                          statusBadge = '✨ Öneri';
+                          badgeColor = '#3b82f6';
+                          break;
+                        case 'selected':
+                          borderStyle = `1px solid #6366f1`;
+                          bottomBorderColor = '#4338ca'; // Darker indigo
+                          bgStyle = 'rgba(99, 102, 241, 0.08)';
+                          statusBadge = '☑ Seçildi';
+                          badgeColor = '#6366f1';
+                          break;
+                        case 'planned':
+                          borderStyle = `1px solid #a855f7`;
+                          bottomBorderColor = '#7e22ce'; // Darker purple
+                          bgStyle = 'rgba(168, 85, 247, 0.08)';
+                          statusBadge = '📅 Plan';
+                          badgeColor = '#a855f7';
+                          break;
+                        case 'doing':
+                          borderStyle = `1px solid #f59e0b`;
+                          bottomBorderColor = '#b45309'; // Darker amber
+                          bgStyle = 'rgba(245, 158, 11, 0.08)';
+                          statusBadge = '⚡ Süreç';
+                          badgeColor = '#f59e0b';
+                          break;
+                        case 'waiting':
+                          borderStyle = `1px solid #f97316`;
+                          bottomBorderColor = '#c2410c'; // Darker orange
+                          bgStyle = 'rgba(249, 115, 22, 0.08)';
+                          statusBadge = '⏳ Bekle';
+                          badgeColor = '#f97316';
+                          break;
+                        case 'done':
+                          borderStyle = `1px solid #10b981`;
+                          bottomBorderColor = '#047857'; // Darker emerald
+                          bgStyle = 'rgba(16, 185, 129, 0.08)';
+                          statusBadge = '✅ Bitti';
+                          badgeColor = '#10b981';
+                          break;
+                        case 'not_needed':
+                          borderStyle = '1px solid var(--border-color)';
+                          bottomBorderColor = '#64748b';
+                          bgStyle = 'rgba(148, 163, 184, 0.1)';
+                          statusBadge = '🚫 Pasif';
+                          badgeColor = 'var(--text-muted)';
+                          break;
                       }
+                    }
 
-                      // Check if overdue
-                      const isOverdue = cellData && cellData.endDate && cellData.status !== 'done' && new Date(cellData.endDate) < new Date();
+                    const isOverdue = cellData && cellData.endDate && cellData.status !== 'done' && new Date(cellData.endDate) < new Date();
 
-                      return (
-                        <div
-                          key={colIdx}
-                          onClick={() => handleCellClick(rowIdx, colIdx)}
-                          onContextMenu={(e) => handleCellRightClick(e, rowIdx, colIdx)}
-                          className="matrix-cell"
-                          style={{
-                            width: cellSize,
-                            height: cellSize,
-                            border: borderStyle,
-                            backgroundColor: bgStyle,
-                            opacity,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            padding: '8px'
-                          }}
-                          title="Sağ tık: Durumu hızlı döngüye sok, Sol tık: Detay gör"
-                        >
-                          {cellData && cellData.status !== 'empty' ? (
-                            <>
-                              {/* Workflow Name */}
-                              <div style={{
-                                fontSize: zoom < 0.8 ? '0.62rem' : '0.72rem',
-                                fontWeight: 700,
-                                color: 'var(--text-primary)',
-                                lineHeight: 1.25,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
-                              }}>
-                                {cellData.workflowName}
-                              </div>
+                    return (
+                      <div
+                        key={colIdx}
+                        className="matrix-cell"
+                        style={{ width: cellSize, height: cellSize }}
+                      >
+                        {cellData && cellData.status !== 'empty' ? (
+                          <div
+                            onClick={() => handleCellClick(rowIdx, colIdx)}
+                            onContextMenu={(e) => handleCellRightClick(e, rowIdx, colIdx)}
+                            className="matrix-cell-3d"
+                            style={{
+                              border: borderStyle,
+                              borderBottom: `5px solid ${bottomBorderColor}`,
+                              backgroundColor: bgStyle,
+                              opacity,
+                              boxShadow: '0 6px 12px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              padding: '8px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {/* Workflow Name */}
+                            <div style={{
+                              fontSize: zoom < 0.8 ? '0.62rem' : '0.72rem',
+                              fontWeight: 800,
+                              color: 'var(--text-primary)',
+                              lineHeight: 1.25,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: 'vertical',
+                            }}>
+                              {cellData.workflowName}
+                            </div>
 
-                              {/* Footer content */}
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '100%' }}>
-                                {zoom >= 0.8 && (
-                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '0.6rem', fontWeight: 800, color: badgeColor }}>
-                                      {statusBadge}
+                            {/* Footer content */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', width: '100%' }}>
+                              {zoom >= 0.8 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '0.62rem', fontWeight: 800, color: badgeColor }}>
+                                    {statusBadge}
+                                  </span>
+                                  {isOverdue && (
+                                    <span title="Gecikmiş Süreç!" style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center' }}>
+                                      <AlertTriangle size={11} />
                                     </span>
-                                    {isOverdue && (
-                                      <span title="Gecikmiş Süreç!" style={{ color: 'var(--color-danger)', display: 'flex', alignItems: 'center' }}>
-                                        <AlertTriangle size={11} />
-                                      </span>
-                                    )}
-                                  </div>
-                                )}
+                                  )}
+                                </div>
+                              )}
 
-                                {/* Progress bar */}
-                                {cellData.checklist && cellData.checklist.length > 0 && zoom >= 0.7 && (
-                                  <div style={{ width: '100%', height: '3px', backgroundColor: 'var(--border-glass)', borderRadius: '2px', overflow: 'hidden' }}>
-                                    <div style={{
-                                      width: `${(cellData.checklist.filter(c => c.done).length / cellData.checklist.length) * 100}%`,
-                                      height: '100%',
-                                      backgroundColor: badgeColor
-                                    }} />
-                                  </div>
-                                )}
-                              </div>
-                            </>
-                          ) : (
-                            <div style={{ color: 'var(--text-muted)', fontSize: '0.7rem', opacity: 0.35, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              {/* Progress bar */}
+                              {cellData.checklist && cellData.checklist.length > 0 && zoom >= 0.7 && (
+                                <div style={{ width: '100%', height: '3px', backgroundColor: 'var(--border-glass)', borderRadius: '2px', overflow: 'hidden' }}>
+                                  <div style={{
+                                    width: `${(cellData.checklist.filter(c => c.done).length / cellData.checklist.length) * 100}%`,
+                                    height: '100%',
+                                    backgroundColor: badgeColor
+                                  }} />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          showAllGrid && (
+                            <div
+                              onClick={() => handleCellClick(rowIdx, colIdx)}
+                              onContextMenu={(e) => handleCellRightClick(e, rowIdx, colIdx)}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: borderStyle,
+                                color: 'var(--text-muted)',
+                                fontSize: '0.7rem',
+                                opacity: 0.25,
+                                cursor: 'pointer'
+                              }}
+                            >
                               <Plus size={11} /> Ekle
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-            
-            {/* Helper notes beneath canvas */}
-            <div style={{ marginTop: '8px', display: 'flex', gap: '14px', alignItems: 'center' }}>
-              <button className="btn btn-secondary" onClick={handleAddPhase} style={{ padding: '4px 10px', fontSize: '0.72rem' }}>+ Yeni Proje Aşaması (Satır) Ekle</button>
-              <button className="btn btn-secondary" onClick={handleAddDept} style={{ padding: '4px 10px', fontSize: '0.72rem' }}>+ Yeni Departman (Sütun) Ekle</button>
-              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-                💡 <em>Hücreye sol tıklayarak detay açabilir, sağ tıklayarak durumunu anında değiştirebilirsiniz.</em>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── KANBAN GÖRÜNÜMÜ ─────────────────────────────────────────────────── */}
-        {viewMode === 'kanban' && (
-          <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', flex: 1, paddingBottom: '10px', width: '100%' }}>
-            {[
-              { status: 'suggested', label: 'Önerilen', color: '#3b82f6' },
-              { status: 'selected', label: 'Seçildi', color: '#6366f1' },
-              { status: 'planned', label: 'Planlandı', color: '#a855f7' },
-              { status: 'doing', label: 'Sürüyor', color: '#f59e0b' },
-              { status: 'waiting', label: 'Beklemede', color: '#f97316' },
-              { status: 'done', label: 'Tamamlandı', color: '#10b981' }
-            ].map(col => {
-              const colCells = filteredCells.filter(c => c.status === col.status);
-              return (
-                <div key={col.status} className="card" style={{ flex: '0 0 280px', display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px', backgroundColor: 'var(--bg-surface-accent)', borderTop: `4px solid ${col.color}` }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-primary)' }}>{col.label}</span>
-                    <span className="badge" style={{ fontSize: '0.7rem' }}>{colCells.length}</span>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1 }}>
-                    {colCells.map(c => (
-                      <div key={`${c.rowIdx}-${c.colIdx}`} className="card" onClick={() => handleCellClick(c.rowIdx, c.colIdx)} style={{ padding: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{c.workflowName}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                          {phases[c.rowIdx]} • {departments[c.colIdx]}
-                        </div>
-                        {c.priority && (
-                          <span style={{
-                            alignSelf: 'flex-start',
-                            fontSize: '0.62rem',
-                            fontWeight: 700,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            backgroundColor: c.priority === 'high' ? 'rgba(239,68,68,0.1)' : c.priority === 'normal' ? 'rgba(245,158,11,0.1)' : 'rgba(59,130,246,0.1)',
-                            color: c.priority === 'high' ? '#ef4444' : c.priority === 'normal' ? '#f59e0b' : '#3b82f6'
-                          }}>
-                            {c.priority.toUpperCase()} Öncelikli
-                          </span>
+                          )
                         )}
                       </div>
-                    ))}
-                    {colCells.length === 0 && (
-                      <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.72rem', padding: '24px' }}>İş bulunmamaktadır.</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── TABLO LİSTE GÖRÜNÜMÜ ─────────────────────────────────────────────── */}
-        {viewMode === 'list' && (
-          <div className="card" style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid var(--border-glass)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '8px' }}>Süreç / İş Akışı</th>
-                  <th style={{ padding: '8px' }}>Proje Aşaması</th>
-                  <th style={{ padding: '8px' }}>Departman</th>
-                  <th style={{ padding: '8px' }}>Durum</th>
-                  <th style={{ padding: '8px' }}>Öncelik</th>
-                  <th style={{ padding: '8px' }}>Bitiş Tarihi</th>
-                  <th style={{ padding: '8px' }}>İlerleme</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCells.filter(c => c.status !== 'empty').map(c => {
-                  const doneTasks = c.checklist?.filter(k => k.done).length || 0;
-                  const totalTasks = c.checklist?.length || 0;
-                  const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
-                  return (
-                    <tr key={`${c.rowIdx}-${c.colIdx}`} onClick={() => handleCellClick(c.rowIdx, c.colIdx)} style={{ borderBottom: '1px solid var(--border-glass)', cursor: 'pointer' }}>
-                      <td style={{ padding: '10px 8px', fontWeight: 600, color: 'var(--text-primary)' }}>{c.workflowName}</td>
-                      <td style={{ padding: '10px 8px' }}>{phases[c.rowIdx]}</td>
-                      <td style={{ padding: '10px 8px' }}>{departments[c.colIdx]}</td>
-                      <td style={{ padding: '10px 8px' }}>
-                        <span className={`badge ${c.status === 'done' ? 'badge-success' : c.status === 'doing' ? 'badge-warning' : 'badge-accent'}`}>
-                          {c.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td style={{ padding: '10px 8px' }}>{c.priority.toUpperCase()}</td>
-                      <td style={{ padding: '10px 8px' }}>{c.endDate || '-'}</td>
-                      <td style={{ padding: '10px 8px' }}>{progressPct}% ({doneTasks}/{totalTasks})</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* ── ZAMAN ÇİZGİSİ GÖRÜNÜMÜ ───────────────────────────────────────────── */}
-        {viewMode === 'timeline' && (
-          <div className="card" style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', borderBottom: '2px solid var(--border-glass)', paddingBottom: '8px', color: 'var(--text-muted)', fontSize: '0.75rem', fontWeight: 600 }}>
-                <div style={{ width: '220px' }}>Süreç Adı</div>
-                <div style={{ flex: 1 }}>Zaman Dilimi Planı (Temmuz - Ağustos)</div>
-              </div>
-
-              {filteredCells.filter(c => c.status !== 'empty' && c.startDate).map(c => {
-                // Mock simple width calculation
-                const startDay = new Date(c.startDate!).getDate();
-                const endDay = new Date(c.endDate || c.startDate!).getDate();
-                const leftPos = Math.max(5, (startDay / 31) * 70);
-                const barWidth = Math.max(10, ((endDay - startDay + 1) / 31) * 70);
-
-                return (
-                  <div key={`${c.rowIdx}-${c.colIdx}`} onClick={() => handleCellClick(c.rowIdx, c.colIdx)} style={{ display: 'flex', alignItems: 'center', height: '40px', cursor: 'pointer' }}>
-                    <div style={{ width: '220px', fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {c.workflowName}
-                    </div>
-                    <div style={{ flex: 1, position: 'relative', height: '100%', display: 'flex', alignItems: 'center', backgroundColor: 'var(--bg-surface-accent)', borderRadius: '4px' }}>
-                      <div style={{
-                        position: 'absolute',
-                        left: `${leftPos}%`,
-                        width: `${barWidth}%`,
-                        height: '20px',
-                        backgroundColor: c.status === 'done' ? 'rgba(16,185,129,0.3)' : c.status === 'doing' ? 'rgba(245,158,11,0.3)' : 'rgba(99,102,241,0.3)',
-                        border: `1.5px solid ${c.status === 'done' ? '#10b981' : c.status === 'doing' ? '#f59e0b' : '#6366f1'}`,
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.62rem',
-                        fontWeight: 700,
-                        color: 'var(--text-primary)'
-                      }}>
-                        {c.status.toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ── GANTT GÖRÜNÜMÜ ──────────────────────────────────────────────────── */}
-        {viewMode === 'gantt' && (
-          <div className="card" style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                🔗 Süreç Bağlantı ve Kilitleme Bağımlılıkları (Gantt)
-              </div>
-              {filteredCells.filter(c => c.status !== 'empty').map(c => (
-                <div key={`${c.rowIdx}-${c.colIdx}`} onClick={() => handleCellClick(c.rowIdx, c.colIdx)} style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-sm)', cursor: 'pointer' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-primary)' }}>{c.workflowName}</span>
-                    <span className="badge" style={{ fontSize: '0.65rem' }}>{phases[c.rowIdx]}</span>
-                  </div>
-                  {c.dependencies && c.dependencies.length > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--accent-color)', fontWeight: 600 }}>
-                      <Link size={12} />
-                      Bağımlı olduğu süreçler: {c.dependencies.map(d => {
-                        const [dr, dc] = d.split('-').map(Number);
-                        return `${phases[dr]} × ${departments[dc]}`;
-                      }).join(', ')}
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Bağımlılık tanımlanmamış</span>
-                  )}
-                </div>
+                    );
+                  })}
+                </React.Fragment>
               ))}
             </div>
           </div>
-        )}
+          
+          {/* Helper notes beneath canvas */}
+          <div style={{ marginTop: '8px', display: 'flex', gap: '14px', alignItems: 'center' }}>
+            {showAllGrid && (
+              <>
+                <button className="btn btn-secondary" onClick={handleAddPhase} style={{ padding: '4px 10px', fontSize: '0.72rem' }}>+ Yeni Aşama (Satır) Ekle</button>
+                <button className="btn btn-secondary" onClick={handleAddDept} style={{ padding: '4px 10px', fontSize: '0.72rem' }}>+ Yeni Departman (Sütun) Ekle</button>
+              </>
+            )}
+            <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+              💡 <em>Sadece ekli/seçili hücreleri görmektesiniz. Yeni hücre eklemek için <strong>Düzenleme Modu</strong>'nu açabilirsiniz.</em>
+            </div>
+          </div>
+        </div>
 
-        {/* ── SAĞ PANEL (Cell Detail Panel) ─────────────────────────────────────── */}
+        {/* ── DETAY PANELİ (Cell Detail Panel) ─────────────────────────────────── */}
         {editingCellData && (
           <div className="card" style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px', overflowY: 'auto', borderLeft: '2px solid var(--border-color)', animation: 'slideIn 0.2s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px' }}>
               <div>
                 <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)' }}>Süreç Bilgileri</h3>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Hücre: Row {editingCellData.rowIdx} × Col {editingCellData.colIdx}</p>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Row {editingCellData.rowIdx} × Col {editingCellData.colIdx}</p>
               </div>
               <button onClick={() => { setEditingCellData(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <X size={18} />
@@ -1437,7 +1171,7 @@ export const TasksScreen: React.FC = () => {
                 </div>
               </div>
 
-              {/* Kontrol Listesi (Checklist) */}
+              {/* Checklist */}
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700, display: 'flex', justifyContent: 'space-between' }}>
                   <span>Kontrol Listesi / Alt Görevler</span>
@@ -1474,7 +1208,6 @@ export const TasksScreen: React.FC = () => {
                   <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
                     <input
                       type="text"
-                      id="new-checklist-item"
                       placeholder="Alt görev ekle..."
                       className="form-input"
                       style={{ fontSize: '0.78rem', padding: '4px 8px', height: '28px' }}
@@ -1517,7 +1250,7 @@ export const TasksScreen: React.FC = () => {
 
               {/* Bağımlılıklar Eşleme */}
               <div className="form-group">
-                <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>Bağımlı Olduğu Süreçler (Canvas Hücreleri)</label>
+                <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>Bağımlı Olduğu Süreçler</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '100px', overflowY: 'auto', border: '1px solid var(--border-glass)', padding: '6px', borderRadius: '4px', marginTop: '4px' }}>
                   {cells.filter(c => c.status !== 'empty' && !(c.rowIdx === editingCellData.rowIdx && c.colIdx === editingCellData.colIdx)).map(other => {
                     const key = `${other.rowIdx}-${other.colIdx}`;
@@ -1541,9 +1274,6 @@ export const TasksScreen: React.FC = () => {
                       </label>
                     );
                   })}
-                  {cells.filter(c => c.status !== 'empty').length <= 1 && (
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Bağlantı kurulacak aktif süreç yok.</div>
-                  )}
                 </div>
               </div>
 
@@ -1573,7 +1303,7 @@ export const TasksScreen: React.FC = () => {
         )}
       </div>
 
-      {/* ── AI WORKFLOW SUGGESTION MODAL (AI ile İş Akışı Oluştur) ─────────────────── */}
+      {/* ── AI WORKFLOW SUGGESTION MODAL ────────────────────────────────────────── */}
       {showAIModal && (
         <div className="modal-backdrop" onClick={() => setShowAIModal(false)}>
           <div className="modal-content" style={{ maxWidth: '640px', width: '95%' }} onClick={e => e.stopPropagation()}>
@@ -1702,7 +1432,7 @@ export const TasksScreen: React.FC = () => {
         </div>
       )}
 
-      {/* ── YENİ PROJE MODAL (Yeni Proje Oluştur) ────────────────────────────────── */}
+      {/* ── YENİ PROJE MODAL ────────────────────────────────────────────────────── */}
       {showNewProjModal && (
         <div className="modal-backdrop" onClick={() => setShowNewProjModal(false)}>
           <div className="modal-content" style={{ maxWidth: '420px', width: '95%' }} onClick={e => e.stopPropagation()}>
