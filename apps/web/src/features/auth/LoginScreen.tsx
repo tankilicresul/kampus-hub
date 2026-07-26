@@ -30,7 +30,7 @@ export const LoginScreen: React.FC = () => {
         </div>
         <div className="auth-brand-title">TanCoreLab</div>
         <div className="auth-brand-desc">
-          Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
+          Girişim ekosistemine katılın. Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
         </div>
       </div>
 
@@ -43,17 +43,9 @@ export const LoginScreen: React.FC = () => {
               <img src="/logo.svg" alt="TanCoreLab Logo" style={{ objectFit: 'contain' }} />
             </div>
             <div className="auth-brand-title mobile-title">TanCoreLab</div>
-          </div>
-
-          <div className="auth-header" style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '1.65rem', fontWeight: 800, color: 'var(--text-primary)', textAlign: 'center' }}>
-              {isLoginTab ? 'Giriş' : 'Kayıt'}
-            </h2>
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px' }}>
-              {isLoginTab 
-                ? 'Hesabınızla hemen giriş yapın.' 
-                : 'Bilgileri girip hemen kayıt olun.'}
-            </p>
+            <div className="auth-mobile-desc" style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '6px', maxWidth: '320px', fontWeight: 500, lineHeight: '1.4' }}>
+              Girişim ekosistemine katılın. Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
+            </div>
           </div>
 
           {/* Tab switchers */}
