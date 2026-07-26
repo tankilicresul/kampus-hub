@@ -415,7 +415,12 @@ const TaskDetailModal: React.FC<{
                   className="form-input"
                   style={{ flex: 1, fontSize: '0.85rem' }}
                 />
-                <button className="btn btn-primary" type="submit" disabled={submitting || !newComment.trim()} style={{ padding: '8px 14px' }}>
+                <button 
+                  className="btn btn-primary" 
+                  type="submit" 
+                  disabled={submitting || !newComment.trim()} 
+                  style={{ width: '100px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.85rem' }}
+                >
                   {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
                 </button>
               </form>
@@ -457,7 +462,7 @@ const TaskDetailModal: React.FC<{
             <button 
               type="button"
               className="btn btn-primary"
-              style={{ padding: '8px 24px', fontSize: '0.85rem' }}
+              style={{ width: '100px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.85rem' }}
               onClick={handleSave}
             >
               Kaydet

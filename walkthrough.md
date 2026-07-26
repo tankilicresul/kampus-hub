@@ -628,6 +628,25 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Task Detail Modal Button Alignment)
+
+### 1. Consistent Sizing and Alignment of Action Buttons
+- Updated both the "Gönder" (comment submission) button and "Kaydet" (save changes) button in [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) to share identical dimensions: `width: 100px` and `height: 36px` with zero padding.
+- This ensures they align perfectly along the right margin of the detail modal, providing a balanced, premium visual rhythm.
+
+---
+
+## 🧪 Verification Runs (Task Detail Modal Button Alignment)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
