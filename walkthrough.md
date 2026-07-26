@@ -818,6 +818,35 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Unified Dot Priority Formatting & Overdue Transition Restrictions)
+
+### 1. Unified Priority Representation to Simple Color Dots
+- Modified [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx):
+  - Removed high-contrast text badges for `'high'` (Önemli) and `'normal'` (Acelesi Yok) priority cards.
+  - Refactored `SortableTaskCard`, `DragOverlay`, and List View components to render all priority levels strictly as a **10px circle color dot** on the top-left corner:
+    - Red dot `#ef4444` for `'critical'` (Acil)
+    - Yellow dot `#f59e0b` for `'high'` (Önemli)
+    - Blue dot `#3b82f6` for `'normal'` (Acelesi Yok)
+    - Green dot `#22c55e` if the task is completed (`'completed'`)
+
+### 2. Blocked Manual Moves to "Tarihi Geçti" for Active/Non-Overdue Tasks
+- Added task due-date verification rules in both transition channels inside [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx):
+  - In `handleDragEnd` DND drag handler and `handleSave` modal save handler, introduced checks using the helper `isTaskPastDue()`.
+  - If a user attempts to manually drag or save a task with a status of `'overdue'`, but its due date is either missing or has not yet passed the 06:00 AM threshold, the change is blocked, showing a browser alert: `"Son teslim tarihi geçmemiş bir görevi 'Tarihi Geçti' aşamasına alamazsınız."`
+
+---
+
+## 🧪 Verification Runs (Unified Dots & Overdue Constraints)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 

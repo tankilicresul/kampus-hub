@@ -68,6 +68,21 @@ const calculatePriorityFromDueDate = (dueDateStr: string | null | undefined): Ta
   }
 };
 
+const isTaskPastDue = (dueDate: string | null | undefined): boolean => {
+  if (!dueDate) return false;
+  const today = new Date();
+  const currentHour = today.getHours();
+  const effectiveDate = new Date(today);
+  if (currentHour < 6) {
+    effectiveDate.setDate(effectiveDate.getDate() - 1);
+  }
+  const yyyy = effectiveDate.getFullYear();
+  const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(effectiveDate.getDate()).padStart(2, '0');
+  const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
+  return dueDate < effectiveDateStr;
+};
+
 // ─── Sortable Task Card ───────────────────────────────────────────────────────
 const SortableTaskCard: React.FC<{
   task: Task;
@@ -95,29 +110,17 @@ const SortableTaskCard: React.FC<{
     >
       {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {task.priority === 'critical' ? (
-          <span 
-            title="Acil" 
-            style={{ 
-              width: '10px', 
-              height: '10px', 
-              borderRadius: '50%', 
-              backgroundColor: task.status === 'completed' ? '#22c55e' : '#ef4444', 
-              display: 'inline-block',
-              margin: '6px'
-            }} 
-          />
-        ) : task.priority === 'high' ? (
-          <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
-            Önemli
-          </span>
-        ) : (
-          <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
-            Acelesi Yok
-          </span>
-        )}
+        <span 
+          title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'} 
+          style={{ 
+            width: '10px', 
+            height: '10px', 
+            borderRadius: '50%', 
+            backgroundColor: task.status === 'completed' ? '#22c55e' : (task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
+            display: 'inline-block',
+            margin: '6px'
+          }} 
+        />
         {task.recurrence && task.recurrence !== 'none' && (
           <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex' }}>
             <Repeat size={12} style={{ color: 'var(--text-muted)' }} />
@@ -282,6 +285,10 @@ const TaskDetailModal: React.FC<{
   const handleSave = async () => {
     if (!currentTitle.trim()) {
       alert('Görev başlığı boş bırakılamaz.');
+      return;
+    }
+    if (currentStatus === 'overdue' && !isTaskPastDue(currentDueDate)) {
+      alert("Son teslim tarihi geçmemiş bir görevi 'Tarihi Geçti' aşamasına alamazsınız.");
       return;
     }
     try {
@@ -699,6 +706,11 @@ export const TasksScreen: React.FC = () => {
     const draggedTask = tasks.find(t => t.id === active.id);
     if (!draggedTask || !targetCol) return;
 
+    if (targetCol === 'overdue' && !isTaskPastDue(draggedTask.due_date)) {
+      alert("Son teslim tarihi geçmemiş bir görevi 'Tarihi Geçti' aşamasına alamazsınız.");
+      return;
+    }
+
     // Get all tasks in target column (excluding the dragged task) sorted by order_index
     const colTasks = tasks
       .filter(t => t.status === targetCol && t.id !== active.id)
@@ -854,28 +866,16 @@ export const TasksScreen: React.FC = () => {
           <DragOverlay>
             {draggedTask && (
               <div className="task-card" style={{ opacity: 0.9, boxShadow: 'var(--shadow-lg)', transform: 'rotate(2deg)' }}>
-                {draggedTask.priority === 'critical' ? (
-                  <span 
-                    style={{ 
-                      width: '10px', 
-                      height: '10px', 
-                      borderRadius: '50%', 
-                      backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#ef4444', 
-                      display: 'inline-block',
-                      margin: '6px'
-                    }} 
-                  />
-                ) : draggedTask.priority === 'high' ? (
-                  <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
-                    Önemli
-                  </span>
-                ) : (
-                  <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
-                    Acelesi Yok
-                  </span>
-                )}
+                <span 
+                  style={{ 
+                    width: '10px', 
+                    height: '10px', 
+                    borderRadius: '50%', 
+                    backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : (draggedTask.priority === 'critical' ? '#ef4444' : draggedTask.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
+                    display: 'inline-block',
+                    margin: '6px'
+                  }} 
+                />
                 <div className="card-title" style={{ marginTop: '6px' }}>{draggedTask.title}</div>
               </div>
             )}
@@ -902,30 +902,18 @@ export const TasksScreen: React.FC = () => {
               }}
               onClick={() => setDetailTask(task)}
               >
-                {task.priority === 'critical' ? (
-                  <span 
-                    title="Acil" 
-                    style={{ 
-                      width: '10px', 
-                      height: '10px', 
-                      borderRadius: '50%', 
-                      backgroundColor: task.status === 'completed' ? '#22c55e' : '#ef4444', 
-                      display: 'inline-block',
-                      marginRight: '6px',
-                      flexShrink: 0
-                    }} 
-                  />
-                ) : task.priority === 'high' ? (
-                  <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
-                    Önemli
-                  </span>
-                ) : (
-                  <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
-                    Acelesi Yok
-                  </span>
-                )}
+                <span 
+                  title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'} 
+                  style={{ 
+                    width: '10px', 
+                    height: '10px', 
+                    borderRadius: '50%', 
+                    backgroundColor: task.status === 'completed' ? '#22c55e' : (task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
+                    display: 'inline-block',
+                    marginRight: '6px',
+                    flexShrink: 0
+                  }} 
+                />
                 <span style={{ flex: 1, fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{task.title}</span>
                 {assignee && (
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
