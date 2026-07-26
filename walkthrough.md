@@ -933,6 +933,37 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Report Details & Edit Modal Overlay)
+
+### 1. Added Report Row Click Handler
+- Modified [DailyUpdatesScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/daily_updates/DailyUpdatesScreen.tsx):
+  - Made the entire report row item clickable (`cursor: 'pointer'`).
+  - Added `e.stopPropagation()` to the "Yönetici Yorumu" button to prevent launching the edit modal when checking comments.
+  - Clicking the row sets the selected report item state and opens the Edit/Detail modal.
+
+### 2. Created Detail & Edit Modal
+- Designed a custom modal popup `EditReportModal` / `ReportDetailModal` showing all fields of the report:
+  - **Eşleşen Görev** (Select list loaded with active workspace tasks + "Diğer")
+  - **Not / İş Tanımı** (Text field shown if "Diğer" matches)
+  - **Bugün Neler Yaptım** (Detailed text description)
+  - **Durum Rengi** (Radio group mapping to color states)
+- Configured RLS-compliant workspace roles checking:
+  - If the active user is the creator of the report (`update.user_id === user.id`) or a workspace manager (`owner`, `admin`, `manager`), the inputs are fully interactive.
+  - If a member views someone else's report, a warning banner is shown, and all form controls are set to **`disabled` (read-only mode)**.
+  - Added a **"Sil" (Delete)** button in the footer for authorized users, with a confirmation alert before proceeding.
+
+---
+
+## 🧪 Verification Runs (Report Edit Modal)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
 
 
 

@@ -113,7 +113,7 @@ const CommentModal: React.FC<{
 
 // ─── Main DailyUpdatesScreen ──────────────────────────────────────────────────
 export const DailyUpdatesScreen: React.FC = () => {
-  const { activeWorkspace, user } = useAuth();
+  const { activeWorkspace, user, role } = useAuth();
   const [updates, setUpdates] = useState<DailyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -136,6 +136,14 @@ export const DailyUpdatesScreen: React.FC = () => {
 
   // Comment modal
   const [commentUpdate, setCommentUpdate] = useState<DailyUpdate | null>(null);
+
+  // Edit modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUpdate, setEditingUpdate] = useState<DailyUpdate | null>(null);
+  const [editSelectedTask, setEditSelectedTask] = useState('');
+  const [editCustomTaskNote, setEditCustomTaskNote] = useState('');
+  const [editReportDetail, setEditReportDetail] = useState('');
+  const [editReportStatus, setEditReportStatus] = useState<'completed' | 'started' | 'ongoing'>('ongoing');
 
   const loadTasks = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -240,6 +248,57 @@ export const DailyUpdatesScreen: React.FC = () => {
       await loadUpdates();
     } catch (err) {
       console.error('Submit daily update failed:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUpdate || !editReportDetail.trim()) return;
+
+    setSubmitting(true);
+    try {
+      const matchedTask = editSelectedTask === '__other__' 
+        ? (editCustomTaskNote.trim() || 'Diğer') 
+        : (editSelectedTask || 'Belirtilmemiş');
+
+      const { error } = await supabase
+        .from('daily_updates')
+        .update({
+          completed_today: editReportDetail.trim(),
+          ongoing_work: matchedTask,
+          tomorrow_plan: editReportStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingUpdate.id);
+
+      if (error) throw error;
+      setShowEditModal(false);
+      await loadUpdates();
+    } catch (err) {
+      console.error('Update daily update failed:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteReport = async () => {
+    if (!editingUpdate) return;
+    if (!window.confirm("Bu raporu silmek istediğinize emin misiniz?")) return;
+
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('daily_updates')
+        .delete()
+        .eq('id', editingUpdate.id);
+
+      if (error) throw error;
+      setShowEditModal(false);
+      await loadUpdates();
+    } catch (err) {
+      console.error('Delete daily update failed:', err);
     } finally {
       setSubmitting(false);
     }
@@ -364,18 +423,32 @@ export const DailyUpdatesScreen: React.FC = () => {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
           {updates.map(update => (
-            <div key={update.id} style={{
-              backgroundColor: 'var(--bg-card, #ffffff)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--border-glass)',
-              padding: '16px 20px',
-              boxShadow: 'var(--shadow-sm)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '20px',
-              flexWrap: 'wrap'
-            }}>
+            <div 
+              key={update.id} 
+              onClick={() => {
+                setEditingUpdate(update);
+                const hasTask = tasks.some(t => t.title === update.ongoing_work);
+                setEditSelectedTask(hasTask ? (update.ongoing_work || '') : (update.ongoing_work ? '__other__' : ''));
+                setEditCustomTaskNote(hasTask ? '' : (update.ongoing_work || ''));
+                setEditReportDetail(update.completed_today);
+                setEditReportStatus(update.tomorrow_plan as any || 'ongoing');
+                setShowEditModal(true);
+              }}
+              style={{
+                backgroundColor: 'var(--bg-card, #ffffff)',
+                borderRadius: 'var(--radius-lg)',
+                border: '1px solid var(--border-glass)',
+                padding: '16px 20px',
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '20px',
+                flexWrap: 'wrap',
+                cursor: 'pointer'
+              }}
+              title="Rapor Detayları & Düzenle"
+            >
               {/* Part 1: İsim & Tarih */}
               <div style={{ 
                 display: 'flex', 
@@ -460,7 +533,10 @@ export const DailyUpdatesScreen: React.FC = () => {
 
               {/* Far Right: Yorum Butonu ("Yönetici Yorumu") */}
               <button
-                onClick={() => setCommentUpdate(update)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCommentUpdate(update);
+                }}
                 className="btn btn-secondary"
                 style={{ 
                   padding: '6px 12px', 
@@ -586,6 +662,140 @@ export const DailyUpdatesScreen: React.FC = () => {
       {commentUpdate && (
         <CommentModal update={commentUpdate} onClose={() => setCommentUpdate(null)} />
       )}
+
+      {/* Edit/Detail Report Modal */}
+      {showEditModal && editingUpdate && (() => {
+        const isReadOnly = !!(user && editingUpdate.user_id !== user.id && !['owner', 'admin', 'manager'].includes(role || ''));
+        return (
+          <div className="modal-backdrop" onClick={() => setShowEditModal(false)}>
+            <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Rapor Detayları & Düzenle</span>
+                <button onClick={() => setShowEditModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
+              </div>
+              
+              {isReadOnly && (
+                <div className="alert alert-warning" style={{ fontSize: '0.8rem', marginBottom: '12px' }}>
+                  Bu raporu sadece yazarı veya ekip yöneticileri düzenleyebilir. Raporu şu an salt-okunur görüntülüyorsunuz.
+                </div>
+              )}
+
+              <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div className="form-group">
+                  <label className="form-label">Eşleşen Görev</label>
+                  <select 
+                    value={editSelectedTask} 
+                    onChange={e => {
+                      setEditSelectedTask(e.target.value);
+                      if (e.target.value !== '__other__') {
+                        setEditCustomTaskNote('');
+                      }
+                    }} 
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                    disabled={isReadOnly}
+                  >
+                    <option value="">Görev Seçin...</option>
+                    {tasks.map(t => (
+                      <option key={t.id} value={t.title}>{t.title}</option>
+                    ))}
+                    <option value="__other__">Diğer (Not Ekle)</option>
+                  </select>
+                </div>
+
+                {editSelectedTask === '__other__' && (
+                  <div className="form-group">
+                    <label className="form-label">Not / İş Tanımı *</label>
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="Yaptığınız iş veya konu..." 
+                      value={editCustomTaskNote} 
+                      onChange={e => setEditCustomTaskNote(e.target.value)} 
+                      className="form-input" 
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label className="form-label">Bugün Neler Yaptım (Yapılan İşin Detayı) *</label>
+                  <textarea 
+                    required 
+                    placeholder="Bugün yaptığın işin detaylı açıklaması..." 
+                    value={editReportDetail} 
+                    onChange={e => setEditReportDetail(e.target.value)} 
+                    className="form-input" 
+                    rows={4} 
+                    disabled={isReadOnly}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">İş Durumu / Raporun Rengi</label>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="editReportStatus" 
+                        value="completed" 
+                        checked={editReportStatus === 'completed'} 
+                        onChange={() => setEditReportStatus('completed')} 
+                        disabled={isReadOnly}
+                      />
+                      <span style={{ color: '#22c55e', fontWeight: 700 }}>Bitirildi (Yeşil)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="editReportStatus" 
+                        value="started" 
+                        checked={editReportStatus === 'started'} 
+                        onChange={() => setEditReportStatus('started')} 
+                        disabled={isReadOnly}
+                      />
+                      <span style={{ color: '#3b82f6', fontWeight: 700 }}>Başlandı (Mavi)</span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <input 
+                        type="radio" 
+                        name="editReportStatus" 
+                        value="ongoing" 
+                        checked={editReportStatus === 'ongoing'} 
+                        onChange={() => setEditReportStatus('ongoing')} 
+                        disabled={isReadOnly}
+                      />
+                      <span style={{ color: '#f97316', fontWeight: 700 }}>Sürüyor (Turuncu)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="modal-footer" style={{ marginTop: '10px', justifyContent: 'space-between' }}>
+                  {!isReadOnly ? (
+                    <button 
+                      type="button" 
+                      className="btn btn-danger" 
+                      onClick={handleDeleteReport}
+                      style={{ padding: '8px 16px' }}
+                    >
+                      Sil
+                    </button>
+                  ) : <div />}
+                  
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Kapat</button>
+                    {!isReadOnly && (
+                      <button type="submit" className="btn btn-primary" disabled={submitting}>
+                        {submitting ? <RefreshCw className="animate-spin" size={16} /> : 'Kaydet'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };
