@@ -659,186 +659,179 @@ export const TasksScreen: React.FC = () => {
       
       {/* 3D and minimal styling overrides */}
       <style dangerouslySetInnerHTML={{ __html: `
-        /* GitHub Primer Typography & Design System Overrides */
+        /* Apple Store Typography & Design System Overrides */
         .app-container, .app-container * {
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji" !important;
+          font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
         }
 
-        /* Primer Button Overrides */
+        /* Apple Rounded Pill Buttons */
         .app-container .btn-primary {
-          background-color: #1f883d !important;
+          background: var(--accent-gradient) !important;
           color: #ffffff !important;
-          border: 1px solid rgba(27,31,35,0.15) !important;
-          box-shadow: 0 1px 0 rgba(27,31,35,0.1), inset 0 1px 0 rgba(255,255,255,0.03) !important;
-          border-radius: 6px !important;
+          border: none !important;
+          box-shadow: 0 4px 12px rgba(255, 159, 10, 0.25) !important;
+          border-radius: 20px !important;
           font-weight: 600 !important;
           height: 32px !important;
-          padding: 0 12px !important;
+          padding: 0 16px !important;
           font-size: 0.78rem !important;
           display: inline-flex !important;
           align-items: center !important;
           gap: 6px !important;
-          transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1) !important;
+          transition: var(--transition-smooth) !important;
         }
         .app-container .btn-primary:hover {
-          background-color: #1a7f37 !important;
+          background: var(--accent-hover) !important;
+          transform: translateY(-2px) !important;
+          box-shadow: 0 6px 16px rgba(255, 159, 10, 0.35) !important;
         }
 
         .app-container .btn-secondary {
-          background-color: #f6f8fa !important;
-          color: #24292f !important;
-          border: 1px solid #d0d7de !important;
-          box-shadow: 0 1px 0 rgba(27,31,35,0.04) !important;
-          border-radius: 6px !important;
+          background-color: rgba(0, 0, 0, 0.05) !important;
+          color: var(--text-primary) !important;
+          border: none !important;
+          border-radius: 20px !important;
           font-weight: 600 !important;
           height: 32px !important;
-          padding: 0 12px !important;
+          padding: 0 16px !important;
           font-size: 0.78rem !important;
           display: inline-flex !important;
           align-items: center !important;
           gap: 6px !important;
-          transition: background-color 0.2s, border-color 0.2s !important;
+          transition: var(--transition-smooth) !important;
         }
         .app-container .btn-secondary:hover {
-          background-color: #f3f4f6 !important;
-          border-color: #d0d7de !important;
+          background-color: rgba(0, 0, 0, 0.08) !important;
+          transform: translateY(-2px) !important;
         }
 
         /* Dark Mode Button Overrides */
         [data-theme="dark"] .app-container .btn-primary {
-          background-color: #238636 !important;
-          border-color: rgba(240,246,252,0.1) !important;
-        }
-        [data-theme="dark"] .app-container .btn-primary:hover {
-          background-color: #2ea44f !important;
+          box-shadow: 0 4px 12px rgba(255, 159, 10, 0.3) !important;
         }
 
         [data-theme="dark"] .app-container .btn-secondary {
-          background-color: #21262d !important;
-          color: #c9d1d9 !important;
-          border-color: #30363d !important;
-          box-shadow: none !important;
+          background-color: rgba(255, 255, 255, 0.08) !important;
+          color: var(--text-primary) !important;
         }
         [data-theme="dark"] .app-container .btn-secondary:hover {
-          background-color: #30363d !important;
-          border-color: #8b949e !important;
+          background-color: rgba(255, 255, 255, 0.12) !important;
         }
 
-        /* Primer Form Inputs */
+        /* Apple Form Inputs */
         .app-container .form-input {
-          border-radius: 6px !important;
-          border: 1px solid #d0d7de !important;
-          background-color: #ffffff !important;
-          color: #24292f !important;
-          padding: 5px 12px !important;
+          border-radius: 10px !important;
+          border: 1px solid rgba(0, 0, 0, 0.08) !important;
+          background-color: rgba(0, 0, 0, 0.02) !important;
+          color: var(--text-primary) !important;
+          padding: 6px 12px !important;
           font-size: 0.8rem !important;
-          transition: border-color 0.2s, box-shadow 0.2s !important;
+          transition: var(--transition-smooth) !important;
         }
         .app-container .form-input:focus {
-          border-color: #0969da !important;
-          box-shadow: 0 0 0 3px rgba(9,105,218,0.3) !important;
+          border-color: var(--accent-color) !important;
+          background-color: #ffffff !important;
+          box-shadow: 0 0 0 3px rgba(255, 159, 10, 0.25) !important;
           outline: none !important;
         }
         [data-theme="dark"] .app-container .form-input {
-          border-color: #30363d !important;
-          background-color: #0d1117 !important;
-          color: #c9d1d9 !important;
+          border-color: rgba(255, 255, 255, 0.08) !important;
+          background-color: rgba(255, 255, 255, 0.03) !important;
         }
         [data-theme="dark"] .app-container .form-input:focus {
-          border-color: #388bfd !important;
-          box-shadow: 0 0 0 3px rgba(56,139,253,0.4) !important;
+          background-color: #121a28 !important;
         }
 
-        /* 3D Cell Card Status Themes */
+        /* Apple Store Style Cards (Flat, clean, rounded) */
         .status-card-suggested {
-          border: 1px solid #0969da !important;
-          border-bottom: 5px solid #04499e !important;
-          background-color: #ddf4ff !important;
-          --badge-color: #0969da;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #ffffff !important;
+          --badge-color: #ff9f0a;
         }
         [data-theme="dark"] .status-card-suggested {
-          border: 1px solid #388bfd !important;
-          border-bottom: 5px solid #1f6feb !important;
-          background-color: rgba(56,139,253,0.1) !important;
-          --badge-color: #58a6ff;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #121a28 !important;
+          --badge-color: #ff9f0a;
         }
 
         .status-card-selected {
-          border: 1px solid #0969da !important;
-          border-bottom: 5px solid #04499e !important;
-          background-color: #ddf4ff !important;
-          --badge-color: #0969da;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #ffffff !important;
+          --badge-color: #ff9f0a;
         }
         [data-theme="dark"] .status-card-selected {
-          border: 1px solid #388bfd !important;
-          border-bottom: 5px solid #1f6feb !important;
-          background-color: rgba(56,139,253,0.1) !important;
-          --badge-color: #58a6ff;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #121a28 !important;
+          --badge-color: #ff9f0a;
         }
 
         .status-card-planned {
-          border: 1px solid #8250df !important;
-          border-bottom: 5px solid #6f3ccc !important;
-          background-color: #fbefff !important;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #8250df !important;
+          background-color: #ffffff !important;
           --badge-color: #8250df;
         }
         [data-theme="dark"] .status-card-planned {
-          border: 1px solid #bc8cff !important;
-          border-bottom: 5px solid #8957e5 !important;
-          background-color: rgba(188,140,255,0.1) !important;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #bc8cff !important;
+          background-color: #121a28 !important;
           --badge-color: #bc8cff;
         }
 
         .status-card-doing {
-          border: 1px solid #d4a72c !important;
-          border-bottom: 5px solid #9a6700 !important;
-          background-color: #fff8c5 !important;
-          --badge-color: #9a6700;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #ffffff !important;
+          --badge-color: #ff9f0a;
         }
         [data-theme="dark"] .status-card-doing {
-          border: 1px solid #d29922 !important;
-          border-bottom: 5px solid #9e6a03 !important;
-          background-color: rgba(210,153,34,0.1) !important;
-          --badge-color: #d29922;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #ff9f0a !important;
+          background-color: #121a28 !important;
+          --badge-color: #ff9f0a;
         }
 
         .status-card-waiting {
-          border: 1px solid #bc4c00 !important;
-          border-bottom: 5px solid #8a3500 !important;
-          background-color: #fff0e6 !important;
-          --badge-color: #bc4c00;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #ff6b00 !important;
+          background-color: #ffffff !important;
+          --badge-color: #ff6b00;
         }
         [data-theme="dark"] .status-card-waiting {
-          border: 1px solid #db6d28 !important;
-          border-bottom: 5px solid #a34e15 !important;
-          background-color: rgba(219,109,40,0.1) !important;
-          --badge-color: #db6d28;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #ff6b00 !important;
+          background-color: #121a28 !important;
+          --badge-color: #ff6b00;
         }
 
         .status-card-done {
-          border: 1px solid #1a7f37 !important;
-          border-bottom: 5px solid #115e29 !important;
-          background-color: #dafbe1 !important;
-          --badge-color: #1a7f37;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #10b981 !important;
+          background-color: #ffffff !important;
+          --badge-color: #10b981;
         }
         [data-theme="dark"] .status-card-done {
-          border: 1px solid #3fb950 !important;
-          border-bottom: 5px solid #238636 !important;
-          background-color: rgba(46,160,67,0.1) !important;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #3fb950 !important;
+          background-color: #121a28 !important;
           --badge-color: #3fb950;
         }
 
         .status-card-not_needed {
-          border: 1px solid #d0d7de !important;
-          border-bottom: 5px solid #8c959f !important;
-          background-color: #f6f8fa !important;
-          --badge-color: #57606a;
+          border: 1px solid rgba(0, 0, 0, 0.03) !important;
+          border-bottom: 5px solid #94a3b8 !important;
+          background-color: rgba(0, 0, 0, 0.02) !important;
+          --badge-color: #86868b;
         }
         [data-theme="dark"] .status-card-not_needed {
-          border: 1px solid #30363d !important;
-          border-bottom: 5px solid #484f58 !important;
-          background-color: #161b22 !important;
-          --badge-color: #8b949e;
+          border: 1px solid rgba(255, 255, 255, 0.04) !important;
+          border-bottom: 5px solid #6e6e73 !important;
+          background-color: rgba(255, 255, 255, 0.02) !important;
+          --badge-color: #6e6e73;
         }
 
         .matrix-wrapper {
@@ -916,18 +909,20 @@ export const TasksScreen: React.FC = () => {
           user-select: none;
         }
         
-        /* Premium 3D block effects */
+        /* Premium Apple Store Style Cards */
         .matrix-cell-3d {
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          transform: translateY(-2px);
+          transition: var(--transition-smooth);
+          transform: translateY(0);
           will-change: transform, box-shadow;
-          border-radius: 12px;
-          margin: 6px;
-          height: calc(100% - 12px) !important;
-          width: calc(100% - 12px) !important;
+          border-radius: 18px;
+          margin: 8px;
+          height: calc(100% - 16px) !important;
+          width: calc(100% - 16px) !important;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02) !important;
         }
         .matrix-cell-3d:hover {
-          transform: translateY(-6px) !important;
+          transform: translateY(-8px) scale(1.02) !important;
+          box-shadow: 0 20px 35px rgba(0, 0, 0, 0.1) !important;
         }
         
         .fullscreen-mode {
