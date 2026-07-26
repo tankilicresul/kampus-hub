@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
-  Plus, RefreshCw, AlertTriangle, Calendar, User, Download,
-  MessageSquare, X, BarChart3, Clock, TrendingUp, Filter
+  Plus, RefreshCw, Calendar, User, Download,
+  MessageSquare, X, BarChart3, Filter
 } from 'lucide-react';
 
 interface DailyUpdate {
@@ -113,7 +113,7 @@ const CommentModal: React.FC<{
 
 // ─── Main DailyUpdatesScreen ──────────────────────────────────────────────────
 export const DailyUpdatesScreen: React.FC = () => {
-  const { activeWorkspace, user, role } = useAuth();
+  const { activeWorkspace, user } = useAuth();
   const [updates, setUpdates] = useState<DailyUpdate[]>([]);
   const [loading, setLoading] = useState(false);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -127,23 +127,28 @@ export const DailyUpdatesScreen: React.FC = () => {
 
   // Submit modal
   const [showAddModal, setShowAddModal] = useState(false);
-  const [completedToday, setCompletedToday] = useState('');
-  const [ongoingWork, setOngoingWork] = useState('');
-  const [tomorrowPlan, setTomorrowPlan] = useState('');
-  const [blockers, setBlockers] = useState('');
-  const [isLateWarning, setIsLateWarning] = useState(false);
+  const [selectedTask, setSelectedTask] = useState('');
+  const [customTaskNote, setCustomTaskNote] = useState('');
+  const [reportDetail, setReportDetail] = useState('');
+  const [reportStatus, setReportStatus] = useState<'completed' | 'started' | 'ongoing'>('ongoing');
   const [submitting, setSubmitting] = useState(false);
+  const [tasks, setTasks] = useState<any[]>([]);
 
   // Comment modal
   const [commentUpdate, setCommentUpdate] = useState<DailyUpdate | null>(null);
 
-  const checkLateSubmission = () => {
-    setIsLateWarning(new Date().getHours() >= 20);
-  };
-
-  useEffect(() => {
-    checkLateSubmission();
-  }, [showAddModal]);
+  const loadTasks = useCallback(async () => {
+    if (!activeWorkspace?.id) return;
+    try {
+      const { data } = await supabase
+        .from('tasks')
+        .select('id, title')
+        .eq('workspace_id', activeWorkspace.id);
+      setTasks(data || []);
+    } catch (err) {
+      console.error('Fetch tasks failed:', err);
+    }
+  }, [activeWorkspace?.id]);
 
   const loadMembers = useCallback(async () => {
     if (!activeWorkspace?.id) return;
@@ -193,7 +198,8 @@ export const DailyUpdatesScreen: React.FC = () => {
   useEffect(() => {
     loadUpdates();
     loadMembers();
-  }, [loadUpdates, loadMembers]);
+    loadTasks();
+  }, [loadUpdates, loadMembers, loadTasks]);
 
   useEffect(() => {
     const handleTriggerAdd = () => {
@@ -207,23 +213,30 @@ export const DailyUpdatesScreen: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeWorkspace || !user || !completedToday.trim() || !tomorrowPlan.trim()) return;
-    const isLate = new Date().getHours() >= 20;
+    if (!activeWorkspace || !user || !reportDetail.trim()) return;
+    
     setSubmitting(true);
     try {
+      const matchedTask = selectedTask === '__other__' 
+        ? (customTaskNote.trim() || 'Diğer') 
+        : (selectedTask || 'Belirtilmemiş');
+
       const { error } = await supabase.from('daily_updates').insert({
         workspace_id: activeWorkspace.id,
         user_id: user.id,
-        completed_today: completedToday.trim(),
-        ongoing_work: ongoingWork.trim() || 'Devam ediyor',
-        tomorrow_plan: tomorrowPlan.trim(),
-        blockers: blockers.trim() || null,
-        is_late: isLate,
+        completed_today: reportDetail.trim(),
+        ongoing_work: matchedTask,
+        tomorrow_plan: reportStatus,
+        blockers: null,
+        is_late: false,
         status: 'published',
       });
       if (error) throw error;
       setShowAddModal(false);
-      setCompletedToday(''); setOngoingWork(''); setTomorrowPlan(''); setBlockers('');
+      setSelectedTask('');
+      setCustomTaskNote('');
+      setReportDetail('');
+      setReportStatus('ongoing');
       await loadUpdates();
     } catch (err) {
       console.error('Submit daily update failed:', err);
@@ -235,34 +248,33 @@ export const DailyUpdatesScreen: React.FC = () => {
   // CSV Export
   const handleExport = () => {
     if (updates.length === 0) return;
-    const headers = ['Tarih', 'Kişi', 'Bugün Yapılanlar', 'Devam Eden', 'Yarın', 'Engeller', 'Geç Mi?'];
-    const rows = updates.map(u => [
-      new Date(u.created_at).toLocaleDateString('tr-TR'),
-      u.profile?.full_name || u.user_id,
-      u.completed_today.replace(/\n/g, ' '),
-      u.ongoing_work || '',
-      u.tomorrow_plan.replace(/\n/g, ' '),
-      u.blockers || '',
-      u.is_late ? 'Evet' : 'Hayır',
-    ]);
+    const headers = ['Tarih', 'Kişi', 'Eşleşen Görev', 'Yaptığı İş', 'Durum'];
+    const rows = updates.map(u => {
+      let statusText = 'Sürüyor';
+      if (u.tomorrow_plan === 'completed') statusText = 'Bitirildi';
+      else if (u.tomorrow_plan === 'started') statusText = 'Başlandı';
+      return [
+        new Date(u.created_at).toLocaleDateString('tr-TR'),
+        u.profile?.full_name || u.user_id,
+        u.ongoing_work || '',
+        u.completed_today.replace(/\n/g, ' '),
+        statusText,
+      ];
+    });
     const csv = [headers, ...rows].map(r => r.map(cell => `"${cell}"`).join(',')).join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `raporlar_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `bugun_neler_yaptim_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   // Stats
   const totalCount = updates.length;
-  const lateCount = updates.filter(u => u.is_late).length;
-  const lateRate = totalCount > 0 ? Math.round((lateCount / totalCount) * 100) : 0;
   const uniqueSubmitters = new Set(updates.map(u => u.user_id)).size;
   const memberCount = members.length;
-
-  const isManager = ['owner', 'admin', 'manager'].includes(role || '');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
@@ -270,8 +282,8 @@ export const DailyUpdatesScreen: React.FC = () => {
       {/* Header */}
       <div style={{ backgroundColor: 'var(--bg-surface)', padding: '16px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
         <div>
-          <h2 style={{ fontWeight: 800, fontSize: '1.1rem' }}>Günlük Raporlar</h2>
-          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Ekibin günlük çalışma özetleri</p>
+          <h2 style={{ fontWeight: 800, fontSize: '1.1rem' }}>Bugün Neler Yaptım</h2>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Ekibin günlük çalışma özetleri ve durumları</p>
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={() => setShowFilters(f => !f)} style={{ padding: '7px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -281,26 +293,27 @@ export const DailyUpdatesScreen: React.FC = () => {
             <Download size={14} /> CSV
           </button>
           <button className="btn btn-primary hide-on-mobile" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} /><span className="btn-text">Rapor Ekle</span>
+            <Plus size={18} /><span className="btn-text">Ekle</span>
           </button>
         </div>
       </div>
 
       {/* Performance Dashboard */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '10px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
         {[
-          { label: 'Toplam Rapor', value: totalCount, icon: <BarChart3 size={18} />, color: '#6366f1' },
-          { label: 'Bu Dönem Üye', value: `${uniqueSubmitters}/${memberCount}`, icon: <User size={18} />, color: '#10b981' },
-          { label: 'Geç Rapor', value: lateCount, icon: <Clock size={18} />, color: '#ef4444' },
-          { label: 'Zamanında %', value: `%${100 - lateRate}`, icon: <TrendingUp size={18} />, color: '#f59e0b' },
+          { label: 'Toplam Rapor', value: totalCount, icon: <BarChart3 size={20} />, color: '#6366f1' },
+          { label: 'Aktif Üyeler', value: `${uniqueSubmitters}/${memberCount}`, icon: <User size={20} />, color: '#10b981' },
         ].map(stat => (
           <div key={stat.label} style={{
-            backgroundColor: 'var(--bg-surface)', padding: '14px 16px',
+            backgroundColor: 'var(--bg-surface)', padding: '16px 20px',
             borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)',
+            display: 'flex', alignItems: 'center', gap: '16px'
           }}>
-            <div style={{ color: stat.color, marginBottom: '6px' }}>{stat.icon}</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{stat.value}</div>
-            <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{stat.label}</div>
+            <div style={{ color: stat.color, padding: '10px', backgroundColor: `${stat.color}15`, borderRadius: '50%' }}>{stat.icon}</div>
+            <div>
+              <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{stat.value}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 600, marginTop: '4px' }}>{stat.label}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -345,76 +358,122 @@ export const DailyUpdatesScreen: React.FC = () => {
       ) : updates.length === 0 ? (
         <div style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '12px', color: 'var(--text-muted)' }}>
           <Calendar size={48} style={{ opacity: 0.3 }} />
-          <h3 style={{ fontWeight: 700 }}>Rapor Yok</h3>
-          <p style={{ fontSize: '0.85rem' }}>İlk günlük raporunu ekle!</p>
+          <h3 style={{ fontWeight: 700 }}>Kayıt Yok</h3>
+          <p style={{ fontSize: '0.85rem' }}>İlk kaydını ekle!</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
           {updates.map(update => (
             <div key={update.id} style={{
-              backgroundColor: 'var(--bg-surface)',
+              backgroundColor: 'var(--bg-card, #ffffff)',
               borderRadius: 'var(--radius-lg)',
               border: '1px solid var(--border-glass)',
-              padding: '18px 20px',
+              padding: '16px 20px',
               boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '20px',
+              flexWrap: 'wrap'
             }}>
-              {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <div style={{
-                    width: '30px', height: '30px', borderRadius: '50%',
-                    backgroundColor: 'var(--accent-color)', color: 'white',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.72rem', fontWeight: 700,
-                  }}>
-                    {(update.profile?.full_name || '?').slice(0, 2).toUpperCase()}
-                  </div>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{update.profile?.full_name || 'Ekip Üyesi'}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {new Date(update.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
-                  </span>
+              {/* Part 1: İsim & Tarih */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '10px', 
+                flex: '0 0 auto', 
+                minWidth: '160px',
+                justifyContent: 'flex-start'
+              }}>
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '50%',
+                  backgroundColor: 'var(--accent-color)', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.75rem', fontWeight: 800, flexShrink: 0
+                }}>
+                  {(update.profile?.full_name || '?').slice(0, 2).toUpperCase()}
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {update.is_late && (
-                    <span className="badge badge-danger" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
-                      <AlertTriangle size={10} /> Geç Rapor
-                    </span>
-                  )}
-                  {isManager && (
-                    <button
-                      onClick={() => setCommentUpdate(update)}
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      <MessageSquare size={13} /> Yorum
-                    </button>
-                  )}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                    {update.profile?.full_name || 'Ekip Üyesi'}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                    {new Date(update.created_at).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </span>
                 </div>
               </div>
 
-              {/* Content */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div>
-                  <h4 style={{ fontSize: '0.78rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>✅ Bugün Yapılanlar</h4>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.completed_today}</p>
-                </div>
-                {update.ongoing_work && (
-                  <div>
-                    <h4 style={{ fontSize: '0.78rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>🔄 Devam Eden</h4>
-                    <p style={{ fontSize: '0.88rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.ongoing_work}</p>
-                  </div>
-                )}
-                <div>
-                  <h4 style={{ fontSize: '0.78rem', color: 'var(--accent-color)', fontWeight: 700, marginBottom: '4px' }}>📋 Yarın</h4>
-                  <p style={{ fontSize: '0.88rem', color: 'var(--text-primary)', whiteSpace: 'pre-wrap' }}>{update.tomorrow_plan}</p>
-                </div>
-                {update.blockers && (
-                  <div style={{ backgroundColor: 'rgba(239,68,68,0.06)', padding: '10px 14px', borderRadius: '10px', borderLeft: '3px solid #ef4444' }}>
-                    <h4 style={{ fontSize: '0.75rem', color: '#ef4444', fontWeight: 700, marginBottom: '2px' }}>🚧 Engeller</h4>
-                    <p style={{ fontSize: '0.85rem' }}>{update.blockers}</p>
-                  </div>
-                )}
+              {/* Part 2: Eşleşen Görev */}
+              <div style={{ 
+                flex: '1 1 180px', 
+                fontSize: '0.85rem', 
+                color: 'var(--text-primary)',
+                fontWeight: 500
+              }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 700 }}>EŞLEŞEN GÖREV</span>
+                {update.ongoing_work || 'Diğer / Belirtilmemiş'}
               </div>
+
+              {/* Part 3: Yaptığı Şey (En Uzun Kısım) */}
+              <div style={{ 
+                flex: '2 1 280px', 
+                fontSize: '0.85rem', 
+                color: 'var(--text-primary)', 
+                whiteSpace: 'pre-wrap',
+                lineHeight: '1.4'
+              }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '2px', fontWeight: 700 }}>BUGÜN NELER YAPTI</span>
+                {update.completed_today}
+              </div>
+
+              {/* Part 4: Raporun Rengi (Durum) */}
+              {(() => {
+                const statusVal = update.tomorrow_plan;
+                let color = '#f97316';
+                let text = 'Sürüyor';
+                if (statusVal === 'completed') {
+                  color = '#22c55e';
+                  text = 'Bitirildi';
+                } else if (statusVal === 'started') {
+                  color = '#3b82f6';
+                  text = 'Başlandı';
+                }
+                return (
+                  <div style={{ 
+                    flex: '0 0 auto', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px',
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    backgroundColor: `${color}15`,
+                    border: `1px solid ${color}35`,
+                    color: color,
+                    fontSize: '0.75rem',
+                    fontWeight: 700
+                  }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: color, display: 'inline-block' }} />
+                    {text}
+                  </div>
+                );
+              })()}
+
+              {/* Far Right: Yorum Butonu ("Yönetici Yorumu") */}
+              <button
+                onClick={() => setCommentUpdate(update)}
+                className="btn btn-secondary"
+                style={{ 
+                  padding: '6px 12px', 
+                  fontSize: '0.75rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '4px',
+                  flexShrink: 0
+                }}
+              >
+                <MessageSquare size={13} />
+                <span>Yönetici Yorumu</span>
+              </button>
             </div>
           ))}
         </div>
@@ -422,36 +481,97 @@ export const DailyUpdatesScreen: React.FC = () => {
 
       {/* Add Report Modal */}
       {showAddModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }}>
+        <div className="modal-backdrop" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Günlük Rapor</span>
+              <span>Bugün Neler Yaptım</span>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
             </div>
-            {isLateWarning && (
-              <div className="alert alert-danger" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <AlertTriangle size={16} />
-                <span>⚠️ Geç Rapor: Raporlar saat 20:00'ye kadar iletilmelidir.</span>
-              </div>
-            )}
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div className="form-group">
-                <label className="form-label">✅ Bugün Yapılanlar *</label>
-                <textarea required placeholder="Bugün yaptığın işler..." value={completedToday} onChange={e => setCompletedToday(e.target.value)} className="form-input" rows={3} />
+                <label className="form-label">Eşleşen Görev</label>
+                <select 
+                  value={selectedTask} 
+                  onChange={e => {
+                    setSelectedTask(e.target.value);
+                    if (e.target.value !== '__other__') {
+                      setCustomTaskNote('');
+                    }
+                  }} 
+                  className="form-input"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="">Görev Seçin...</option>
+                  {tasks.map(t => (
+                    <option key={t.id} value={t.title}>{t.title}</option>
+                  ))}
+                  <option value="__other__">Diğer (Not Ekle)</option>
+                </select>
               </div>
+
+              {selectedTask === '__other__' && (
+                <div className="form-group">
+                  <label className="form-label">Not / İş Tanımı *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    placeholder="Yaptığınız iş veya konu..." 
+                    value={customTaskNote} 
+                    onChange={e => setCustomTaskNote(e.target.value)} 
+                    className="form-input" 
+                  />
+                </div>
+              )}
+
               <div className="form-group">
-                <label className="form-label">🔄 Devam Eden İşler</label>
-                <input type="text" placeholder="Devam eden işler..." value={ongoingWork} onChange={e => setOngoingWork(e.target.value)} className="form-input" />
+                <label className="form-label">Bugün Neler Yaptım (Yapılan İşin Detayı) *</label>
+                <textarea 
+                  required 
+                  placeholder="Bugün yaptığın işin detaylı açıklaması..." 
+                  value={reportDetail} 
+                  onChange={e => setReportDetail(e.target.value)} 
+                  className="form-input" 
+                  rows={4} 
+                />
               </div>
+
               <div className="form-group">
-                <label className="form-label">📋 Yarın Yapılacaklar *</label>
-                <textarea required placeholder="Yarın yapılacak işler..." value={tomorrowPlan} onChange={e => setTomorrowPlan(e.target.value)} className="form-input" rows={3} />
+                <label className="form-label">İş Durumu / Raporun Rengi</label>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '6px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportStatus" 
+                      value="completed" 
+                      checked={reportStatus === 'completed'} 
+                      onChange={() => setReportStatus('completed')} 
+                    />
+                    <span style={{ color: '#22c55e', fontWeight: 700 }}>Bitirildi (Yeşil)</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportStatus" 
+                      value="started" 
+                      checked={reportStatus === 'started'} 
+                      onChange={() => setReportStatus('started')} 
+                    />
+                    <span style={{ color: '#3b82f6', fontWeight: 700 }}>Başlandı (Mavi)</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportStatus" 
+                      value="ongoing" 
+                      checked={reportStatus === 'ongoing'} 
+                      onChange={() => setReportStatus('ongoing')} 
+                    />
+                    <span style={{ color: '#f97316', fontWeight: 700 }}>Sürüyor (Turuncu)</span>
+                  </label>
+                </div>
               </div>
-              <div className="form-group">
-                <label className="form-label">🚧 Engeller (Varsa)</label>
-                <input type="text" placeholder="Varsa engeller..." value={blockers} onChange={e => setBlockers(e.target.value)} className="form-input" />
-              </div>
-              <div className="modal-footer">
+
+              <div className="modal-footer" style={{ marginTop: '10px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
                   {submitting ? <RefreshCw className="animate-spin" size={16} /> : 'Gönder'}

@@ -474,7 +474,7 @@ export const AppLayout: React.FC = () => {
             onClick={() => handleTabChange('updates')}
           >
             <Calendar size={16} />
-            <span>Raporlar</span>
+            <span>Bugün Neler Yaptım</span>
           </div>
           {role && ['owner', 'admin', 'manager'].includes(role) && (
             <div 
@@ -616,7 +616,7 @@ export const AppLayout: React.FC = () => {
               window.dispatchEvent(new CustomEvent('trigger-add-report'));
             }
           }}
-          title={activeTab === 'tasks' ? 'Yeni Görev Ekle' : 'Yeni Rapor Yaz'}
+          title={activeTab === 'tasks' ? 'Yeni Görev Ekle' : 'Bugün Neler Yaptım Ekle'}
         >
           <Plus size={24} />
         </button>
@@ -636,7 +636,7 @@ export const AppLayout: React.FC = () => {
           onClick={() => handleTabChange('updates')}
         >
           <Calendar size={20} />
-          <span>Raporlar</span>
+          <span>Bugün Neler Yaptım</span>
         </button>
         {role && ['owner', 'admin', 'manager'].includes(role) && (
           <button 

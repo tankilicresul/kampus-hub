@@ -893,6 +893,47 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Refactored Raporlar to "Bugün Neler Yaptım" Screen)
+
+### 1. Updated Tab Titles and Page Headings
+- Modified [app_layout.tsx](file:///c:/Projects/tancorelab/apps/web/src/app_layout.tsx) and [DailyUpdatesScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/daily_updates/DailyUpdatesScreen.tsx):
+  - Renamed all UI instances of "Raporlar" to **"Bugün Neler Yaptım"**.
+  - Renamed the header title to **"Bugün Neler Yaptım"**.
+  - Simplified the stats dashboard: removed the "Geç Rapor" and "Zamanında %" panels, displaying only **Toplam Rapor** and **Aktif Üyeler** cards.
+
+### 2. Implemented 4-Part Horizontal Panel Layout
+- Replaced the multi-line card layout in [DailyUpdatesScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/daily_updates/DailyUpdatesScreen.tsx) with a beautiful, responsive 4-column flex grid:
+  1. **İsim & Tarih (Column 1):** Centered vertically, dynamically matches user name length (`flex: 0 0 auto`, `minWidth: 160px`).
+  2. **Eşleşen Görev (Column 2):** Shows the selected task title or custom note.
+  3. **Bugün Neler Yaptı (Column 3):** Displays the detail text area content (longest part, `flex: 2 1 280px`).
+  4. **Durum Rengi (Column 4):** A color pill representing the status:
+     - **Green (`#22c55e`):** Bitirildi (`completed`)
+     - **Blue (`#3b82f6`):** Başlandı (`started`)
+     - **Orange (`#f97316`):** Sürüyor (`ongoing`)
+  - Added a far-right comment button labeled **"Yönetici Yorumu"** visible to all team members.
+
+### 3. Customized Add Report Form with Task Dropdown Selection
+- Integrated a tasks fetcher (`loadTasks()`) to pull all active workspace tasks from the database.
+- Redesigned the "Rapor Ekle" dialog fields:
+  - **Eşleşen Görev:** A select dropdown listing all active workspace tasks, with a `"Diğer (Not Ekle)"` option.
+  - **Not / İş Tanımı:** A text input field shown only if `"Diğer"` is selected.
+  - **Bugün Neler Yaptım (Yapılan İşin Detayı):** A text area for the report description.
+  - **Durum:** A custom radio selector mapping to status colors (Bitirildi, Başlandı, Sürüyor).
+- Removed late submission warnings, late reports count, and `is_late` calculations entirely.
+
+---
+
+## 🧪 Verification Runs (Bugün Neler Yaptım Refactor)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
