@@ -8,7 +8,8 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -63,8 +64,15 @@ const SortableTaskCard: React.FC<{
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
 
   return (
-    <div ref={setNodeRef} style={style} className="task-card" {...attributes}>
-      {/* Drag handle + header row */}
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="task-card" 
+      {...attributes} 
+      {...listeners} 
+      onClick={() => onDetailClick(task)}
+    >
+      {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         {task.priority === 'critical' ? (
           <span 
@@ -89,29 +97,15 @@ const SortableTaskCard: React.FC<{
             Acelesi Yok
           </span>
         )}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {task.recurrence && task.recurrence !== 'none' && (
-            <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex' }}>
-              <Repeat size={12} style={{ color: 'var(--text-muted)' }} />
-            </span>
-          )}
-          {/* Drag grip */}
-          <span
-            {...listeners}
-            style={{ cursor: 'grab', color: 'var(--text-muted)', padding: '2px', lineHeight: 1 }}
-            title="Sürükle"
-          >
-            ⠿
+        {task.recurrence && task.recurrence !== 'none' && (
+          <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex' }}>
+            <Repeat size={12} style={{ color: 'var(--text-muted)' }} />
           </span>
-        </div>
+        )}
       </div>
 
-      {/* Title (clickable for detail) */}
-      <div
-        className="card-title"
-        style={{ cursor: 'pointer', marginTop: '6px' }}
-        onClick={() => onDetailClick(task)}
-      >
+      {/* Title */}
+      <div className="card-title" style={{ marginTop: '6px' }}>
         {task.title}
       </div>
 
@@ -122,13 +116,13 @@ const SortableTaskCard: React.FC<{
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
           {task.tags.map(tag => (
             <span key={tag} style={{
-              padding: '2px 8px',
-              borderRadius: '20px',
-              fontSize: '0.68rem',
-              fontWeight: 600,
-              backgroundColor: 'var(--bg-surface-accent)',
-              color: 'var(--text-secondary)',
-              border: '1px solid var(--border-glass)',
+               padding: '2px 8px',
+               borderRadius: '20px',
+               fontSize: '0.68rem',
+               fontWeight: 600,
+               backgroundColor: 'var(--bg-surface-accent)',
+               color: 'var(--text-secondary)',
+               border: '1px solid var(--border-glass)',
             }}>
               #{tag}
             </span>
@@ -165,32 +159,6 @@ const SortableTaskCard: React.FC<{
             {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
           </div>
         )}
-      </div>
-
-      {/* Detail Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-        <button
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--text-muted)',
-            padding: '4px 8px',
-            fontSize: '0.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            fontWeight: 600,
-            borderRadius: 'var(--radius-sm)',
-            transition: 'var(--transition-smooth)'
-          }}
-          onClick={() => onDetailClick(task)}
-          onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-color)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
-        >
-          <MessageSquare size={12} />
-          <span>Detay</span>
-        </button>
       </div>
     </div>
   );
@@ -433,7 +401,19 @@ export const TasksScreen: React.FC = () => {
 
   // Drag
   const [activeId, setActiveId] = useState<string | null>(null);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
 
   const loadTasks = useCallback(async () => {
     if (!activeWorkspace?.id) return;

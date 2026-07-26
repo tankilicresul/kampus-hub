@@ -498,3 +498,37 @@ npm run lint
 ### Step 1: Git and Build Cleanliness
 - Committed and pushed all regenerated logo assets and SVGs to GitHub (`origin main`), triggering automated deployment cycles.
 
+---
+
+## 🛠️ Changes Implemented (Task Interaction Redesign)
+
+### 1. Clickable Task Cards with Clean Detail Modals
+- Removed the redundant "Detay" button at the bottom of the task cards in [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx).
+- Made the entire task card container clickable to launch the details panel directly (`onClick={() => onDetailClick(task)}`).
+
+### 2. Draggable Task Cards via Long-Press activation constraints
+- Removed the old `⠿` drag handle from task cards.
+- Wrapped the entire card as a draggable element using dnd-kit's `useSortable` bindings (`{...attributes} {...listeners}`).
+- Configured custom multi-sensor rules:
+  - **MouseSensor:** Instantly activates drag after a tiny movement threshold (`distance: 5`).
+  - **TouchSensor:** Activates drag exclusively on long press (`delay: 250`), preventing conflicts with normal touch scrolling.
+
+---
+
+## 🧪 Verification Runs (Task Interaction)
+
+### Step 1: Web Build Verification
+```bash
+Set-Location "C:\Projects\kampus-hub\apps\web"
+npm run build
+```
+*Result*: **PASS** (Successful production compilation with Vite and TypeScript compiler).
+
+### Step 2: Web Linter Analysis
+```bash
+Set-Location "C:\Projects\kampus-hub\apps\web"
+npm run lint
+```
+*Result*: **PASS** (Zero lint errors detected on the modified task screen module).
+
+
