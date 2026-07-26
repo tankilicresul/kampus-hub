@@ -771,6 +771,27 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Notification Dropdown Opaque Background Fix)
+
+### 1. Defined Opaque `--bg-card` CSS Variable
+- Added the missing `--bg-card` CSS custom property inside [index.css](file:///c:/Projects/tancorelab/apps/web/src/index.css):
+  - `:root` (Light mode): `--bg-card: #ffffff`
+  - `[data-theme="dark"]` (Dark mode): `--bg-card: #151e2e`
+- This ensures [NotificationBell.tsx](file:///c:/Projects/tancorelab/apps/web/src/components/NotificationBell.tsx)'s dropdown panel background (which uses `var(--bg-card)`) evaluates to a solid opaque color instead of undefined transparent, preventing dashboard elements from leaking through and improving text readability.
+
+---
+
+## 🧪 Verification Runs (Notification Opaque Background)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
 
 
 
