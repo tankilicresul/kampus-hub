@@ -726,6 +726,53 @@ npm run lint
 ### Step 2: Web Linter Analysis
 - Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
 
+---
+
+## 🛠️ Changes Implemented (Completed Task Green Color Coding)
+
+### 1. Priority Indicator and Due Date Date Text Color turned Green for Completed Tasks
+- Modified [TasksScreen.tsx](file:///c:/Projects/tancorelab/apps/web/src/features/tasks/TasksScreen.tsx) card and list components:
+  - Inside `SortableTaskCard`, `DragOverlay`, and `List view`, updated priority status color dots to render green (`#22c55e`) when the task status is `completed` (Bitti), override-coloring any priority rating.
+  - Set due date badge and timestamp texts to green (`#22c55e`) when the task status is `completed`.
+
+---
+
+## 🧪 Verification Runs (Completed Task Green Color)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+---
+
+## 🛠️ Changes Implemented (Light Mode Contrast & Desktop Sidebar Members Layout)
+
+### 1. Fixed Member Names Visibility on Desktop Sidebar
+- Modified [app_layout.tsx](file:///c:/Projects/tancorelab/apps/web/src/app_layout.tsx) members container:
+  - Swapped generic text variables with dedicated sidebar variables like `var(--text-sidebar-active)` and `var(--text-sidebar)` to force white/light names on the dark sidebar across both light and dark themes.
+  - Replaced body border tokens with `var(--border-sidebar-glass)` to make borders visible in the dark background.
+  - Added a thin white separator line `borderBottom: 1px solid rgba(255, 255, 255, 0.06)` between members for clean layout hierarchy.
+
+### 2. Premium Charcoal/Slate Text Colors in Light Mode
+- Replaced harsh near-black text colors in [index.css](file:///c:/Projects/tancorelab/apps/web/src/index.css):
+  - Swapped `--text-primary` from `#1d1d1f` to `#2c354a` (soft premium slate navy).
+  - Swapped `--text-secondary` from `#515154` to `#5e6b84`.
+  - Swapped `--text-muted` from `#86868b` to `#8b99a7`.
+
+---
+
+## 🧪 Verification Runs (Contrast & Sidebar Cleanups)
+
+### Step 1: Web Build Verification
+- Ran Vite build: **PASS** (compiled successfully with 0 errors).
+
+### Step 2: Web Linter Analysis
+- Ran oxlint: **PASS** (0 errors, 10 unrelated package warnings).
+
+
+
 
 
 

@@ -102,19 +102,19 @@ const SortableTaskCard: React.FC<{
               width: '10px', 
               height: '10px', 
               borderRadius: '50%', 
-              backgroundColor: '#ef4444', 
+              backgroundColor: task.status === 'completed' ? '#22c55e' : '#ef4444', 
               display: 'inline-block',
               margin: '6px'
             }} 
           />
         ) : task.priority === 'high' ? (
           <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
             Önemli
           </span>
         ) : (
           <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
             Acelesi Yok
           </span>
         )}
@@ -174,7 +174,7 @@ const SortableTaskCard: React.FC<{
           <div style={{
             display: 'flex', alignItems: 'center', gap: '3px',
             fontSize: '0.7rem', fontWeight: 600,
-            color: isOverdue ? '#ef4444' : 'var(--text-muted)',
+            color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'),
           }}>
             <Clock size={10} />
             {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
@@ -836,19 +836,19 @@ export const TasksScreen: React.FC = () => {
                       width: '10px', 
                       height: '10px', 
                       borderRadius: '50%', 
-                      backgroundColor: '#ef4444', 
+                      backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#ef4444', 
                       display: 'inline-block',
                       margin: '6px'
                     }} 
                   />
                 ) : draggedTask.priority === 'high' ? (
                   <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
                     Önemli
                   </span>
                 ) : (
                   <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: draggedTask.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
                     Acelesi Yok
                   </span>
                 )}
@@ -885,7 +885,7 @@ export const TasksScreen: React.FC = () => {
                       width: '10px', 
                       height: '10px', 
                       borderRadius: '50%', 
-                      backgroundColor: '#ef4444', 
+                      backgroundColor: task.status === 'completed' ? '#22c55e' : '#ef4444', 
                       display: 'inline-block',
                       marginRight: '6px',
                       flexShrink: 0
@@ -893,12 +893,12 @@ export const TasksScreen: React.FC = () => {
                   />
                 ) : task.priority === 'high' ? (
                   <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#f59e0b', display: 'inline-block' }} />
                     Önemli
                   </span>
                 ) : (
                   <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: task.status === 'completed' ? '#22c55e' : '#3b82f6', display: 'inline-block' }} />
                     Acelesi Yok
                   </span>
                 )}
@@ -909,7 +909,7 @@ export const TasksScreen: React.FC = () => {
                   </span>
                 )}
                 {task.due_date && (
-                  <span style={{ fontSize: '0.75rem', color: isOverdue ? '#ef4444' : 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '0.75rem', color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'), display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Calendar size={12} /> {new Date(task.due_date).toLocaleDateString('tr-TR')}
                   </span>
                 )}

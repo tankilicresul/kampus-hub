@@ -6,9 +6,9 @@
   --border-glass: rgba(0, 0, 0, 0.06);
   --border-color: rgba(0, 0, 0, 0.1);
   
-  --text-primary: #1d1d1f; /* Apple primary text color */
-  --text-secondary: #515154;
-  --text-muted: #86868b;
+  --text-primary: #2c354a; /* Soft premium slate navy instead of harsh black */
+  --text-secondary: #5e6b84;
+  --text-muted: #8b99a7;
   
   --accent-color: #ff9f0a; /* 35% Brand Orange logo accent */
   --accent-hover: #e58a00;

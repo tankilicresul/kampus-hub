@@ -184,7 +184,7 @@ export const AppLayout: React.FC = () => {
         </div>
 
         {/* Ekip Üyeleri (Desktop only, matches mobile drawer style) */}
-        <div style={{ padding: '16px 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-glass)' }}>
+        <div style={{ padding: '16px 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-sidebar, #94a3b8)', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-sidebar-glass, rgba(255, 255, 255, 0.15))' }}>
           <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
           {activeWorkspace && (
             <button
@@ -193,14 +193,14 @@ export const AppLayout: React.FC = () => {
               title="Ekip Ayarları"
               onClick={() => setShowWsSettings(true)}
             >
-              <Settings size={12} />
+              <Settings size={12} style={{ color: 'var(--text-sidebar, #94a3b8)' }} />
             </button>
           )}
         </div>
 
-        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
           {workspaceMembers.length === 0 && (
-            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic' }}>
               Yükleniyor...
             </div>
           )}
@@ -216,10 +216,11 @@ export const AppLayout: React.FC = () => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  padding: '6px 8px',
+                  padding: '8px 8px',
                   borderRadius: 'var(--radius-md)',
                   background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.04)' : 'transparent',
                   border: isMe ? '1px solid rgba(var(--accent-rgb, 183,1,22), 0.15)' : '1px solid transparent',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
                 }}
               >
                 {/* Avatar */}
@@ -227,18 +228,18 @@ export const AppLayout: React.FC = () => {
                   width: '28px',
                   height: '28px',
                   borderRadius: '50%',
-                  backgroundColor: isMe ? 'var(--accent-color)' : 'var(--bg-card)',
+                  backgroundColor: isMe ? 'var(--accent-color)' : 'rgba(255, 255, 255, 0.1)',
                   backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  color: isMe ? 'white' : 'var(--text-secondary)',
+                  color: isMe ? 'white' : 'var(--text-sidebar, #94a3b8)',
                   fontWeight: 700,
                   fontSize: '0.72rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  border: '1px solid var(--border-glass)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
                 }}>
                   {!member.avatar_url && initials}
                 </div>
@@ -248,7 +249,7 @@ export const AppLayout: React.FC = () => {
                   <div style={{
                     fontWeight: isMe ? 700 : 500,
                     fontSize: '0.8rem',
-                    color: 'var(--text-primary)',
+                    color: 'var(--text-sidebar-active, #ffffff)',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
