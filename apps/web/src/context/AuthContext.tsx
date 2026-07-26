@@ -213,6 +213,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data?.session) {
         setUser(data.session.user);
         await checkUserAccess(data.session.user);
+        // Reset theme to light mode upon successful login
+        localStorage.setItem('theme', 'light');
+        document.documentElement.setAttribute('data-theme', 'light');
       }
       return true;
     } catch (err: any) {
@@ -238,6 +241,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) throw error;
       
+      // Reset theme to light mode upon successful registration
+      localStorage.setItem('theme', 'light');
+      document.documentElement.setAttribute('data-theme', 'light');
+
       // Email confirmation is disabled — proceed with immediate session or sign in
       if (data?.session) {
         setUser(data.session.user);
@@ -267,6 +274,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logOut = async () => {
     setStatus('checking');
     localStorage.removeItem('kh_active_ws');
+    // Reset theme to light mode upon logout
+    localStorage.setItem('theme', 'light');
+    document.documentElement.setAttribute('data-theme', 'light');
     await supabase.auth.signOut();
     setStatus('unauthenticated');
   };
