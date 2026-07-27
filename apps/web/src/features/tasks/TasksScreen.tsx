@@ -38,6 +38,13 @@ interface Task {
   recurrence?: string;
   category?: string | null;
   order_index: number;
+  content_type?: string | null;
+  content_hook?: string | null;
+  content_promise?: string | null;
+  content_body?: string | null;
+  content_payoff?: string | null;
+  content_cta?: string | null;
+  content_loop?: string | null;
 }
 
 interface WorkspaceMember {
@@ -70,6 +77,20 @@ const calculatePriorityFromDueDate = (dueDateStr: string | null | undefined): Ta
   } else {
     return 'normal'; // Acelesi yok
   }
+};
+
+const isSocialCategory = (catName: string | null | undefined): boolean => {
+  if (!catName) return false;
+  const lowerName = catName.toLowerCase().replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+  const keywords = [
+    'sosyal medya', 'sosyal meyda', 'tasarim', 'tasarım', 'icerik', 'içerik', 
+    'dijital medya', 'pazarlama', 'dijital pazarlama', 'content', 'instagram', 
+    'tiktok', 'facebook', 'twitter', 'youtube', 'design'
+  ];
+  return keywords.some(keyword => {
+    const normalizedKeyword = keyword.toLowerCase().replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+    return lowerName.includes(normalizedKeyword);
+  });
 };
 
 const isTaskPastDue = (dueDate: string | null | undefined): boolean => {
@@ -331,6 +352,14 @@ const TaskDetailModal: React.FC<{
   const [currentCategory, setCurrentCategory] = useState<string>(task.category || '');
   const CATEGORY_OPTIONS = ['', ...categories.map(c => c.name)];
 
+  const [contentType, setContentType] = useState<string>(task.content_type || 'video');
+  const [contentHook, setContentHook] = useState<string>(task.content_hook || '');
+  const [contentPromise, setContentPromise] = useState<string>(task.content_promise || '');
+  const [contentBody, setContentBody] = useState<string>(task.content_body || '');
+  const [contentPayoff, setContentPayoff] = useState<string>(task.content_payoff || '');
+  const [contentCta, setContentCta] = useState<string>(task.content_cta || '');
+  const [contentLoop, setContentLoop] = useState<string>(task.content_loop || '');
+
   const handleDueDateChange = (val: string) => {
     setCurrentDueDate(val || null);
     if (val) {
@@ -402,6 +431,13 @@ const TaskDetailModal: React.FC<{
         start_date: currentStartDate || null,
         due_date: currentDueDate || null,
         category: currentCategory || null,
+        content_type: contentType || null,
+        content_hook: contentHook || null,
+        content_promise: contentPromise || null,
+        content_body: contentBody || null,
+        content_payoff: contentPayoff || null,
+        content_cta: contentCta || null,
+        content_loop: contentLoop || null,
         completed_at: currentStatus === 'completed' ? (task.completed_at || new Date().toISOString()) : null,
         updated_at: new Date().toISOString()
       };
@@ -444,11 +480,13 @@ const TaskDetailModal: React.FC<{
   const isOverdue = currentDueDate && new Date(currentDueDate) < new Date() && currentStatus !== 'completed';
   const assignee = members.find(m => m.user_id === task.primary_assignee_id);
 
+  const isSocial = isSocialCategory(currentCategory);
+
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div
         className="modal-content"
-        style={{ maxWidth: '560px', width: '95%', padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+        style={{ maxWidth: isSocial ? '760px' : '560px', width: '95%', padding: 0, overflow: 'hidden', borderRadius: '16px', transition: 'max-width 0.2s ease-in-out' }}
         onClick={e => e.stopPropagation()}
       >
 
@@ -464,7 +502,9 @@ const TaskDetailModal: React.FC<{
               width: '8px', height: '8px', borderRadius: '50%',
               backgroundColor: sm.color, boxShadow: `0 0 0 3px ${sm.bg}`,
             }} />
-            <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>Görev Detayı</span>
+            <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+              {isSocial ? 'İçerik Script Planlayıcı' : 'Görev Detayı'}
+            </span>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '4px' }}>
             <X size={20} />
@@ -477,32 +517,168 @@ const TaskDetailModal: React.FC<{
           {/* Title */}
           <div>
             <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-              Görev Başlığı
+              {isSocial ? 'İçerik Başlığı' : 'Görev Başlığı'}
             </label>
             <input
               type="text"
               value={currentTitle}
               onChange={e => setCurrentTitle(e.target.value)}
               className="form-input"
-              placeholder="Görev başlığı..."
+              placeholder={isSocial ? "İçerik başlığı..." : "Görev başlığı..."}
               style={{ fontWeight: 700, fontSize: '1rem', width: '100%', borderRadius: '10px', padding: '10px 14px' }}
             />
           </div>
 
-          {/* Description */}
-          <div>
-            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-              Açıklama
-            </label>
-            <textarea
-              value={currentDescription}
-              onChange={e => setCurrentDescription(e.target.value)}
-              className="form-input"
-              placeholder="Açıklama veya not ekleyin..."
-              rows={3}
-              style={{ width: '100%', resize: 'vertical', fontSize: '0.88rem', borderRadius: '10px', padding: '10px 14px' }}
-            />
-          </div>
+          {/* Structured Script Editor or Description */}
+          {isSocial ? (
+            <div style={{
+              border: '1px solid var(--border-glass)',
+              borderRadius: '12px',
+              padding: '16px',
+              backgroundColor: 'rgba(255,255,255,0.01)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px'
+            }}>
+              {/* Format selection */}
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>İÇERİK FORMATI:</span>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {[
+                    { key: 'video', label: '📹 Video (Reels/TikTok)' },
+                    { key: 'post', label: '🖼 Post / Galeri' }
+                  ].map(f => (
+                    <button
+                      key={f.key}
+                      type="button"
+                      onClick={() => setContentType(f.key)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        border: '1.5px solid',
+                        borderColor: contentType === f.key ? 'var(--accent-color)' : 'var(--border-glass)',
+                        backgroundColor: contentType === f.key ? 'rgba(255,159,10,0.12)' : 'transparent',
+                        color: contentType === f.key ? 'var(--accent-color)' : 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Proportional sections */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Hook Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+                  </div>
+                  <textarea
+                    value={contentHook}
+                    onChange={e => setContentHook(e.target.value)}
+                    placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
+                    className="form-input"
+                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Kurulum / Vaat Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kurulum / Vaat</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
+                  </div>
+                  <textarea
+                    value={contentPromise}
+                    onChange={e => setContentPromise(e.target.value)}
+                    placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
+                    className="form-input"
+                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Gelişme / Ana Değer Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gelişme / Değer</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-70 Bölümü</span>
+                  </div>
+                  <textarea
+                    value={contentBody}
+                    onChange={e => setContentBody(e.target.value)}
+                    placeholder="Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."
+                    className="form-input"
+                    style={{ height: '150px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Payoff / Sonuç Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff / Sonuç</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%70-85 Bölümü</span>
+                  </div>
+                  <textarea
+                    value={contentPayoff}
+                    onChange={e => setContentPayoff(e.target.value)}
+                    placeholder="Alınacak ana ders veya ulaşılan sonuç..."
+                    className="form-input"
+                    style={{ height: '55px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* CTA Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA (Çağrı)</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%85-95 Bölümü</span>
+                  </div>
+                  <textarea
+                    value={contentCta}
+                    onChange={e => setContentCta(e.target.value)}
+                    placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
+                    className="form-input"
+                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                  />
+                </div>
+
+                {/* Kapanış / Loop Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
+                  </div>
+                  <textarea
+                    value={contentLoop}
+                    onChange={e => setContentLoop(e.target.value)}
+                    placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
+                    className="form-input"
+                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Açıklama
+              </label>
+              <textarea
+                value={currentDescription}
+                onChange={e => setCurrentDescription(e.target.value)}
+                className="form-input"
+                placeholder="Açıklama veya not ekleyin..."
+                rows={3}
+                style={{ width: '100%', resize: 'vertical', fontSize: '0.88rem', borderRadius: '10px', padding: '10px 14px' }}
+              />
+            </div>
+          )}
 
           {/* Status + Priority — 2-col */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -981,7 +1157,7 @@ export const TasksScreen: React.FC = () => {
 
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index')
+        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop')
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
         .order('order_index', { ascending: true });
@@ -1043,7 +1219,7 @@ export const TasksScreen: React.FC = () => {
         due_date: newDueDate || null,
         tags: newTags.length > 0 ? newTags : [],
         recurrence: newRecurrence,
-        category: newCategory || null,
+        category: newCategory || activeCategory || null,
         order_index: newOrderIdx,
       });
       if (error) throw error;
@@ -1190,7 +1366,7 @@ export const TasksScreen: React.FC = () => {
           </button>
           <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
             <Plus size={18} />
-            <span className="btn-text">Yeni Görev</span>
+            <span className="btn-text">{isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
           </button>
         </div>
 
@@ -1401,7 +1577,7 @@ export const TasksScreen: React.FC = () => {
         <div className="modal-backdrop">
           <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }}>
             <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Yeni Görev</span>
+              <span>{isSocialCategory(activeCategory || newCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
               <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <X size={20} />
               </button>
@@ -1509,7 +1685,7 @@ export const TasksScreen: React.FC = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">Görev Oluştur</button>
+                <button type="submit" className="btn btn-primary">{isSocialCategory(activeCategory || newCategory) ? 'İçerik Oluştur' : 'Görev Oluştur'}</button>
               </div>
             </form>
           </div>
