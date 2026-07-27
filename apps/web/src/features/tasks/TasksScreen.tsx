@@ -1529,11 +1529,14 @@ export const TasksScreen: React.FC = () => {
   // Category filter
   const [categories, setCategories] = useState<WorkspaceCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(() => {
-    return localStorage.getItem('kh_tasks_active_category') || '';
+    const saved = localStorage.getItem('kh_tasks_active_category');
+    return saved !== null ? saved : '___init___';
   });
 
   useEffect(() => {
-    localStorage.setItem('kh_tasks_active_category', activeCategory);
+    if (activeCategory !== '___init___') {
+      localStorage.setItem('kh_tasks_active_category', activeCategory);
+    }
   }, [activeCategory]);
 
   const categorySensors = useSensors(
@@ -1811,7 +1814,15 @@ export const TasksScreen: React.FC = () => {
         .eq('workspace_id', activeWorkspace.id)
         .order('order_index', { ascending: true });
       if (catError) throw catError;
-      setCategories((catData as WorkspaceCategory[]) || []);
+      const loadedCats = (catData as WorkspaceCategory[]) || [];
+      setCategories(loadedCats);
+
+      setActiveCategory(prev => {
+        if (prev === '___init___') {
+          return loadedCats.length > 0 ? loadedCats[0].name : '';
+        }
+        return prev;
+      });
 
       // 5. Asynchronously persist updates back to Supabase in bulk
       if (tasksToUpdate.length > 0) {
@@ -2084,23 +2095,7 @@ export const TasksScreen: React.FC = () => {
 
         {/* Row 2: Category filter pills */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <button
-            onClick={() => setActiveCategory('')}
-            style={{
-              padding: '4px 14px',
-              borderRadius: '20px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              border: '1px solid var(--border-glass)',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
-              color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
-            }}
-          >
-            Tümü
-          </button>
-          
+
           <DndContext
             sensors={categorySensors}
             collisionDetection={closestCenter}
@@ -2153,6 +2148,24 @@ export const TasksScreen: React.FC = () => {
             title="Yeni İş Alanı Ekle"
           >
             <Plus size={14} />
+          </button>
+
+          <button
+            onClick={() => setActiveCategory('')}
+            style={{
+              padding: '4px 14px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              border: '1px solid var(--border-glass)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+              color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
+              marginLeft: 'auto'
+            }}
+          >
+            Tümü
           </button>
 
           {activeCategory && (
