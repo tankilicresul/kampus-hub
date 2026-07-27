@@ -128,6 +128,28 @@ export const ProfileScreen: React.FC = () => {
     if (!activeWorkspace?.id || !user) return;
     setLoading(true);
     try {
+      // Sync overdue tasks: if task is not completed, not already overdue, has due date and due date is past the 6:00 AM effective threshold
+      const today = new Date();
+      const currentHour = today.getHours();
+      const effectiveDate = new Date(today);
+      if (currentHour < 6) {
+        effectiveDate.setDate(effectiveDate.getDate() - 1);
+      }
+      const yyyy = effectiveDate.getFullYear();
+      const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
+      const dd = String(effectiveDate.getDate()).padStart(2, '0');
+      const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
+
+      await supabase
+        .from('tasks')
+        .update({ status: 'overdue', updated_at: new Date().toISOString() })
+        .eq('workspace_id', activeWorkspace.id)
+        .is('deleted_at', null)
+        .not('status', 'eq', 'completed')
+        .not('status', 'eq', 'overdue')
+        .not('due_date', 'is', null)
+        .lt('due_date', effectiveDateStr);
+
       const { data: taskData } = await supabase
         .from('tasks')
         .select('id, title, description, status, priority, start_date, due_date, completed_at, primary_assignee_id, created_by, created_at')

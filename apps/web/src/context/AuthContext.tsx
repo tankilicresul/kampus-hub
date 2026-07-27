@@ -86,15 +86,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       setRole(userRole || 'member');
-      setStatus('authenticated');
       await loadWorkspacesData();
       await loadPendingInvitations();
+      setStatus('authenticated');
     } catch (err: any) {
       console.error('Check user access failed, fallback to standard member access:', err);
       setRole('member');
-      setStatus('authenticated');
       await loadWorkspacesData();
       await loadPendingInvitations();
+      setStatus('authenticated');
     }
   };
 
