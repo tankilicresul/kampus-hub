@@ -19,6 +19,7 @@ import {
 import {
   SortableContext,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -86,7 +87,82 @@ const isTaskPastDue = (dueDate: string | null | undefined): boolean => {
   return dueDate < effectiveDateStr;
 };
 
+// ─── Sortable Category Pill ──────────────────────────────────────────────────
+const SortableCategoryPill: React.FC<{
+  cat: { id: string; name: string };
+  isActive: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}> = ({ cat, isActive, onSelect, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: cat.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    display: 'flex',
+    alignItems: 'center',
+    borderRadius: '20px',
+    border: isActive ? '1.5px solid var(--accent-color)' : '1px solid var(--border-glass)',
+    backgroundColor: isActive ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+    color: isActive ? 'white' : 'var(--text-secondary)',
+    padding: '3px 8px 3px 14px',
+    cursor: 'grab',
+    userSelect: 'none' as const,
+    zIndex: isDragging ? 10 : 1,
+    touchAction: 'none',
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <span
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+        style={{
+          fontSize: '0.78rem',
+          fontWeight: 700,
+          cursor: 'pointer',
+          paddingRight: '6px',
+        }}
+      >
+        {cat.name}
+      </span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: isActive ? 'rgba(255,255,255,0.8)' : 'var(--text-muted)',
+          fontSize: '0.85rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2px',
+          fontWeight: 'bold',
+        }}
+        title="Sil"
+      >
+        <X size={12} />
+      </button>
+    </div>
+  );
+};
+
 // ─── Sortable Task Card ───────────────────────────────────────────────────────
+
 const SortableTaskCard: React.FC<{
   task: Task;
   members: WorkspaceMember[];
@@ -225,14 +301,22 @@ const DroppableCardsArea: React.FC<{
   );
 };
 
+export interface WorkspaceCategory {
+  id: string;
+  workspace_id: string;
+  name: string;
+  order_index: number;
+}
+
 // ─── Task Detail Modal ────────────────────────────────────────────────────────
 const TaskDetailModal: React.FC<{
   task: Task;
   allTasks: Task[];
   members: WorkspaceMember[];
+  categories: WorkspaceCategory[];
   onClose: () => void;
   onRefresh: () => void;
-}> = ({ task, allTasks, members, onClose, onRefresh }) => {
+}> = ({ task, allTasks, members, categories, onClose, onRefresh }) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [newComment, setNewComment] = useState('');
@@ -245,7 +329,7 @@ const TaskDetailModal: React.FC<{
   const [currentDueDate, setCurrentDueDate] = useState<string | null>(task.due_date || null);
   const [currentStartDate, setCurrentStartDate] = useState<string | null>(task.start_date || null);
   const [currentCategory, setCurrentCategory] = useState<string>(task.category || '');
-  const CATEGORY_OPTIONS = ['', 'Dijital Pazarlama', 'Yazılım', 'Saha Operasyonu', 'Hukuk'];
+  const CATEGORY_OPTIONS = ['', ...categories.map(c => c.name)];
 
   const handleDueDateChange = (val: string) => {
     setCurrentDueDate(val || null);
@@ -341,271 +425,365 @@ const TaskDetailModal: React.FC<{
     }
   };
 
-  const assignee = members.find(m => m.user_id === task.primary_assignee_id);
+  const statusMeta: Record<string, { label: string; color: string; bg: string }> = {
+    in_progress: { label: 'Sürüyor',        color: '#1d4ed8', bg: 'rgba(59,130,246,0.12)' },
+    todo:        { label: 'Yapılacak',       color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
+    overdue:     { label: 'Tarihi Geçti',   color: '#ea580c', bg: 'rgba(249,115,22,0.12)' },
+    completed:   { label: 'Bitti',          color: '#16a34a', bg: 'rgba(34,197,94,0.12)'  },
+    revision_required: { label: 'Revizyon', color: '#7c3aed', bg: 'rgba(167,139,250,0.12)'},
+    waiting:     { label: 'Beklemede',      color: '#9333ea', bg: 'rgba(167,139,250,0.12)'},
+  };
+  const priorityMeta: Record<string, { label: string; color: string; bg: string }> = {
+    critical: { label: '🔴 Acil',       color: '#dc2626', bg: 'rgba(239,68,68,0.10)'  },
+    high:     { label: '🟡 Önemli',     color: '#d97706', bg: 'rgba(251,191,36,0.12)' },
+    normal:   { label: '🔵 Normal',     color: '#2563eb', bg: 'rgba(59,130,246,0.10)' },
+    low:      { label: '⚪ Acelesi Yok',color: '#64748b', bg: 'rgba(100,116,139,0.10)'},
+  };
+  const sm = statusMeta[currentStatus]   || statusMeta.todo;
+  const pm = priorityMeta[currentPriority] || priorityMeta.normal;
+  const isOverdue = currentDueDate && new Date(currentDueDate) < new Date() && currentStatus !== 'completed';
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-content" style={{ maxWidth: '560px', width: '95%' }} onClick={e => e.stopPropagation()}>
-        <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Görev Detayı</span>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+      <div
+        className="modal-content"
+        style={{ maxWidth: '560px', width: '95%', padding: 0, overflow: 'hidden', borderRadius: '16px' }}
+        onClick={e => e.stopPropagation()}
+      >
+
+        {/* ── Header ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '18px 24px 16px',
+          borderBottom: '1px solid var(--border-glass)',
+          background: 'var(--bg-surface)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{
+              width: '8px', height: '8px', borderRadius: '50%',
+              backgroundColor: sm.color, boxShadow: `0 0 0 3px ${sm.bg}`,
+            }} />
+            <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>Görev Detayı</span>
+          </div>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {/* Task info (Editable Title and Note) */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label className="form-label" style={{ marginBottom: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>GÖREV BAŞLIĞI</label>
-            <input 
-              type="text" 
-              value={currentTitle} 
-              onChange={e => setCurrentTitle(e.target.value)} 
-              className="form-input" 
-              placeholder="Görev başlığı"
-              style={{ fontWeight: 700, fontSize: '1.0rem', color: 'var(--text-primary)', width: '100%' }} 
-            />
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label className="form-label" style={{ marginBottom: 0, fontSize: '0.72rem', color: 'var(--text-muted)' }}>AÇIKLAMA / İLK EKLENEN NOT</label>
-            <textarea 
-              value={currentDescription} 
-              onChange={e => setCurrentDescription(e.target.value)} 
-              className="form-input" 
-              placeholder="Açıklama veya ilk notu ekleyin..."
-              style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', width: '100%', minHeight: '60px', resize: 'vertical' }} 
+        {/* ── Body ── */}
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '18px', overflowY: 'auto', maxHeight: 'calc(90vh - 140px)' }}>
+
+          {/* Title */}
+          <div>
+            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+              Görev Başlığı
+            </label>
+            <input
+              type="text"
+              value={currentTitle}
+              onChange={e => setCurrentTitle(e.target.value)}
+              className="form-input"
+              placeholder="Görev başlığı..."
+              style={{ fontWeight: 700, fontSize: '1rem', width: '100%', borderRadius: '10px', padding: '10px 14px' }}
             />
           </div>
 
-          {/* Meta row */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Durum:</span>
-              <select 
-                value={currentStatus} 
-                onChange={(e) => setCurrentStatus(e.target.value as Task['status'])}
-                className="form-input"
-                style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
-              >
-                <option value="in_progress">Sürüyor</option>
-                <option value="todo">Yapılacak</option>
-                <option value="overdue">Tarihi Geçti</option>
-                <option value="completed">Bitti</option>
-                <option value="revision_required">Tekrar Yapılıyor</option>
-              </select>
+          {/* Description */}
+          <div>
+            <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+              Açıklama
+            </label>
+            <textarea
+              value={currentDescription}
+              onChange={e => setCurrentDescription(e.target.value)}
+              className="form-input"
+              placeholder="Açıklama veya not ekleyin..."
+              rows={3}
+              style={{ width: '100%', resize: 'vertical', fontSize: '0.88rem', borderRadius: '10px', padding: '10px 14px' }}
+            />
+          </div>
+
+          {/* Status + Priority — 2-col */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Durum
+              </label>
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                  width: '8px', height: '8px', borderRadius: '50%', backgroundColor: sm.color, pointerEvents: 'none', zIndex: 1,
+                }} />
+                <select
+                  value={currentStatus}
+                  onChange={e => setCurrentStatus(e.target.value as Task['status'])}
+                  className="form-input"
+                  style={{
+                    paddingLeft: '28px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem',
+                    color: sm.color, backgroundColor: sm.bg, border: `1.5px solid ${sm.color}33`, width: '100%',
+                  }}
+                >
+                  <option value="in_progress">Sürüyor</option>
+                  <option value="todo">Yapılacak</option>
+                  <option value="overdue">Tarihi Geçti</option>
+                  <option value="completed">Bitti</option>
+                  <option value="revision_required">Revizyon</option>
+                  <option value="waiting">Beklemede</option>
+                </select>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>Öncelik:</span>
-              <select 
-                value={currentPriority} 
-                onChange={(e) => setCurrentPriority(e.target.value as Task['priority'])}
+
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Öncelik
+              </label>
+              <select
+                value={currentPriority}
+                onChange={e => setCurrentPriority(e.target.value as Task['priority'])}
                 className="form-input"
-                style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '110px' }}
+                style={{
+                  borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem',
+                  color: pm.color, backgroundColor: pm.bg, border: `1.5px solid ${pm.color}33`, width: '100%',
+                }}
               >
                 <option value="critical">🔴 Acil</option>
                 <option value="high">🟡 Önemli</option>
-                <option value="normal">🔵 Acelesi Yok</option>
+                <option value="normal">🔵 Normal</option>
+                <option value="low">⚪ Acelesi Yok</option>
               </select>
             </div>
-            {assignee && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-                <User size={14} style={{ color: 'var(--accent-color)' }} />
-                <span>{assignee.full_name || 'Atanmış'}</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Başlangıç:</span>
+          </div>
+
+          {/* Start Date + Due Date — 2-col */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Başlangıç Tarihi
+              </label>
               <input
                 type="date"
                 value={currentStartDate || ''}
-                onChange={(e) => setCurrentStartDate(e.target.value || null)}
+                onChange={e => setCurrentStartDate(e.target.value || null)}
                 className="form-input"
-                style={{
-                  padding: '4px 8px',
-                  fontSize: '0.78rem',
-                  color: 'var(--text-secondary)',
-                  width: 'auto',
-                  border: '1px solid var(--border-glass)',
-                  background: 'var(--bg-surface-accent)',
-                  borderRadius: 'var(--radius-sm)',
-                  height: 'auto',
-                  display: 'inline-block',
-                }}
+                style={{ borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px' }}
               />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <Calendar size={14} style={{ color: currentDueDate && new Date(currentDueDate) < new Date() ? '#ef4444' : 'var(--text-secondary)' }} />
-              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Son Tarih:</span>
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: isOverdue ? '#dc2626' : 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                {isOverdue ? '⚠ Son Tarih (Geçti)' : 'Son Tarih'}
+              </label>
               <input
                 type="date"
                 value={currentDueDate || ''}
-                onChange={(e) => handleDueDateChange(e.target.value)}
+                onChange={e => handleDueDateChange(e.target.value)}
                 className="form-input"
                 style={{
-                  padding: '4px 8px',
-                  fontSize: '0.78rem',
-                  color: currentDueDate && new Date(currentDueDate) < new Date() ? '#ef4444' : 'var(--text-secondary)',
-                  width: 'auto',
-                  border: '1px solid var(--border-glass)',
-                  background: 'var(--bg-surface-accent)',
-                  borderRadius: 'var(--radius-sm)',
-                  height: 'auto',
-                  display: 'inline-block',
-                  fontWeight: currentDueDate && new Date(currentDueDate) < new Date() ? 700 : 500
+                  borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px',
+                  borderColor: isOverdue ? '#ef4444' : undefined,
+                  color: isOverdue ? '#dc2626' : undefined,
+                  fontWeight: isOverdue ? 700 : 500,
                 }}
               />
             </div>
-            {task.recurrence && task.recurrence !== 'none' && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                <Repeat size={14} />
-                <span>{task.recurrence === 'daily' ? 'Günlük' : task.recurrence === 'weekly' ? 'Haftalık' : 'Aylık'}</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
-              <Tag size={14} style={{ color: 'var(--text-secondary)' }} />
+          </div>
+
+          {/* Category + Assignee — 2-col */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                İş Tanımı
+              </label>
               <select
                 value={currentCategory}
                 onChange={e => setCurrentCategory(e.target.value)}
                 className="form-input"
-                style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '140px' }}
+                style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%' }}
               >
                 {CATEGORY_OPTIONS.map(c => (
-                  <option key={c} value={c}>{c || '— Kategori Yok —'}</option>
+                  <option key={c} value={c}>{c || '— Seçilmedi —'}</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Atanan Kişi
+              </label>
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '8px',
+                backgroundColor: 'var(--bg-surface-accent)', border: '1px solid var(--border-glass)',
+                borderRadius: '10px', padding: '9px 12px', minHeight: '40px',
+              }}>
+                {assignee ? (
+                  <>
+                    <div style={{
+                      width: '22px', height: '22px', borderRadius: '50%',
+                      backgroundColor: 'var(--accent-color)', color: 'white',
+                      fontSize: '0.65rem', fontWeight: 800,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+                    }}>
+                      {assignee.avatar_url
+                        ? <img src={assignee.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : (assignee.full_name || '?').slice(0, 1).toUpperCase()
+                      }
+                    </div>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{assignee.full_name || 'Kullanıcı'}</span>
+                  </>
+                ) : (
+                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>— Atanmamış —</span>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Tags */}
           {task.tags && task.tags.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {task.tags.map(tag => (
-                <span key={tag} style={{
-                  padding: '3px 10px', borderRadius: '20px', fontSize: '0.75rem',
-                  backgroundColor: 'rgba(183,1,22,0.08)', color: 'var(--accent-color)',
-                  border: '1px solid rgba(183,1,22,0.2)', fontWeight: 600,
-                }}>
-                  #{tag}
-                </span>
-              ))}
+            <div>
+              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                Etiketler
+              </label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {task.tags.map(tag => (
+                  <span key={tag} style={{
+                    padding: '3px 10px', borderRadius: '20px', fontSize: '0.78rem',
+                    backgroundColor: 'rgba(255,159,10,0.1)', color: 'var(--accent-color)',
+                    border: '1px solid rgba(255,159,10,0.25)', fontWeight: 600,
+                  }}>#{tag}</span>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Sub-tabs */}
-          <div style={{ display: 'flex', gap: '6px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '0' }}>
-            {[
-              { key: 'comments', label: 'Yorumlar', icon: <MessageSquare size={13} /> },
-              { key: 'attachments', label: 'Ekler', icon: <Paperclip size={13} /> },
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as any)}
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  padding: '6px 12px', fontSize: '0.8rem', fontWeight: 600,
-                  display: 'flex', alignItems: 'center', gap: '5px',
-                  color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
-                  borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
-                  marginBottom: '-1px',
-                }}
-              >
-                {tab.icon} {tab.label}
-              </button>
-            ))}
-          </div>
+          {/* Divider */}
+          <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '0 -24px' }} />
 
-          {/* Comments */}
-          {activeTab === 'comments' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {comments.length === 0 && (
-                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px' }}>
-                  Henüz yorum yok. İlk yorumu sen yap!
-                </p>
-              )}
-              {comments.map(c => (
-                <div key={c.id} style={{
-                  backgroundColor: 'var(--bg-surface-accent)',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--border-glass)',
-                }}>
-                  <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
-                    {(c.profile as any)?.full_name || 'Kullanıcı'}
-                    <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
-                      {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
-                </div>
-              ))}
-              <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                <input
-                  type="text"
-                  placeholder="Yorum ekle..."
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  className="form-input"
-                  style={{ flex: 1, fontSize: '0.85rem' }}
-                />
-                <button 
-                  className="btn btn-primary" 
-                  type="submit" 
-                  disabled={submitting || !newComment.trim()} 
-                  style={{ width: '100px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.85rem' }}
+          {/* Comments / Attachments tabs */}
+          <div>
+            <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border-glass)', marginBottom: '14px' }}>
+              {[
+                { key: 'comments',    label: 'Yorumlar', icon: <MessageSquare size={13} /> },
+                { key: 'attachments', label: 'Ekler',    icon: <Paperclip size={13} /> },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key as any)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
+                    borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
+                    marginBottom: '-2px',
+                    transition: 'all 0.15s',
+                  }}
                 >
-                  {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
+                  {tab.icon} {tab.label}
                 </button>
-              </form>
+              ))}
             </div>
-          )}
 
-          {/* Attachments placeholder */}
-          {activeTab === 'attachments' && (
-            <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-              <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
-              <p>Dosya ekleri yakında kullanıma girecek.</p>
-            </div>
-          )}
+            {activeTab === 'comments' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {comments.length === 0 && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                    Henüz yorum yok. İlk yorumu sen yap!
+                  </p>
+                )}
+                {comments.map(c => (
+                  <div key={c.id} style={{
+                    backgroundColor: 'var(--bg-surface-accent)',
+                    padding: '10px 14px', borderRadius: '10px',
+                    border: '1px solid var(--border-glass)',
+                  }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      {(c.profile as any)?.full_name || 'Kullanıcı'}
+                      <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
+                        {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
+                  </div>
+                ))}
+                <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <input
+                    type="text"
+                    placeholder="Yorum ekle..."
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    className="form-input"
+                    style={{ flex: 1, fontSize: '0.85rem', borderRadius: '10px' }}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={submitting || !newComment.trim()}
+                    style={{ minWidth: '90px', borderRadius: '10px', fontSize: '0.85rem' }}
+                  >
+                    {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
+                  </button>
+                </form>
+              </div>
+            )}
 
-          {/* Modal Footer with Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
-            <button 
+            {activeTab === 'attachments' && (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
+                <p>Dosya ekleri yakında kullanıma girecek.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '14px 24px',
+          borderTop: '1px solid var(--border-glass)',
+          background: 'var(--bg-surface)',
+        }}>
+          <button
+            type="button"
+            onClick={handleDelete}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              backgroundColor: 'rgba(239,68,68,0.1)', color: '#dc2626',
+              border: '1.5px solid rgba(239,68,68,0.3)',
+              padding: '8px 18px', borderRadius: '10px',
+              fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            <Trash2 size={15} /> Sil
+          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
               type="button"
-              className="btn" 
-              style={{ 
-                backgroundColor: '#ef4444', 
-                color: '#ffffff', 
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-md)',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '0.85rem'
+              onClick={onClose}
+              style={{
+                padding: '8px 18px', borderRadius: '10px', fontWeight: 700,
+                fontSize: '0.85rem', cursor: 'pointer',
+                backgroundColor: 'var(--bg-surface-accent)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--border-glass)',
               }}
-              onClick={handleDelete}
             >
-              <Trash2 size={16} />
-              Sil
+              İptal
             </button>
-            
-            <button 
+            <button
               type="button"
               className="btn btn-primary"
-              style={{ width: '100px', height: '36px', padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.85rem' }}
               onClick={handleSave}
+              style={{ minWidth: '100px', borderRadius: '10px', fontWeight: 800, fontSize: '0.9rem' }}
             >
               Kaydet
             </button>
           </div>
         </div>
+
       </div>
     </div>
   );
 };
+
 
 // ─── Main TasksScreen ─────────────────────────────────────────────────────────
 export const TasksScreen: React.FC = () => {
@@ -630,8 +808,95 @@ export const TasksScreen: React.FC = () => {
   const [newCategory, setNewCategory] = useState('');
 
   // Category filter
-  const CATEGORIES = ['Dijital Pazarlama', 'Yazılım', 'Saha Operasyonu', 'Hukuk'];
+  const [categories, setCategories] = useState<WorkspaceCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
+
+  const categorySensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
+
+  const handleCreateCategory = async () => {
+    const name = window.prompt("Yeni İş Alanı / Kategori adı girin:");
+    if (!name || !name.trim() || !activeWorkspace?.id) return;
+
+    const maxIdx = categories.length > 0 ? Math.max(...categories.map(c => c.order_index)) : 0.0;
+    try {
+      const { data, error } = await supabase
+        .from('workspace_categories')
+        .insert({
+          workspace_id: activeWorkspace.id,
+          name: name.trim(),
+          order_index: maxIdx + 1.0,
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      if (data) {
+        setCategories(prev => [...prev, data as WorkspaceCategory]);
+      }
+    } catch (err) {
+      console.error('Create category failed:', err);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string, name: string) => {
+    if (!window.confirm(`"${name}" iş alanını silmek istediğinize emin misiniz?`)) return;
+    try {
+      const { error } = await supabase
+        .from('workspace_categories')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      setCategories(prev => prev.filter(c => c.id !== id));
+      if (activeCategory === name) {
+        setActiveCategory('');
+      }
+    } catch (err) {
+      console.error('Delete category failed:', err);
+    }
+  };
+
+  const handleCategoryDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = categories.findIndex(c => c.id === active.id);
+    const newIndex = categories.findIndex(c => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...categories];
+    const [moved] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, moved);
+    
+    const updated = reordered.map((cat, idx) => ({
+      ...cat,
+      order_index: idx + 1.0,
+    }));
+    setCategories(updated);
+
+    try {
+      const promises = updated.map(cat => 
+        supabase
+          .from('workspace_categories')
+          .update({ order_index: cat.order_index })
+          .eq('id', cat.id)
+      );
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('Reorder categories failed:', err);
+    }
+  };
 
 
 
@@ -688,6 +953,15 @@ export const TasksScreen: React.FC = () => {
         .order('order_index', { ascending: true });
       if (error) throw error;
       setTasks((data as Task[]) || []);
+
+      // Fetch dynamic categories
+      const { data: catData, error: catError } = await supabase
+        .from('workspace_categories')
+        .select('*')
+        .eq('workspace_id', activeWorkspace.id)
+        .order('order_index', { ascending: true });
+      if (catError) throw catError;
+      setCategories((catData as WorkspaceCategory[]) || []);
     } catch (err) {
       console.error('Fetch tasks failed:', err);
     } finally {
@@ -904,25 +1178,55 @@ export const TasksScreen: React.FC = () => {
           >
             Tümü
           </button>
-          {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(activeCategory === cat ? '' : cat)}
-              style={{
-                padding: '4px 14px',
-                borderRadius: '20px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                border: activeCategory === cat ? '1px solid var(--accent-color)' : '1px solid var(--border-glass)',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-                backgroundColor: activeCategory === cat ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
-                color: activeCategory === cat ? 'white' : 'var(--text-secondary)',
-              }}
+          
+          <DndContext
+            sensors={categorySensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleCategoryDragEnd}
+          >
+            <SortableContext
+              items={categories.map(c => c.id)}
+              strategy={horizontalListSortingStrategy}
             >
-              {cat}
-            </button>
-          ))}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                {categories.map(cat => (
+                  <SortableCategoryPill
+                    key={cat.id}
+                    cat={cat}
+                    isActive={activeCategory === cat.name}
+                    onSelect={() => setActiveCategory(activeCategory === cat.name ? '' : cat.name)}
+                    onDelete={() => handleDeleteCategory(cat.id, cat.name)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          {/* Plus icon to create category */}
+          <button
+            type="button"
+            onClick={handleCreateCategory}
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              border: '1.5px dashed var(--accent-color)',
+              cursor: 'pointer',
+              backgroundColor: 'transparent',
+              color: 'var(--accent-color)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s',
+              padding: 0,
+            }}
+            title="Yeni İş Alanı Ekle"
+          >
+            <Plus size={14} />
+          </button>
+
           {activeCategory && (
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
               {filteredTasks.length} görev
@@ -1129,10 +1433,9 @@ export const TasksScreen: React.FC = () => {
                 <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />İş Tanımı / Kategori</label>
                 <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="form-input">
                   <option value="">— Kategori Seçin —</option>
-                  <option value="Dijital Pazarlama">Dijital Pazarlama</option>
-                  <option value="Yazılım">Yazılım</option>
-                  <option value="Saha Operasyonu">Saha Operasyonu</option>
-                  <option value="Hukuk">Hukuk</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
@@ -1181,6 +1484,7 @@ export const TasksScreen: React.FC = () => {
           task={detailTask}
           allTasks={tasks}
           members={members}
+          categories={categories}
           onClose={() => setDetailTask(null)}
           onRefresh={loadTasks}
         />
