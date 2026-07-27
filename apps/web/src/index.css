@@ -896,28 +896,17 @@ body {
   }
 
   .board-column {
-    width: 55vw; /* Scaled down from 82vw */
-    max-width: 200px; /* Scaled down from 300px */
+    width: 80vw;
+    max-width: 320px;
+    min-width: 270px;
     max-height: calc(100vh - 200px);
     scroll-snap-align: start;
-    padding: 8px; /* Reduced from 12px */
-    border-radius: var(--radius-md);
-    gap: 6px;
+    padding: 10px;
+    border-radius: var(--radius-lg);
+    gap: 10px;
   }
   
-  /* Compact lists & cards */
-  .task-card, .crm-card {
-    padding: 6px 8px; /* Scaled down */
-    gap: 4px;
-  }
-  
-  .card-title {
-    font-size: 0.74rem; /* Scaled down */
-  }
-  
-  .card-desc {
-    font-size: 0.72rem;
-  }
+
   
   /* Flexible button labels on mobile instead of hiding text completely */
   .btn-text {
