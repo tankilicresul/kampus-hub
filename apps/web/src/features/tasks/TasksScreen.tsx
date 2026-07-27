@@ -119,6 +119,81 @@ const getContentFormatInfo = (type: string | null | undefined) => {
   }
 };
 
+const renderCardDateMeta = (task: Task) => {
+  const isSocial = isSocialCategory(task.category);
+  if (!isSocial) {
+    if (!task.due_date) return null;
+    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+        fontSize: '0.7rem',
+        fontWeight: 600,
+        color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'),
+      }}>
+        <Clock size={10} />
+        {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+      </div>
+    );
+  }
+
+  // Social Task Dates
+  const startDateVal = task.content_type === 'post' ? task.design_date : task.shooting_date;
+  const endDateVal = task.sharing_date;
+
+  const formatDateString = (dateStr: string | null | undefined) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formattedStart = startDateVal ? formatDateString(startDateVal) : '';
+  const formattedEnd = endDateVal ? formatDateString(endDateVal) : '';
+
+  let dateRangeText = '';
+  if (formattedStart || formattedEnd) {
+    dateRangeText = `${formattedStart || '—'} ➔ ${formattedEnd || '—'}`;
+  }
+
+  // Ad duration details
+  let durationText = '';
+  if ((task.content_type === 'reklam' || task.content_type === 'yari_reklam') && task.ad_duration) {
+    const rawDur = task.ad_duration.trim();
+    if (rawDur) {
+      const numericVal = parseInt(rawDur);
+      if (!isNaN(numericVal) && !rawDur.toLowerCase().includes('gun') && !rawDur.toLowerCase().includes('gün')) {
+        durationText = ` (${numericVal} gün)`;
+      } else {
+        durationText = ` (${rawDur})`;
+      }
+    }
+  }
+
+  if (!dateRangeText && !durationText) return null;
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      fontSize: '0.7rem',
+      fontWeight: 600,
+      color: 'var(--text-muted)'
+    }}>
+      <Calendar size={10} style={{ color: 'var(--accent-color)' }} />
+      {dateRangeText && <span>{dateRangeText}</span>}
+      {durationText && <span style={{ color: 'var(--accent-color)', fontWeight: 700 }}>{durationText}</span>}
+    </div>
+  );
+};
+
 const AutoResizeTextarea: React.FC<{
   value: string;
   onChange: (val: string) => void;
@@ -435,16 +510,7 @@ const SortableTaskCard: React.FC<{
             <span>{(assignee.full_name || '').split(' ')[0]}</span>
           </div>
         )}
-        {task.due_date && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: '3px',
-            fontSize: '0.7rem', fontWeight: 600,
-            color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'),
-          }}>
-            <Clock size={10} />
-            {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
-          </div>
-        )}
+        {renderCardDateMeta(task)}
       </div>
     </div>
   );
