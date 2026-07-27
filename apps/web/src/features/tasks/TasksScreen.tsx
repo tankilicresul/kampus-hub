@@ -1694,9 +1694,9 @@ export const TasksScreen: React.FC = () => {
   const columns = [
     { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
     { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
-    { key: 'completed', title: 'Bitti', color: '#10b981' },
     { key: 'revision_required', title: 'Tekrar Yapılıyor', color: '#a78bfa' },
     { key: 'overdue', title: 'Tarihi Geçti', color: '#f97316' },
+    { key: 'completed', title: 'Bitti', color: '#10b981' },
   ] as const;
 
   const draggedTask = tasks.find(t => t.id === activeId) || null;
