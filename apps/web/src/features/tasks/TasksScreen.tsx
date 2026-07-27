@@ -479,7 +479,7 @@ const TaskDetailModal: React.FC<{
   const [contentPayoff, setContentPayoff] = useState<string>(task.content_payoff || '');
   const [contentCta, setContentCta] = useState<string>(task.content_cta || '');
   const [contentLoop, setContentLoop] = useState<string>(task.content_loop || '');
-  const [adBudget, setAdBudget] = useState<string>(task.ad_budget || '');
+  const adBudget = task.ad_budget || '';
 
   const [shootingDate, setShootingDate] = useState<string>(task.shooting_date || '');
   const [sharingDate, setSharingDate] = useState<string>(task.sharing_date || '');

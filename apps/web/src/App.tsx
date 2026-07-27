@@ -10,21 +10,16 @@ const NavigationContainer: React.FC = () => {
   const [minLoadingDone, setMinLoadingDone] = useState(false);
 
   useEffect(() => {
-    // Show the gorgeous loader for at least 3.0 seconds
+    // Show the gorgeous loader for at least 4.0 seconds
     const timer = setTimeout(() => {
       setMinLoadingDone(true);
-    }, 3000);
+    }, 4000);
     return () => clearTimeout(timer);
   }, []);
 
   if (status === 'checking' || !minLoadingDone) {
     return (
       <div className="tc-loader-wrap">
-        {/* Breathing logo */}
-        <div className="tc-loader-logo">
-          <img src="/logo.svg" alt="" />
-        </div>
-
         {/* Orbit ring spinner */}
         <div className="tc-spinner-ring" style={{ position: 'relative' }}>
           <div className="tc-orbit" />
