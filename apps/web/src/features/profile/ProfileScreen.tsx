@@ -407,9 +407,10 @@ export const ProfileScreen: React.FC = () => {
   const statusLabels: Record<string, { title: string; color: string }> = {
     in_progress: { title: 'Sürüyor', color: '#f59e0b' },
     todo: { title: 'Yapılacak', color: '#38bdf8' },
-    waiting: { title: 'Beklemede', color: '#f97316' },
+    waiting: { title: 'Beklemede', color: '#9333ea' },
     completed: { title: 'Bitti', color: '#10b981' },
-    revision_required: { title: 'Tekrar Yapılıyor', color: '#a78bfa' },
+    revision_required: { title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c' },
+    overdue: { title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c' },
   };
 
   const displayName = fullName.trim() || user?.email?.split('@')[0] || 'Kullanıcı';
@@ -624,76 +625,77 @@ export const ProfileScreen: React.FC = () => {
                   onClick={() => openTaskEdit(task)}
                   style={{
                     backgroundColor: 'var(--bg-surface)',
-                    padding: '14px 16px',
+                    padding: '12px 16px',
                     borderRadius: 'var(--radius-md)',
                     border: '1px solid var(--border-glass)',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '20px',
                     cursor: 'pointer',
-                    transition: 'box-shadow 0.2s'
+                    transition: 'box-shadow 0.2s',
+                    flexWrap: 'wrap'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
-                    {task.priority === 'critical' ? (
-                      <span
-                        title="Acil"
-                        style={{
-                          width: '10px',
-                          height: '10px',
-                          borderRadius: '50%',
-                          backgroundColor: '#ef4444',
-                          display: 'inline-block'
-                        }}
-                      />
-                    ) : task.priority === 'high' ? (
-                      <span className="badge badge-high" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }} />
-                        Önemli
+                  {/* Left: Priority dot + Title */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 250px', minWidth: 0 }}>
+                    <span
+                      title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'}
+                      style={{
+                        width: '9px',
+                        height: '9px',
+                        borderRadius: '50%',
+                        backgroundColor: task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6',
+                        flexShrink: 0
+                      }}
+                    />
+                    <span style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={task.title}>
+                      {task.title}
+                    </span>
+                  </div>
+
+                  {/* Middle: Description */}
+                  <div style={{ flex: '2 2 250px', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {task.description ? (
+                      <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                        {task.description}
                       </span>
                     ) : (
-                      <span className="badge badge-normal" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem' }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#3b82f6', display: 'inline-block' }} />
-                        Acelesi Yok
-                      </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>Açıklama yok</span>
                     )}
+                  </div>
+
+                  {/* Right: Dates + Status */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0, marginLeft: 'auto' }}>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Clock size={12} style={{ color: 'var(--text-muted)' }} />
+                      <span>
+                        {task.start_date ? new Date(task.start_date).toLocaleDateString('tr-TR') : new Date(task.created_at).toLocaleDateString('tr-TR')}
+                      </span>
+                      {task.due_date && (
+                        <span style={{ color: '#f97316', fontWeight: 600 }}>
+                          ➔ {new Date(task.due_date).toLocaleDateString('tr-TR')}
+                        </span>
+                      )}
+                      {task.completed_at && (
+                        <span style={{ color: '#22c55e', fontWeight: 600 }}>
+                          ✓ {new Date(task.completed_at).toLocaleDateString('tr-TR')}
+                        </span>
+                      )}
+                    </div>
+
                     <span style={{
-                      fontSize: '0.72rem',
+                      fontSize: '0.7rem',
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: '8px',
                       backgroundColor: `${statusInfo.color}18`,
-                      color: statusInfo.color
+                      color: statusInfo.color,
+                      whiteSpace: 'nowrap'
                     }}>
                       {statusInfo.title}
                     </span>
-                  </div>
-
-                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
-                    {task.title}
-                  </div>
-
-                  {task.description && (
-                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-                      {task.description}
-                    </p>
-                  )}
-
-                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
-                      <Clock size={12} />
-                      {task.start_date ? new Date(task.start_date).toLocaleDateString('tr-TR') : new Date(task.created_at).toLocaleDateString('tr-TR')}
-                    </span>
-                    {task.due_date && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#f97316' }}>
-                        → {new Date(task.due_date).toLocaleDateString('tr-TR')}
-                      </span>
-                    )}
-                    {task.completed_at && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: '#22c55e' }}>
-                        ✓ {new Date(task.completed_at).toLocaleDateString('tr-TR')}
-                      </span>
-                    )}
                   </div>
                 </div>
               );
