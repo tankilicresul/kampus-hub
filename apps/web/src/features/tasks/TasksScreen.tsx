@@ -635,9 +635,9 @@ const TaskDetailModal: React.FC<{
   const statusMeta: Record<string, { label: string; color: string; bg: string }> = {
     in_progress: { label: 'Sürüyor',        color: '#1d4ed8', bg: 'rgba(59,130,246,0.12)' },
     todo:        { label: 'Yapılacak',       color: '#6366f1', bg: 'rgba(99,102,241,0.12)' },
-    overdue:     { label: 'Tarihi Geçti',   color: '#ea580c', bg: 'rgba(249,115,22,0.12)' },
+    overdue:     { label: 'Süresi Geçti Tekrar Yapılmalı',   color: '#ea580c', bg: 'rgba(249,115,22,0.12)' },
     completed:   { label: 'Bitti',          color: '#16a34a', bg: 'rgba(34,197,94,0.12)'  },
-    revision_required: { label: 'Revizyon', color: '#7c3aed', bg: 'rgba(167,139,250,0.12)'},
+    revision_required: { label: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c', bg: 'rgba(234,88,12,0.12)'},
     waiting:     { label: 'Beklemede',      color: '#9333ea', bg: 'rgba(167,139,250,0.12)'},
   };
   const priorityMeta: Record<string, { label: string; color: string; bg: string }> = {
@@ -1061,9 +1061,8 @@ const TaskDetailModal: React.FC<{
                 >
                   <option value="in_progress">Sürüyor</option>
                   <option value="todo">Yapılacak</option>
-                  <option value="overdue">Tarihi Geçti</option>
+                  <option value="revision_required">Süresi Geçti Tekrar Yapılmalı</option>
                   <option value="completed">Bitti</option>
-                  <option value="revision_required">Revizyon</option>
                   <option value="waiting">Beklemede</option>
                 </select>
               </div>
@@ -1603,26 +1602,24 @@ export const TasksScreen: React.FC = () => {
     if (!over || active.id === over.id) return;
 
     // over.id could be a column key or a task id — determine target column
-    const columns = ['todo', 'in_progress', 'completed', 'revision_required', 'overdue'];
+    const columns = ['todo', 'in_progress', 'completed', 'revision_required'];
     let targetCol: string | null = null;
     if (columns.includes(String(over.id))) {
       targetCol = String(over.id);
     } else {
       const overTask = tasks.find(t => t.id === over.id);
-      if (overTask) targetCol = overTask.status;
+      if (overTask) {
+        // Map database status 'overdue' to column 'revision_required'
+        targetCol = overTask.status === 'overdue' ? 'revision_required' : overTask.status;
+      }
     }
 
     const draggedTask = tasks.find(t => t.id === active.id);
     if (!draggedTask || !targetCol) return;
 
-    if (targetCol === 'overdue' && !isTaskPastDue(draggedTask.due_date)) {
-      alert("Son teslim tarihi geçmemiş bir görevi 'Tarihi Geçti' aşamasına alamazsınız.");
-      return;
-    }
-
     // Get all tasks in target column (excluding the dragged task) sorted by order_index
     const colTasks = tasks
-      .filter(t => t.status === targetCol && t.id !== active.id)
+      .filter(t => (t.status === targetCol || (targetCol === 'revision_required' && t.status === 'overdue')) && t.id !== active.id)
       .sort((a, b) => a.order_index - b.order_index);
 
     let newOrderIndex = 0.0;
@@ -1694,8 +1691,7 @@ export const TasksScreen: React.FC = () => {
   const columns = [
     { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
     { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
-    { key: 'revision_required', title: 'Tekrar Yapılıyor', color: '#a78bfa' },
-    { key: 'overdue', title: 'Tarihi Geçti', color: '#f97316' },
+    { key: 'revision_required', title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c' },
     { key: 'completed', title: 'Bitti', color: '#10b981' },
   ] as const;
 
@@ -1834,7 +1830,12 @@ export const TasksScreen: React.FC = () => {
         >
           <div className="board-container">
             {columns.map(col => {
-              const columnTasks = filteredTasks.filter(t => t.status === col.key);
+              const columnTasks = filteredTasks.filter(t => {
+                if (col.key === 'revision_required') {
+                  return t.status === 'revision_required' || t.status === 'overdue';
+                }
+                return t.status === col.key;
+              });
               return (
                 <div key={col.key} className="board-column" id={col.key}>
                   <div className="column-header">
