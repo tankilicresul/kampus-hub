@@ -305,21 +305,6 @@ const DynamicNumberInput: React.FC<{
   );
 };
 
-const isTaskPastDue = (dueDate: string | null | undefined): boolean => {
-  if (!dueDate) return false;
-  const today = new Date();
-  const currentHour = today.getHours();
-  const effectiveDate = new Date(today);
-  if (currentHour < 6) {
-    effectiveDate.setDate(effectiveDate.getDate() - 1);
-  }
-  const yyyy = effectiveDate.getFullYear();
-  const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
-  const dd = String(effectiveDate.getDate()).padStart(2, '0');
-  const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
-  return dueDate < effectiveDateStr;
-};
-
 // ─── Sortable Category Pill ──────────────────────────────────────────────────
 const SortableCategoryPill: React.FC<{
   cat: { id: string; name: string };
