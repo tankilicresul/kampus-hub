@@ -765,6 +765,26 @@ const TaskDetailModal: React.FC<{
             />
           </div>
 
+          {isSocial && currentStatus === 'revision_required' && (
+            <div style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              border: '1.5px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: '12px',
+              padding: '12px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              color: '#ef4444'
+            }}>
+              <span style={{ fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                ⚠️ Görev Süresi Doldu / Tekrar Yapılmalı
+              </span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                Bu içeriğin planlanan paylaşım tarihi geçmiştir. Lütfen aşağıdan yeni {contentType === 'post' ? 'tasarım' : 'çekim'} ve paylaşım tarihlerini belirleyin.
+              </span>
+            </div>
+          )}
+
           {/* Structured Script Editor or Description */}
           {isSocial ? (
             <div style={{
@@ -1559,7 +1579,7 @@ export const TasksScreen: React.FC = () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
-      // Sync overdue tasks: if task is not completed, not already overdue, has due date and due date is past the 6:00 AM effective threshold
+      // Sync overdue tasks: if task is not completed, not already revision_required, has due date/sharing date and date is past the 6:00 AM effective threshold
       const today = new Date();
       const currentHour = today.getHours();
       const effectiveDate = new Date(today);
@@ -1571,15 +1591,27 @@ export const TasksScreen: React.FC = () => {
       const dd = String(effectiveDate.getDate()).padStart(2, '0');
       const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
 
+      // Update standard tasks
       await supabase
         .from('tasks')
-        .update({ status: 'overdue', updated_at: new Date().toISOString() })
+        .update({ status: 'revision_required', updated_at: new Date().toISOString() })
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
         .not('status', 'eq', 'completed')
-        .not('status', 'eq', 'overdue')
+        .not('status', 'eq', 'revision_required')
         .not('due_date', 'is', null)
         .lt('due_date', effectiveDateStr);
+
+      // Update social tasks based on sharing_date
+      await supabase
+        .from('tasks')
+        .update({ status: 'revision_required', updated_at: new Date().toISOString() })
+        .eq('workspace_id', activeWorkspace.id)
+        .is('deleted_at', null)
+        .not('status', 'eq', 'completed')
+        .not('status', 'eq', 'revision_required')
+        .not('sharing_date', 'is', null)
+        .lt('sharing_date', effectiveDateStr);
 
       const { data, error } = await supabase
         .from('tasks')
