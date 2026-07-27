@@ -30,9 +30,12 @@ interface Task {
   status: 'todo' | 'in_progress' | 'waiting' | 'completed' | 'revision_required' | 'overdue';
   priority: 'critical' | 'high' | 'normal' | 'low';
   primary_assignee_id?: string;
+  start_date?: string | null;
   due_date?: string | null;
+  completed_at?: string | null;
   tags?: string[];
   recurrence?: string;
+  category?: string | null;
   order_index: number;
 }
 
@@ -154,6 +157,18 @@ const SortableTaskCard: React.FC<{
         </div>
       )}
 
+      {/* Category badge */}
+      {task.category && (
+        <div style={{
+          display: 'inline-flex', alignItems: 'center',
+          padding: '2px 8px', borderRadius: '20px', fontSize: '0.67rem', fontWeight: 700,
+          backgroundColor: 'rgba(255,159,10,0.1)', color: 'var(--accent-color)',
+          border: '1px solid rgba(255,159,10,0.25)', marginTop: '4px', marginBottom: '2px',
+        }}>
+          {task.category}
+        </div>
+      )}
+
       {/* Meta: assignee + due_date */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
         {assignee && (
@@ -228,6 +243,9 @@ const TaskDetailModal: React.FC<{
   const [currentTitle, setCurrentTitle] = useState(task.title);
   const [currentDescription, setCurrentDescription] = useState(task.description || '');
   const [currentDueDate, setCurrentDueDate] = useState<string | null>(task.due_date || null);
+  const [currentStartDate, setCurrentStartDate] = useState<string | null>(task.start_date || null);
+  const [currentCategory, setCurrentCategory] = useState<string>(task.category || '');
+  const CATEGORY_OPTIONS = ['', 'Dijital Pazarlama', 'Yazılım', 'Saha Operasyonu', 'Hukuk'];
 
   const handleDueDateChange = (val: string) => {
     setCurrentDueDate(val || null);
@@ -292,12 +310,15 @@ const TaskDetailModal: React.FC<{
       return;
     }
     try {
-      const updates: Partial<Task> & { updated_at: string } = {
+      const updates: any = {
         title: currentTitle.trim(),
         description: currentDescription.trim() || null,
         status: currentStatus,
         priority: currentPriority,
+        start_date: currentStartDate || null,
         due_date: currentDueDate || null,
+        category: currentCategory || null,
+        completed_at: currentStatus === 'completed' ? (task.completed_at || new Date().toISOString()) : null,
         updated_at: new Date().toISOString()
       };
 
@@ -393,7 +414,29 @@ const TaskDetailModal: React.FC<{
               </div>
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
+              <Calendar size={14} style={{ color: 'var(--text-secondary)' }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Başlangıç:</span>
+              <input
+                type="date"
+                value={currentStartDate || ''}
+                onChange={(e) => setCurrentStartDate(e.target.value || null)}
+                className="form-input"
+                style={{
+                  padding: '4px 8px',
+                  fontSize: '0.78rem',
+                  color: 'var(--text-secondary)',
+                  width: 'auto',
+                  border: '1px solid var(--border-glass)',
+                  background: 'var(--bg-surface-accent)',
+                  borderRadius: 'var(--radius-sm)',
+                  height: 'auto',
+                  display: 'inline-block',
+                }}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
               <Calendar size={14} style={{ color: currentDueDate && new Date(currentDueDate) < new Date() ? '#ef4444' : 'var(--text-secondary)' }} />
+              <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Son Tarih:</span>
               <input
                 type="date"
                 value={currentDueDate || ''}
@@ -419,6 +462,19 @@ const TaskDetailModal: React.FC<{
                 <span>{task.recurrence === 'daily' ? 'Günlük' : task.recurrence === 'weekly' ? 'Haftalık' : 'Aylık'}</span>
               </div>
             )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem' }}>
+              <Tag size={14} style={{ color: 'var(--text-secondary)' }} />
+              <select
+                value={currentCategory}
+                onChange={e => setCurrentCategory(e.target.value)}
+                className="form-input"
+                style={{ padding: '4px 8px', fontSize: '0.78rem', width: 'auto', display: 'inline-block', height: 'auto', minWidth: '140px' }}
+              >
+                {CATEGORY_OPTIONS.map(c => (
+                  <option key={c} value={c}>{c || '— Kategori Yok —'}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Tags */}
@@ -566,10 +622,16 @@ export const TasksScreen: React.FC = () => {
   const [newDesc, setNewDesc] = useState('');
   const [newPriority, setNewPriority] = useState<Task['priority']>('normal');
   const [newAssignee, setNewAssignee] = useState('');
+  const [newStartDate, setNewStartDate] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newTagInput, setNewTagInput] = useState('');
   const [newTags, setNewTags] = useState<string[]>([]);
   const [newRecurrence, setNewRecurrence] = useState('none');
+  const [newCategory, setNewCategory] = useState('');
+
+  // Category filter
+  const CATEGORIES = ['Dijital Pazarlama', 'Yazılım', 'Saha Operasyonu', 'Hukuk'];
+  const [activeCategory, setActiveCategory] = useState<string>('');
 
 
 
@@ -620,7 +682,7 @@ export const TasksScreen: React.FC = () => {
 
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, primary_assignee_id, due_date, tags, recurrence, order_index')
+        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index')
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
         .order('order_index', { ascending: true });
@@ -669,15 +731,17 @@ export const TasksScreen: React.FC = () => {
         status: 'todo',
         created_by: user?.id || null,
         primary_assignee_id: newAssignee || null,
+        start_date: newStartDate || null,
         due_date: newDueDate || null,
         tags: newTags.length > 0 ? newTags : [],
         recurrence: newRecurrence,
+        category: newCategory || null,
         order_index: newOrderIdx,
       });
       if (error) throw error;
       setShowAddModal(false);
       setNewTitle(''); setNewDesc(''); setNewPriority('normal');
-      setNewAssignee(''); setNewDueDate(''); setNewTags([]); setNewTagInput(''); setNewRecurrence('none');
+      setNewAssignee(''); setNewStartDate(''); setNewDueDate(''); setNewTags([]); setNewTagInput(''); setNewRecurrence('none'); setNewCategory('');
       await loadTasks();
     } catch (err) {
       console.error('Create task failed:', err);
@@ -743,11 +807,17 @@ export const TasksScreen: React.FC = () => {
     });
 
     try {
-      await supabase.from('tasks').update({ 
+      const updates: any = { 
         status: targetCol, 
         order_index: newOrderIndex,
         updated_at: new Date().toISOString() 
-      }).eq('id', active.id);
+      };
+      if (targetCol === 'completed') {
+        updates.completed_at = new Date().toISOString();
+      } else {
+        updates.completed_at = null;
+      }
+      await supabase.from('tasks').update(updates).eq('id', active.id);
     } catch (err) {
       console.error('Drag update failed:', err);
       loadTasks();
@@ -769,7 +839,8 @@ export const TasksScreen: React.FC = () => {
     const matchesSearch = !searchQuery ||
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSearch;
+    const matchesCategory = !activeCategory || t.category === activeCategory;
+    return matchesSearch && matchesCategory;
   });
 
 
@@ -788,7 +859,8 @@ export const TasksScreen: React.FC = () => {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
       {/* Search & Filter Header */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)' }}>
+      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Row 1: Search + Action buttons */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
             <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
@@ -813,7 +885,52 @@ export const TasksScreen: React.FC = () => {
             <span className="btn-text">Yeni Görev</span>
           </button>
         </div>
+
+        {/* Row 2: Category filter pills */}
+        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            onClick={() => setActiveCategory('')}
+            style={{
+              padding: '4px 14px',
+              borderRadius: '20px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              border: '1px solid var(--border-glass)',
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+              backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+              color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
+            }}
+          >
+            Tümü
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(activeCategory === cat ? '' : cat)}
+              style={{
+                padding: '4px 14px',
+                borderRadius: '20px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: activeCategory === cat ? '1px solid var(--accent-color)' : '1px solid var(--border-glass)',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                backgroundColor: activeCategory === cat ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+                color: activeCategory === cat ? 'white' : 'var(--text-secondary)',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+          {activeCategory && (
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
+              {filteredTasks.length} görev
+            </span>
+          )}
+        </div>
       </div>
+
 
       {/* Board / List */}
       {loading ? (
@@ -973,7 +1090,7 @@ export const TasksScreen: React.FC = () => {
                   </select>
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div className="form-group">
                   <label className="form-label"><User size={12} style={{ display: 'inline', marginRight: '4px' }} />Kişi Ata</label>
                   <select value={newAssignee} onChange={e => setNewAssignee(e.target.value)} className="form-input">
@@ -984,7 +1101,16 @@ export const TasksScreen: React.FC = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Son Tarih</label>
+                  <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Başlangıç Tarihi</label>
+                  <input 
+                    type="date" 
+                    value={newStartDate} 
+                    onChange={e => setNewStartDate(e.target.value)} 
+                    className="form-input" 
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Bitiş Tarihi</label>
                   <input 
                     type="date" 
                     value={newDueDate} 
@@ -998,6 +1124,16 @@ export const TasksScreen: React.FC = () => {
                     className="form-input" 
                   />
                 </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />İş Tanımı / Kategori</label>
+                <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="form-input">
+                  <option value="">— Kategori Seçin —</option>
+                  <option value="Dijital Pazarlama">Dijital Pazarlama</option>
+                  <option value="Yazılım">Yazılım</option>
+                  <option value="Saha Operasyonu">Saha Operasyonu</option>
+                  <option value="Hukuk">Hukuk</option>
+                </select>
               </div>
               <div className="form-group">
                 <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />Etiketler (Enter ile ekle)</label>
