@@ -119,33 +119,38 @@ const getContentFormatInfo = (type: string | null | undefined) => {
   }
 };
 
+const checkIfDateIsPastDue = (dateStr: string | null | undefined): boolean => {
+  if (!dateStr) return false;
+  const today = new Date();
+  const currentHour = today.getHours();
+  const effectiveEndDate = new Date(today);
+  if (currentHour < 6) {
+    effectiveEndDate.setDate(effectiveEndDate.getDate() - 1);
+  }
+  const yyyy = effectiveEndDate.getFullYear();
+  const mm = String(effectiveEndDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(effectiveEndDate.getDate()).padStart(2, '0');
+  const effectiveEndDateStr = `${yyyy}-${mm}-${dd}`;
+  return dateStr < effectiveEndDateStr;
+};
+
 const renderCardDateMeta = (task: Task) => {
   const isSocial = isSocialCategory(task.category);
-  if (!isSocial) {
-    if (!task.due_date) return null;
-    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '3px',
-        fontSize: '0.7rem',
-        fontWeight: 600,
-        color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'),
-      }}>
-        <Clock size={10} />
-        {new Date(task.due_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
-      </div>
-    );
-  }
-
-  // Social Task Dates
-  const startDateVal = task.content_type === 'post' ? task.design_date : task.shooting_date;
-  const endDateVal = task.sharing_date;
+  const isOverdue = (task.status === 'revision_required' || task.status === 'overdue' || checkIfDateIsPastDue(isSocial ? task.sharing_date : task.due_date)) && task.status !== 'completed';
+  const isCompleted = task.status === 'completed';
+  const dateColor = isCompleted ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)');
 
   const formatDateString = (dateStr: string | null | undefined) => {
     if (!dateStr) return '';
     try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+      }
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
       return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
@@ -153,6 +158,37 @@ const renderCardDateMeta = (task: Task) => {
       return dateStr;
     }
   };
+
+  if (!isSocial) {
+    if (!task.due_date && !task.start_date) return null;
+    
+    let displayText = '';
+    if (task.start_date && task.due_date) {
+      displayText = `${formatDateString(task.start_date)} ➔ ${formatDateString(task.due_date)}`;
+    } else if (task.due_date) {
+      displayText = formatDateString(task.due_date);
+    } else if (task.start_date) {
+      displayText = formatDateString(task.start_date);
+    }
+
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+        fontSize: '0.7rem',
+        fontWeight: 600,
+        color: dateColor,
+      }}>
+        <Clock size={10} style={{ color: dateColor }} />
+        <span>{displayText}</span>
+      </div>
+    );
+  }
+
+  // Social Task Dates
+  const startDateVal = task.content_type === 'post' ? task.design_date : task.shooting_date;
+  const endDateVal = task.sharing_date;
 
   const formattedStart = startDateVal ? formatDateString(startDateVal) : '';
   const formattedEnd = endDateVal ? formatDateString(endDateVal) : '';
@@ -185,11 +221,11 @@ const renderCardDateMeta = (task: Task) => {
       gap: '4px',
       fontSize: '0.7rem',
       fontWeight: 600,
-      color: 'var(--text-muted)'
+      color: dateColor
     }}>
-      <Calendar size={10} style={{ color: 'var(--accent-color)' }} />
+      <Calendar size={10} style={{ color: isOverdue ? '#ef4444' : 'var(--accent-color)' }} />
       {dateRangeText && <span>{dateRangeText}</span>}
-      {durationText && <span style={{ color: 'var(--accent-color)', fontWeight: 700 }}>{durationText}</span>}
+      {durationText && <span style={{ color: isOverdue ? '#ef4444' : 'var(--accent-color)', fontWeight: 700 }}>{durationText}</span>}
     </div>
   );
 };
@@ -736,10 +772,10 @@ const TaskDetailModal: React.FC<{
   };
   const sm = statusMeta[currentStatus]   || statusMeta.todo;
   const pm = priorityMeta[currentPriority] || priorityMeta.normal;
-  const isOverdue = currentDueDate && new Date(currentDueDate) < new Date() && currentStatus !== 'completed';
-  const assignee = members.find(m => m.user_id === task.primary_assignee_id);
-
   const isSocial = isSocialCategory(currentCategory);
+  const targetDateVal = isSocial ? sharingDate : currentDueDate;
+  const isOverdue = (currentStatus === 'revision_required' || currentStatus === 'overdue' || checkIfDateIsPastDue(targetDateVal)) && currentStatus !== 'completed';
+  const assignee = members.find(m => m.user_id === task.primary_assignee_id);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -2052,7 +2088,9 @@ export const TasksScreen: React.FC = () => {
           {filteredTasks.map(task => {
             const assignee = members.find(m => m.user_id === task.primary_assignee_id);
             const col = columns.find(c => c.key === task.status);
-            const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+            const isSocial = isSocialCategory(task.category);
+            const targetDateVal = isSocial ? task.sharing_date : task.due_date;
+            const isOverdue = (task.status === 'revision_required' || task.status === 'overdue' || checkIfDateIsPastDue(targetDateVal)) && task.status !== 'completed';
             return (
               <div key={task.id} style={{
                 backgroundColor: 'var(--bg-surface)',
@@ -2085,9 +2123,23 @@ export const TasksScreen: React.FC = () => {
                     <User size={12} /> {(assignee.full_name || '').split(' ')[0]}
                   </span>
                 )}
-                {task.due_date && (
+                {targetDateVal && (
                   <span style={{ fontSize: '0.75rem', color: task.status === 'completed' ? '#22c55e' : (isOverdue ? '#ef4444' : 'var(--text-muted)'), display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Calendar size={12} /> {new Date(task.due_date).toLocaleDateString('tr-TR')}
+                    <Calendar size={12} /> {(() => {
+                      try {
+                        const parts = targetDateVal.split('-');
+                        if (parts.length === 3) {
+                          const year = parseInt(parts[0], 10);
+                          const month = parseInt(parts[1], 10) - 1;
+                          const day = parseInt(parts[2], 10);
+                          const d = new Date(year, month, day);
+                          return d.toLocaleDateString('tr-TR');
+                        }
+                        return new Date(targetDateVal).toLocaleDateString('tr-TR');
+                      } catch {
+                        return targetDateVal;
+                      }
+                    })()}
                   </span>
                 )}
                 <span style={{
