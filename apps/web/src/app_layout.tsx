@@ -37,7 +37,16 @@ export const AppLayout: React.FC = () => {
   const [showWsSettings, setShowWsSettings] = useState(false);
   const [forcePwaPromptOpen, setForcePwaPromptOpen] = useState(false);
   const [dismissedBanner, setDismissedBanner] = useState(false);
+  const [dismissingBanner, setDismissingBanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Auto-dismiss invitation banner after 5.5 s
+  useEffect(() => {
+    if (pendingInvitations.length === 0 || dismissedBanner) return;
+    const t1 = setTimeout(() => setDismissingBanner(true), 5500);
+    const t2 = setTimeout(() => setDismissedBanner(true), 5900);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [pendingInvitations.length, dismissedBanner]);
 
   // Workspace members for drawer
   interface WorkspaceMember {
@@ -399,7 +408,7 @@ export const AppLayout: React.FC = () => {
 
         {/* Top In-App Invitation Notification Banner */}
         {pendingInvitations.length > 0 && !dismissedBanner && (
-          <div className="top-invitation-banner">
+          <div className={`top-invitation-banner${dismissingBanner ? ' dismissing' : ''}`}>
             <div className="top-banner-content">
               <div className="bell-badge-wrapper">
                 <Bell size={20} className="bell-ring-anim" />
@@ -451,7 +460,7 @@ export const AppLayout: React.FC = () => {
 
               <button 
                 className="banner-close-btn"
-                onClick={() => setDismissedBanner(true)}
+                onClick={() => { setDismissingBanner(true); setTimeout(() => setDismissedBanner(true), 400); }}
                 title="Kapat"
               >
                 <X size={14} />

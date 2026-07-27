@@ -10,10 +10,23 @@ const NavigationContainer: React.FC = () => {
 
   if (status === 'checking') {
     return (
-      <div style={{ display: 'flex', width: '100vw', height: '100vh', backgroundColor: 'var(--bg-main)', justifyContent: 'center', alignItems: 'center' }}>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500 }}>
-          daha yenilikçi ve modern bir yükleniyor animasyonu ekler misin.
-        </p>
+      <div className="tc-loader-wrap">
+        {/* Breathing logo */}
+        <div className="tc-loader-logo">
+          <img src="/logo.svg" alt="" />
+        </div>
+
+        {/* Orbit ring spinner */}
+        <div className="tc-spinner-ring" style={{ position: 'relative' }}>
+          <div className="tc-orbit" />
+        </div>
+
+        {/* Bouncing dots */}
+        <div className="tc-dots">
+          <div className="tc-dot" />
+          <div className="tc-dot" />
+          <div className="tc-dot" />
+        </div>
       </div>
     );
   }
