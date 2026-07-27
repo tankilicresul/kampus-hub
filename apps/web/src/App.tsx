@@ -1,14 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { LoginScreen } from './features/auth/LoginScreen';
 import { AppLayout } from './app_layout';
-import { ShieldAlert, LogOut } from 'lucide-react';
+import { ShieldAlert, LogOut, RefreshCw } from 'lucide-react';
 
 const NavigationContainer: React.FC = () => {
   const { status, errorMessage, logOut } = useAuth();
+  const [minLoadingDone, setMinLoadingDone] = useState(false);
 
-  if (status === 'checking') {
+  useEffect(() => {
+    // Show the gorgeous loader for at least 2.8 seconds
+    const timer = setTimeout(() => {
+      setMinLoadingDone(true);
+    }, 2800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (status === 'checking' || !minLoadingDone) {
     return (
       <div className="tc-loader-wrap">
         {/* Breathing logo */}
