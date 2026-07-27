@@ -584,7 +584,7 @@ const TaskDetailModal: React.FC<{
                     onChange={e => setContentHook(e.target.value)}
                     placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
                     className="form-input"
-                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                    style={{ height: '64px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -599,7 +599,7 @@ const TaskDetailModal: React.FC<{
                     onChange={e => setContentPromise(e.target.value)}
                     placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
                     className="form-input"
-                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -629,7 +629,7 @@ const TaskDetailModal: React.FC<{
                     onChange={e => setContentPayoff(e.target.value)}
                     placeholder="Alınacak ana ders veya ulaşılan sonuç..."
                     className="form-input"
-                    style={{ height: '55px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                    style={{ height: '55px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -644,7 +644,7 @@ const TaskDetailModal: React.FC<{
                     onChange={e => setContentCta(e.target.value)}
                     placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
                     className="form-input"
-                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -659,7 +659,7 @@ const TaskDetailModal: React.FC<{
                     onChange={e => setContentLoop(e.target.value)}
                     placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
                     className="form-input"
-                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'none', borderRadius: '8px' }}
+                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
               </div>
