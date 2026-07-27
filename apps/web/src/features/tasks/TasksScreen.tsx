@@ -442,6 +442,7 @@ const TaskDetailModal: React.FC<{
   const sm = statusMeta[currentStatus]   || statusMeta.todo;
   const pm = priorityMeta[currentPriority] || priorityMeta.normal;
   const isOverdue = currentDueDate && new Date(currentDueDate) < new Date() && currentStatus !== 'completed';
+  const assignee = members.find(m => m.user_id === task.primary_assignee_id);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
