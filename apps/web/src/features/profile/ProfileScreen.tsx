@@ -3,7 +3,6 @@ import { useAuth, supabase } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { 
   ShieldCheck, 
-  CheckCircle2, 
   Clock, 
   RefreshCw,
   AlertCircle,
@@ -14,11 +13,7 @@ import {
   Mail,
   Building,
   Bell,
-  X,
-
-  Calendar,
-  ChevronLeft,
-  ChevronRight
+  X
 } from 'lucide-react';
 
 interface UserTask {
@@ -95,17 +90,7 @@ export const ProfileScreen: React.FC = () => {
   const [tasks, setTasks] = useState<UserTask[]>([]);
 
   const [loading, setLoading] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_calendar'>(() => {
-    return (localStorage.getItem('kh_profile_subtab') as any) || 'my_tasks';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('kh_profile_subtab', activeSubTab);
-  }, [activeSubTab]);
   const [showEditModal, setShowEditModal] = useState(false);
-
-  // Calendar navigation state
-  const [calendarDate, setCalendarDate] = useState(() => new Date());
 
   // Task click-to-edit modal states
   const [selectedTask, setSelectedTask] = useState<UserTask | null>(null);
@@ -234,47 +219,7 @@ export const ProfileScreen: React.FC = () => {
     setEditTaskDueDate(task.due_date || '');
   };
 
-  const getLocalDate = (date: Date): string => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
 
-  const getCalendarCells = (year: number, month: number) => {
-    const firstDay = new Date(year, month, 1).getDay();
-    const adjustedFirst = firstDay === 0 ? 6 : firstDay - 1;
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    const prevTotal = new Date(year, month, 0).getDate();
-    const cells: { day: number; date: Date; isCurrentMonth: boolean }[] = [];
-    for (let i = adjustedFirst - 1; i >= 0; i--) {
-      const d = prevTotal - i;
-      const pm = month === 0 ? 11 : month - 1;
-      const py = month === 0 ? year - 1 : year;
-      cells.push({ day: d, date: new Date(py, pm, d), isCurrentMonth: false });
-    }
-    for (let d = 1; d <= totalDays; d++) {
-      cells.push({ day: d, date: new Date(year, month, d), isCurrentMonth: true });
-    }
-    const remaining = cells.length % 7 === 0 ? 0 : 7 - (cells.length % 7);
-    for (let d = 1; d <= remaining; d++) {
-      const nm = month === 11 ? 0 : month + 1;
-      const ny = month === 11 ? year + 1 : year;
-      cells.push({ day: d, date: new Date(ny, nm, d), isCurrentMonth: false });
-    }
-    return cells;
-  };
-
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'completed': return '#22c55e';
-      case 'in_progress': return '#3b82f6';
-      case 'overdue': return '#f97316';
-      case 'revision_required': return '#ef4444';
-      case 'waiting': return '#a78bfa';
-      default: return '#6366f1';
-    }
-  };
 
 
   useEffect(() => {
@@ -590,32 +535,12 @@ export const ProfileScreen: React.FC = () => {
         </div>
       </div>
 
-      <div className="scroll-x" style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '10px', paddingRight: '16px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
-        <button
-          className={`btn ${activeSubTab === 'my_tasks' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('my_tasks')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
-        >
-          <CheckCircle2 size={15} />
-          <span>Görevlerim ({myTasks.length})</span>
-        </button>
-
-        <button
-          className={`btn ${activeSubTab === 'my_calendar' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setActiveSubTab('my_calendar')}
-          style={{ fontSize: '0.82rem', padding: '8px 16px', borderRadius: '12px', flexShrink: 0, whiteSpace: 'nowrap' }}
-        >
-          <Calendar size={15} />
-          <span>Görev Takvimi</span>
-        </button>
-      </div>
-
       {/* Main View Area */}
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
           <RefreshCw className="animate-spin" size={32} style={{ color: 'var(--accent-color)' }} />
         </div>
-      ) : activeSubTab === 'my_tasks' ? (
+      ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {myTasks.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-secondary)', backgroundColor: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
@@ -708,165 +633,6 @@ export const ProfileScreen: React.FC = () => {
             })
           )}
         </div>
-      ) : (
-        /* Calendar View */
-        (() => {
-          const year = calendarDate.getFullYear();
-          const month = calendarDate.getMonth();
-          const cells = getCalendarCells(year, month);
-          const todayStr = getLocalDate(new Date());
-          const monthNames = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
-          const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
-
-          return (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Calendar Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-                <button
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 10px', borderRadius: '10px' }}
-                  onClick={() => setCalendarDate(new Date(year, month - 1, 1))}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
-                  {monthNames[month]} {year}
-                </span>
-                <button
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 10px', borderRadius: '10px' }}
-                  onClick={() => setCalendarDate(new Date(year, month + 1, 1))}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-
-              {/* Day Headers */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
-                {dayNames.map(d => (
-                  <div key={d} style={{ textAlign: 'center', fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', padding: '4px 0' }}>
-                    {d}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px' }}>
-                {cells.map((cell, idx) => {
-                  const cellDateStr = getLocalDate(cell.date);
-                  const cellTasks = tasks.filter(t => {
-                    const dueDate = t.due_date ? t.due_date.slice(0, 10) : null;
-                    const startDate = t.start_date ? t.start_date.slice(0, 10) : null;
-                    const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
-                    return dueDate === cellDateStr || startDate === cellDateStr || (!dueDate && !startDate && fallbackDate === cellDateStr);
-                  });
-                  const isToday = cellDateStr === todayStr;
-
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        minHeight: '90px',
-                        borderRadius: '8px',
-                        border: isToday
-                          ? '2px solid var(--accent-color)'
-                          : '1px solid var(--border-glass)',
-                        overflow: 'hidden',
-                        position: 'relative',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        backgroundColor: cellTasks.length === 0
-                          ? (isToday ? 'rgba(183,1,22,0.07)' : cell.isCurrentMonth ? 'var(--bg-surface)' : 'var(--bg-surface-accent)')
-                          : 'transparent',
-                        cursor: cellTasks.length === 1 ? 'pointer' : 'default',
-                      }}
-                      onClick={cellTasks.length === 1 ? () => openTaskEdit(cellTasks[0]) : undefined}
-                    >
-                      {/* Day number — always top right as overlay */}
-                      <span style={{
-                        position: 'absolute',
-                        top: '5px',
-                        right: '7px',
-                        fontSize: '0.72rem',
-                        fontWeight: isToday ? 800 : 600,
-                        color: cellTasks.length > 0 ? 'rgba(255,255,255,0.85)' : (isToday ? 'var(--accent-color)' : cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
-                        zIndex: 2,
-                        lineHeight: 1,
-                        textShadow: cellTasks.length > 0 ? '0 1px 3px rgba(0,0,0,0.4)' : 'none',
-                      }}>
-                        {cell.day}
-                      </span>
-
-                      {/* Tasks — each fills an equal band */}
-                      {cellTasks.length > 0 && (
-                        <div style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '100%',
-                          width: '100%',
-                          flex: 1,
-                        }}>
-                          {cellTasks.map((t, ti) => {
-                            const color = getStatusColor(t.status);
-                            return (
-                              <div
-                                key={ti}
-                                onClick={cellTasks.length > 1 ? (e) => { e.stopPropagation(); openTaskEdit(t); } : undefined}
-                                title={t.title}
-                                style={{
-                                  flex: 1,
-                                  backgroundColor: color,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  padding: '4px 20px 4px 8px',
-                                  cursor: 'pointer',
-                                  borderTop: ti > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none',
-                                }}
-                              >
-                                <span style={{
-                                  fontSize: '0.78rem',
-                                  fontWeight: 700,
-                                  color: 'white',
-                                  textAlign: 'center',
-                                  textShadow: '0 1px 3px rgba(0,0,0,0.35)',
-                                  overflow: 'hidden',
-                                  display: '-webkit-box',
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: 'vertical',
-                                  lineHeight: 1.3,
-                                }}>
-                                  {t.title}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Color legend */}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', padding: '8px 0', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                {[
-                  { color: '#6366f1', label: 'Yapılacak' },
-                  { color: '#3b82f6', label: 'Yapılıyor' },
-                  { color: '#22c55e', label: 'Bitti' },
-                  { color: '#f97316', label: 'Tarihi Geçti' },
-                  { color: '#ef4444', label: 'Revizyon' },
-                  { color: '#a78bfa', label: 'Beklemede' },
-                ].map(item => (
-                  <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '10px', height: '10px', borderRadius: '3px', backgroundColor: item.color, display: 'inline-block' }} />
-                    {item.label}
-                  </span>
-                ))}
-              </div>
-            </div>
-          );
-        })()
       )}
 
 

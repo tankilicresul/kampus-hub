@@ -5,6 +5,7 @@ import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen'
 import { CrmDashboardScreen } from './features/crm/CrmDashboardScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { MessagesScreen } from './features/messages/MessagesScreen';
+import { CalendarScreen } from './features/calendar/CalendarScreen';
 import { AdminScreen } from './features/admin/AdminScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
@@ -12,7 +13,7 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield
+  MessageSquare, Shield, CalendarDays
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -31,7 +32,7 @@ export const AppLayout: React.FC = () => {
     refreshWorkspaces
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin'>(() => {
+  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar'>(() => {
     return (localStorage.getItem('kh_active_tab') as any) || 'tasks';
   });
 
@@ -83,7 +84,7 @@ export const AppLayout: React.FC = () => {
       });
   }, [activeWorkspace?.id]);
   
-  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin') => {
+  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
   };
@@ -491,6 +492,13 @@ export const AppLayout: React.FC = () => {
             <Calendar size={16} />
             <span>Bugün Neler Yaptım</span>
           </div>
+          <div 
+            className={`nav-tab ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => handleTabChange('calendar')}
+          >
+            <CalendarDays size={16} />
+            <span>Görev Takvimi</span>
+          </div>
           {role && ['owner', 'admin', 'manager'].includes(role) && (
             <div 
               className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
@@ -611,6 +619,7 @@ export const AppLayout: React.FC = () => {
             <>
               {activeTab === 'tasks' && <TasksScreen />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
+              {activeTab === 'calendar' && <CalendarScreen />}
               {activeTab === 'crm' && role && ['owner', 'admin', 'manager'].includes(role) && <CrmDashboardScreen />}
               {activeTab === 'profile' && <ProfileScreen />}
               {activeTab === 'messages' && <MessagesScreen />}
@@ -651,7 +660,14 @@ export const AppLayout: React.FC = () => {
           onClick={() => handleTabChange('updates')}
         >
           <Calendar size={20} />
-          <span>Bugün Neler Yaptım</span>
+          <span>Rapor</span>
+        </button>
+        <button 
+          className={`mobile-nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
+          onClick={() => handleTabChange('calendar')}
+        >
+          <CalendarDays size={20} />
+          <span>Takvim</span>
         </button>
         {role && ['owner', 'admin', 'manager'].includes(role) && (
           <button 
