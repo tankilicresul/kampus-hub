@@ -147,7 +147,8 @@ const DynamicNumberInput: React.FC<{
   value: number;
   onChange: (val: number) => void;
   icon?: string;
-}> = ({ label, value, onChange, icon }) => {
+  amounts?: number[];
+}> = ({ label, value, onChange, icon, amounts = [100, 500, 1000] }) => {
   return (
     <div style={{
       backgroundColor: 'var(--bg-surface-accent)',
@@ -171,7 +172,7 @@ const DynamicNumberInput: React.FC<{
         />
       </div>
       <div style={{ display: 'flex', gap: '4px' }}>
-        {[100, 500, 1000].map(amt => (
+        {amounts.map(amt => (
           <button
             key={amt}
             type="button"
@@ -1139,27 +1140,13 @@ const TaskDetailModal: React.FC<{
                 📊 Reklam Performans Verileri
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                <div style={{
-                  backgroundColor: 'var(--bg-surface-accent)',
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border-glass)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px'
-                }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-                    🎯 CTA Yönlendirmesi
-                  </label>
-                  <input
-                    type="text"
-                    value={statCta || ''}
-                    onChange={e => setStatCta(e.target.value)}
-                    placeholder="Linke tıkla, kaydet vb..."
-                    className="form-input"
-                    style={{ width: '100%', fontSize: '0.85rem', borderRadius: '8px', padding: '6px 10px' }}
-                  />
-                </div>
+                <DynamicNumberInput
+                  label="CPM (Bin Gösterim)"
+                  value={parseInt(statCta) || 0}
+                  onChange={(val) => setStatCta(String(val))}
+                  icon="📊"
+                  amounts={[5, 10, 50]}
+                />
 
                 <DynamicNumberInput
                   label="Toplam İndirme"
