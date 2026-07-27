@@ -409,7 +409,6 @@ const SortableTaskCard: React.FC<{
   };
 
   const assignee = members.find(m => m.user_id === task.primary_assignee_id);
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
 
   return (
     <div 
