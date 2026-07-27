@@ -10,10 +10,10 @@ const NavigationContainer: React.FC = () => {
   const [minLoadingDone, setMinLoadingDone] = useState(false);
 
   useEffect(() => {
-    // Show the gorgeous loader for at least 2.8 seconds
+    // Show the gorgeous loader for at least 3.0 seconds
     const timer = setTimeout(() => {
       setMinLoadingDone(true);
-    }, 2800);
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
