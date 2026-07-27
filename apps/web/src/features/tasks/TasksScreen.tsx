@@ -93,6 +93,45 @@ const isSocialCategory = (catName: string | null | undefined): boolean => {
   });
 };
 
+const AutoResizeTextarea: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  placeholder?: string;
+  minHeight?: string;
+}> = ({ value, onChange, placeholder, minHeight = '38px' }) => {
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="form-input"
+      style={{
+        width: '100%',
+        minHeight: minHeight,
+        fontSize: '0.85rem',
+        padding: '8px 12px',
+        resize: 'none',
+        overflow: 'hidden',
+        borderRadius: '8px',
+        transition: 'height 0.1s ease',
+        lineHeight: '1.4',
+        boxSizing: 'border-box'
+      }}
+      rows={1}
+    />
+  );
+};
+
 const isTaskPastDue = (dueDate: string | null | undefined): boolean => {
   if (!dueDate) return false;
   const today = new Date();
@@ -579,12 +618,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentHook}
-                    onChange={e => setContentHook(e.target.value)}
+                    onChange={setContentHook}
                     placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
-                    className="form-input"
-                    style={{ height: '64px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -594,12 +631,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kurulum / Vaat</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentPromise}
-                    onChange={e => setContentPromise(e.target.value)}
+                    onChange={setContentPromise}
                     placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
-                    className="form-input"
-                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -609,12 +644,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gelişme / Değer</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-70 Bölümü</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentBody}
-                    onChange={e => setContentBody(e.target.value)}
+                    onChange={setContentBody}
                     placeholder="Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."
-                    className="form-input"
-                    style={{ height: '150px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -624,12 +657,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff / Sonuç</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%70-85 Bölümü</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentPayoff}
-                    onChange={e => setContentPayoff(e.target.value)}
+                    onChange={setContentPayoff}
                     placeholder="Alınacak ana ders veya ulaşılan sonuç..."
-                    className="form-input"
-                    style={{ height: '55px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -639,12 +670,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA (Çağrı)</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%85-95 Bölümü</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentCta}
-                    onChange={e => setContentCta(e.target.value)}
+                    onChange={setContentCta}
                     placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
-                    className="form-input"
-                    style={{ height: '42px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -654,12 +683,10 @@ const TaskDetailModal: React.FC<{
                     <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
                     <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
                   </div>
-                  <textarea
+                  <AutoResizeTextarea
                     value={contentLoop}
-                    onChange={e => setContentLoop(e.target.value)}
+                    onChange={setContentLoop}
                     placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
-                    className="form-input"
-                    style={{ height: '40px', fontSize: '0.85rem', padding: '8px 12px', resize: 'vertical', borderRadius: '8px' }}
                   />
                 </div>
               </div>
