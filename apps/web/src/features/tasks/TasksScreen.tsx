@@ -644,15 +644,33 @@ const TaskDetailModal: React.FC<{
       alert('Görev başlığı boş bırakılamaz.');
       return;
     }
-    if (currentStatus === 'overdue' && !isTaskPastDue(currentDueDate)) {
-      alert("Son teslim tarihi geçmemiş bir görevi 'Tarihi Geçti' aşamasına alamazsınız.");
-      return;
-    }
     try {
+      let nextStatus = currentStatus;
+      if (currentStatus === 'revision_required' || currentStatus === 'overdue') {
+        const isSocial = isSocialCategory(currentCategory);
+        const targetShareDate = isSocial ? sharingDate : currentDueDate;
+        if (targetShareDate) {
+          const today = new Date();
+          const currentHour = today.getHours();
+          const effectiveDate = new Date(today);
+          if (currentHour < 6) {
+            effectiveDate.setDate(effectiveDate.getDate() - 1);
+          }
+          const yyyy = effectiveDate.getFullYear();
+          const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
+          const dd = String(effectiveDate.getDate()).padStart(2, '0');
+          const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
+
+          if (targetShareDate >= effectiveDateStr) {
+            nextStatus = 'in_progress';
+          }
+        }
+      }
+
       const updates: any = {
         title: currentTitle.trim(),
         description: currentDescription.trim() || null,
-        status: currentStatus,
+        status: nextStatus,
         priority: currentPriority,
         start_date: currentStartDate || null,
         due_date: currentDueDate || null,
@@ -674,12 +692,12 @@ const TaskDetailModal: React.FC<{
         stat_downloads: statDownloads || 0,
         stat_link_clicks: statLinkClicks || 0,
         post_items: postItems || null,
-        completed_at: currentStatus === 'completed' ? (task.completed_at || new Date().toISOString()) : null,
+        completed_at: nextStatus === 'completed' ? (task.completed_at || new Date().toISOString()) : null,
         updated_at: new Date().toISOString()
       };
 
-      if (currentStatus !== task.status) {
-        const colTasks = allTasks.filter(t => t.status === currentStatus && t.id !== task.id);
+      if (nextStatus !== task.status) {
+        const colTasks = allTasks.filter(t => t.status === nextStatus && t.id !== task.id);
         const maxIdx = colTasks.length > 0 ? Math.max(...colTasks.map(t => t.order_index)) : 0.0;
         updates.order_index = maxIdx + 1.0;
       }
@@ -1612,6 +1630,26 @@ export const TasksScreen: React.FC = () => {
         .not('status', 'eq', 'revision_required')
         .not('sharing_date', 'is', null)
         .lt('sharing_date', effectiveDateStr);
+
+      // Restore social tasks with future sharing_date back to in_progress
+      await supabase
+        .from('tasks')
+        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+        .eq('workspace_id', activeWorkspace.id)
+        .is('deleted_at', null)
+        .or('status.eq.revision_required,status.eq.overdue')
+        .not('sharing_date', 'is', null)
+        .gte('sharing_date', effectiveDateStr);
+
+      // Restore standard tasks with future due_date back to in_progress
+      await supabase
+        .from('tasks')
+        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
+        .eq('workspace_id', activeWorkspace.id)
+        .is('deleted_at', null)
+        .or('status.eq.revision_required,status.eq.overdue')
+        .not('due_date', 'is', null)
+        .gte('due_date', effectiveDateStr);
 
       const { data, error } = await supabase
         .from('tasks')
