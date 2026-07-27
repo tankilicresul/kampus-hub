@@ -725,7 +725,6 @@ export const ProfileScreen: React.FC = () => {
                 {cells.map((cell, idx) => {
                   const cellDateStr = getLocalDate(cell.date);
                   const cellTasks = tasks.filter(t => {
-                    // Prefer due_date, then start_date, then fall back to created_at
                     const dueDate = t.due_date ? t.due_date.slice(0, 10) : null;
                     const startDate = t.start_date ? t.start_date.slice(0, 10) : null;
                     const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
@@ -737,58 +736,83 @@ export const ProfileScreen: React.FC = () => {
                     <div
                       key={idx}
                       style={{
-                        minHeight: '72px',
-                        backgroundColor: isToday
-                          ? 'rgba(183,1,22,0.07)'
-                          : cell.isCurrentMonth
-                          ? 'var(--bg-surface)'
-                          : 'var(--bg-surface-accent)',
+                        minHeight: '90px',
                         borderRadius: '8px',
                         border: isToday
                           ? '2px solid var(--accent-color)'
                           : '1px solid var(--border-glass)',
-                        padding: '4px',
+                        overflow: 'hidden',
+                        position: 'relative',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '2px',
-                        overflow: 'hidden'
+                        backgroundColor: cellTasks.length === 0
+                          ? (isToday ? 'rgba(183,1,22,0.07)' : cell.isCurrentMonth ? 'var(--bg-surface)' : 'var(--bg-surface-accent)')
+                          : 'transparent',
+                        cursor: cellTasks.length === 1 ? 'pointer' : 'default',
                       }}
+                      onClick={cellTasks.length === 1 ? () => openTaskEdit(cellTasks[0]) : undefined}
                     >
+                      {/* Day number — always top right as overlay */}
                       <span style={{
-                        fontSize: '0.7rem',
+                        position: 'absolute',
+                        top: '5px',
+                        right: '7px',
+                        fontSize: '0.72rem',
                         fontWeight: isToday ? 800 : 600,
-                        color: isToday ? 'var(--accent-color)' : cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)',
-                        textAlign: 'right',
-                        paddingRight: '2px'
+                        color: cellTasks.length > 0 ? 'rgba(255,255,255,0.85)' : (isToday ? 'var(--accent-color)' : cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
+                        zIndex: 2,
+                        lineHeight: 1,
+                        textShadow: cellTasks.length > 0 ? '0 1px 3px rgba(0,0,0,0.4)' : 'none',
                       }}>
                         {cell.day}
                       </span>
-                      {cellTasks.map((t, ti) => {
-                        const isDue = t.due_date && t.due_date.slice(0, 10) === cellDateStr;
-                        const color = getStatusColor(t.status);
-                        return (
-                          <div
-                            key={ti}
-                            onClick={() => openTaskEdit(t)}
-                            title={t.title}
-                            style={{
-                              fontSize: '0.63rem',
-                              fontWeight: 700,
-                              color: 'white',
-                              backgroundColor: color,
-                              borderRadius: '4px',
-                              padding: '1px 4px',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                              cursor: 'pointer',
-                              opacity: isDue ? 1 : 0.75
-                            }}
-                          >
-                            {isDue ? '⏳' : '▶'} {t.title}
-                          </div>
-                        );
-                      })}
+
+                      {/* Tasks — each fills an equal band */}
+                      {cellTasks.length > 0 && (
+                        <div style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                          width: '100%',
+                          flex: 1,
+                        }}>
+                          {cellTasks.map((t, ti) => {
+                            const color = getStatusColor(t.status);
+                            return (
+                              <div
+                                key={ti}
+                                onClick={cellTasks.length > 1 ? (e) => { e.stopPropagation(); openTaskEdit(t); } : undefined}
+                                title={t.title}
+                                style={{
+                                  flex: 1,
+                                  backgroundColor: color,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: '4px 20px 4px 8px',
+                                  cursor: 'pointer',
+                                  borderTop: ti > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none',
+                                }}
+                              >
+                                <span style={{
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                  color: 'white',
+                                  textAlign: 'center',
+                                  textShadow: '0 1px 3px rgba(0,0,0,0.35)',
+                                  overflow: 'hidden',
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 2,
+                                  WebkitBoxOrient: 'vertical',
+                                  lineHeight: 1.3,
+                                }}>
+                                  {t.title}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
