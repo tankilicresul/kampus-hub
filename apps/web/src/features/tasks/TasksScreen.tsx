@@ -2361,28 +2361,10 @@ export const TasksScreen: React.FC = () => {
                   maxHeight: 'calc(90vh - 140px)' 
                 }}>
 
-                  {/* Row 1: Category selection is now first! */}
-                  <div>
-                    <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                      İş Tanımı / Kategori
-                    </label>
-                    <select 
-                      value={newCategory} 
-                      onChange={e => setNewCategory(e.target.value)} 
-                      className="form-input"
-                      style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
-                    >
-                      <option value="">— Kategori Seçin —</option>
-                      {categories.map(c => (
-                        <option key={c.id} value={c.name}>{c.name}</option>
-                      ))}
-                    </select>
-                  </div>
-
                   {/* Title */}
                   <div>
-                    <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                      {isNewSocial ? 'İçerik Başlığı *' : 'Görev Başlığı *'}
+                    <label style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                      {isNewSocial ? 'İçerik Başlığı' : 'Görev Başlığı'}
                     </label>
                     <input 
                       type="text" 
@@ -2393,55 +2375,6 @@ export const TasksScreen: React.FC = () => {
                       placeholder={isNewSocial ? "İçerik başlığı..." : "Görev başlığı..."} 
                       style={{ fontWeight: 700, fontSize: '0.95rem', width: '100%', borderRadius: '10px', padding: '10px 14px' }}
                     />
-                  </div>
-
-                  {/* Meta: Priority, Recurrence, Assignee */}
-                  <div style={{ display: 'grid', gridTemplateColumns: isNewSocial ? '1fr 1fr' : '1fr 1fr 1fr', gap: '12px' }}>
-                    <div className="form-group">
-                      <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }} />Öncelik</label>
-                      <select 
-                        value={newPriority} 
-                        onChange={e => setNewPriority(e.target.value as Task['priority'])} 
-                        className="form-input"
-                        style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
-                      >
-                        <option value="critical">🔴 Acil</option>
-                        <option value="high">🟡 Önemli</option>
-                        <option value="normal">🔵 Acelesi Yok</option>
-                      </select>
-                    </div>
-
-                    {!isNewSocial && (
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><Repeat size={12} style={{ display: 'inline', marginRight: '4px' }} />Tekrar</label>
-                        <select 
-                          value={newRecurrence} 
-                          onChange={e => setNewRecurrence(e.target.value)} 
-                          className="form-input"
-                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
-                        >
-                          <option value="none">Yok</option>
-                          <option value="daily">Günlük</option>
-                          <option value="weekly">Haftalık</option>
-                          <option value="monthly">Aylık</option>
-                        </select>
-                      </div>
-                    )}
-
-                    <div className="form-group">
-                      <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><User size={12} style={{ display: 'inline', marginRight: '4px' }} />Kişi Ata</label>
-                      <select 
-                        value={newAssignee} 
-                        onChange={e => setNewAssignee(e.target.value)} 
-                        className="form-input"
-                        style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px', height: '40px' }}
-                      >
-                        <option value="">— Atanmamış —</option>
-                        {members.map(m => (
-                          <option key={m.user_id} value={m.user_id}>{m.full_name || 'Kullanıcı'}</option>
-                        ))}
-                      </select>
-                    </div>
                   </div>
 
                   {/* Content Specific Form Fields */}
@@ -2728,6 +2661,93 @@ export const TasksScreen: React.FC = () => {
                       </div>
                     </>
                   )}
+
+                  {/* Meta section matching detail modal style */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>DURUM</label>
+                        <div style={{
+                          padding: '9px 12px',
+                          borderRadius: '10px',
+                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                          border: '1px solid rgba(59, 130, 246, 0.2)',
+                          color: '#3b82f6',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
+                          Yapılacak
+                        </div>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>ÖNCELİK</label>
+                        <select 
+                          value={newPriority} 
+                          onChange={e => setNewPriority(e.target.value as Task['priority'])} 
+                          className="form-input"
+                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px', fontWeight: 700, color: newPriority === 'critical' ? '#ef4444' : newPriority === 'high' ? '#f59e0b' : '#3b82f6', backgroundColor: newPriority === 'critical' ? 'rgba(239, 68, 68, 0.1)' : newPriority === 'high' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(59, 130, 246, 0.1)', border: '1px solid transparent' }}
+                        >
+                          <option value="critical">🔴 Acil</option>
+                          <option value="high">🟡 Önemli</option>
+                          <option value="normal">🔵 Acelesi Yok</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>İŞ TANIMI</label>
+                        <select 
+                          value={newCategory} 
+                          onChange={e => setNewCategory(e.target.value)} 
+                          className="form-input"
+                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                        >
+                          <option value="">— Kategori Seçin —</option>
+                          {categories.map(c => (
+                            <option key={c.id} value={c.name}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>ATANAN KİŞİ</label>
+                        <select 
+                          value={newAssignee} 
+                          onChange={e => setNewAssignee(e.target.value)} 
+                          className="form-input"
+                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                        >
+                          <option value="">— Atanmamış —</option>
+                          {members.map(m => (
+                            <option key={m.user_id} value={m.user_id}>{m.full_name || 'Kullanıcı'}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {!isNewSocial && (
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>TEKRAR</label>
+                        <select 
+                          value={newRecurrence} 
+                          onChange={e => setNewRecurrence(e.target.value)} 
+                          className="form-input"
+                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                        >
+                          <option value="none">Yok</option>
+                          <option value="daily">Günlük</option>
+                          <option value="weekly">Haftalık</option>
+                          <option value="monthly">Aylık</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Tags (Common to both) */}
                   <div className="form-group">
