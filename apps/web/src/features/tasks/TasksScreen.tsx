@@ -646,24 +646,40 @@ const TaskDetailModal: React.FC<{
     }
     try {
       let nextStatus = currentStatus;
-      if (currentStatus === 'revision_required' || currentStatus === 'overdue') {
+      if (currentStatus !== 'completed') {
         const isSocial = isSocialCategory(currentCategory);
-        const targetShareDate = isSocial ? sharingDate : currentDueDate;
-        if (targetShareDate) {
-          const today = new Date();
-          const currentHour = today.getHours();
-          const effectiveDate = new Date(today);
-          if (currentHour < 6) {
-            effectiveDate.setDate(effectiveDate.getDate() - 1);
-          }
-          const yyyy = effectiveDate.getFullYear();
-          const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
-          const dd = String(effectiveDate.getDate()).padStart(2, '0');
-          const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
+        const startDateVal = isSocial
+          ? (contentType === 'post' ? designDate : shootingDate)
+          : currentStartDate;
+        const endDateVal = isSocial ? sharingDate : currentDueDate;
 
-          if (targetShareDate >= effectiveDateStr) {
+        const today = new Date();
+        const currentHour = today.getHours();
+        
+        const effectiveEndDate = new Date(today);
+        if (currentHour < 6) {
+          effectiveEndDate.setDate(effectiveEndDate.getDate() - 1);
+        }
+        const yyyyEnd = effectiveEndDate.getFullYear();
+        const mmEnd = String(effectiveEndDate.getMonth() + 1).padStart(2, '0');
+        const ddEnd = String(effectiveEndDate.getDate()).padStart(2, '0');
+        const effectiveEndDateStr = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
+
+        const yyyyStart = today.getFullYear();
+        const mmStart = String(today.getMonth() + 1).padStart(2, '0');
+        const ddStart = String(today.getDate()).padStart(2, '0');
+        const todayDateStr = `${yyyyStart}-${mmStart}-${ddStart}`;
+
+        if (endDateVal && endDateVal < effectiveEndDateStr) {
+          nextStatus = 'revision_required';
+        } else if (startDateVal) {
+          if (startDateVal <= todayDateStr) {
             nextStatus = 'in_progress';
+          } else {
+            nextStatus = 'todo';
           }
+        } else if (currentStatus === 'overdue') {
+          nextStatus = 'revision_required';
         }
       }
 
@@ -1597,60 +1613,7 @@ export const TasksScreen: React.FC = () => {
     if (!activeWorkspace?.id) return;
     setLoading(true);
     try {
-      // Sync overdue tasks: if task is not completed, not already revision_required, has due date/sharing date and date is past the 6:00 AM effective threshold
-      const today = new Date();
-      const currentHour = today.getHours();
-      const effectiveDate = new Date(today);
-      if (currentHour < 6) {
-        effectiveDate.setDate(effectiveDate.getDate() - 1);
-      }
-      const yyyy = effectiveDate.getFullYear();
-      const mm = String(effectiveDate.getMonth() + 1).padStart(2, '0');
-      const dd = String(effectiveDate.getDate()).padStart(2, '0');
-      const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
-
-      // Update standard tasks
-      await supabase
-        .from('tasks')
-        .update({ status: 'revision_required', updated_at: new Date().toISOString() })
-        .eq('workspace_id', activeWorkspace.id)
-        .is('deleted_at', null)
-        .not('status', 'eq', 'completed')
-        .not('status', 'eq', 'revision_required')
-        .not('due_date', 'is', null)
-        .lt('due_date', effectiveDateStr);
-
-      // Update social tasks based on sharing_date
-      await supabase
-        .from('tasks')
-        .update({ status: 'revision_required', updated_at: new Date().toISOString() })
-        .eq('workspace_id', activeWorkspace.id)
-        .is('deleted_at', null)
-        .not('status', 'eq', 'completed')
-        .not('status', 'eq', 'revision_required')
-        .not('sharing_date', 'is', null)
-        .lt('sharing_date', effectiveDateStr);
-
-      // Restore social tasks with future sharing_date back to in_progress
-      await supabase
-        .from('tasks')
-        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
-        .eq('workspace_id', activeWorkspace.id)
-        .is('deleted_at', null)
-        .or('status.eq.revision_required,status.eq.overdue')
-        .not('sharing_date', 'is', null)
-        .gte('sharing_date', effectiveDateStr);
-
-      // Restore standard tasks with future due_date back to in_progress
-      await supabase
-        .from('tasks')
-        .update({ status: 'in_progress', updated_at: new Date().toISOString() })
-        .eq('workspace_id', activeWorkspace.id)
-        .is('deleted_at', null)
-        .or('status.eq.revision_required,status.eq.overdue')
-        .not('due_date', 'is', null)
-        .gte('due_date', effectiveDateStr);
-
+      // 1. Fetch all tasks for workspace
       const { data, error } = await supabase
         .from('tasks')
         .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop, ad_budget, shooting_date, sharing_date, design_date, ad_cost, ad_duration, stat_cta, stat_downloads, stat_link_clicks, post_items')
@@ -1658,9 +1621,76 @@ export const TasksScreen: React.FC = () => {
         .is('deleted_at', null)
         .order('order_index', { ascending: true });
       if (error) throw error;
-      setTasks((data as Task[]) || []);
 
-      // Fetch dynamic categories
+      const loadedTasks = (data as Task[]) || [];
+
+      // 2. Resolve thresholds
+      const today = new Date();
+      const currentHour = today.getHours();
+      
+      // End date threshold comparison string (effective at 6:00 AM next day)
+      const effectiveEndDate = new Date(today);
+      if (currentHour < 6) {
+        effectiveEndDate.setDate(effectiveEndDate.getDate() - 1);
+      }
+      const yyyyEnd = effectiveEndDate.getFullYear();
+      const mmEnd = String(effectiveEndDate.getMonth() + 1).padStart(2, '0');
+      const ddEnd = String(effectiveEndDate.getDate()).padStart(2, '0');
+      const effectiveEndDateStr = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
+
+      // Start date threshold comparison string (today's date)
+      const yyyyStart = today.getFullYear();
+      const mmStart = String(today.getMonth() + 1).padStart(2, '0');
+      const ddStart = String(today.getDate()).padStart(2, '0');
+      const todayDateStr = `${yyyyStart}-${mmStart}-${ddStart}`;
+
+      // 3. Process status shifts locally
+      const tasksToUpdate: { id: string; status: Task['status'] }[] = [];
+      const processedTasks = loadedTasks.map(t => {
+        if (t.status === 'completed') return t;
+
+        const isSocial = isSocialCategory(t.category);
+        const startDateVal = isSocial
+          ? (t.content_type === 'post' ? t.design_date : t.shooting_date)
+          : t.start_date;
+        const endDateVal = isSocial ? t.sharing_date : t.due_date;
+
+        let targetStatus: Task['status'] = t.status;
+
+        // Condition A: End date passed -> 'revision_required' (Süresi Geçti Tekrar Yapılmalı)
+        if (endDateVal && endDateVal < effectiveEndDateStr) {
+          targetStatus = 'revision_required';
+        }
+        // Condition B: End date not passed, and start date is set
+        else if (startDateVal) {
+          if (startDateVal <= todayDateStr) {
+            // Start date has arrived or passed -> 'in_progress' (Sürüyor)
+            targetStatus = 'in_progress';
+          } else {
+            // Start date is in the future -> 'todo' (Yapılacak)
+            targetStatus = 'todo';
+          }
+        }
+        // Condition C: No start date and no end date, but was in revision_required or overdue -> default to todo
+        else if (t.status === 'revision_required' || t.status === 'overdue') {
+          targetStatus = 'todo';
+        }
+
+        // Map overdue database status to revision_required for column alignment
+        if (targetStatus === 'overdue') {
+          targetStatus = 'revision_required';
+        }
+
+        if (targetStatus !== t.status) {
+          tasksToUpdate.push({ id: t.id, status: targetStatus });
+          return { ...t, status: targetStatus };
+        }
+        return t;
+      });
+
+      setTasks(processedTasks);
+
+      // 4. Fetch dynamic categories
       const { data: catData, error: catError } = await supabase
         .from('workspace_categories')
         .select('*')
@@ -1668,6 +1698,19 @@ export const TasksScreen: React.FC = () => {
         .order('order_index', { ascending: true });
       if (catError) throw catError;
       setCategories((catData as WorkspaceCategory[]) || []);
+
+      // 5. Asynchronously persist updates back to Supabase in bulk
+      if (tasksToUpdate.length > 0) {
+        Promise.all(
+          tasksToUpdate.map(item =>
+            supabase
+              .from('tasks')
+              .update({ status: item.status, updated_at: new Date().toISOString() })
+              .eq('id', item.id)
+          )
+        ).catch(err => console.error('Bulk status update failed:', err));
+      }
+
     } catch (err) {
       console.error('Fetch tasks failed:', err);
     } finally {
