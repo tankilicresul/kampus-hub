@@ -45,6 +45,16 @@ interface Task {
   content_payoff?: string | null;
   content_cta?: string | null;
   content_loop?: string | null;
+  ad_budget?: string | null;
+  shooting_date?: string | null;
+  sharing_date?: string | null;
+  design_date?: string | null;
+  ad_cost?: string | null;
+  ad_duration?: string | null;
+  stat_cta?: string | null;
+  stat_downloads?: number | null;
+  stat_link_clicks?: number | null;
+  post_items?: any[] | null;
 }
 
 interface WorkspaceMember {
@@ -129,6 +139,77 @@ const AutoResizeTextarea: React.FC<{
       }}
       rows={1}
     />
+  );
+};
+
+const DynamicNumberInput: React.FC<{
+  label: string;
+  value: number;
+  onChange: (val: number) => void;
+  icon?: string;
+}> = ({ label, value, onChange, icon }) => {
+  return (
+    <div style={{
+      backgroundColor: 'var(--bg-surface-accent)',
+      padding: '12px 16px',
+      borderRadius: '12px',
+      border: '1px solid var(--border-glass)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+          {icon} {label}
+        </span>
+        <input
+          type="number"
+          value={value || 0}
+          onChange={e => onChange(parseInt(e.target.value) || 0)}
+          className="form-input"
+          style={{ width: '80px', textAlign: 'right', fontWeight: 700, fontSize: '0.85rem', borderRadius: '8px', padding: '4px 8px' }}
+        />
+      </div>
+      <div style={{ display: 'flex', gap: '4px' }}>
+        {[100, 500, 1000].map(amt => (
+          <button
+            key={amt}
+            type="button"
+            onClick={() => onChange((value || 0) + amt)}
+            style={{
+              flex: 1,
+              padding: '4px 0',
+              borderRadius: '6px',
+              border: '1px solid var(--border-glass)',
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              color: 'var(--text-secondary)',
+              fontSize: '0.68rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.1s'
+            }}
+          >
+            +{amt}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => onChange(0)}
+          style={{
+            padding: '4px 8px',
+            borderRadius: '6px',
+            border: '1px solid rgba(239, 68, 68, 0.2)',
+            backgroundColor: 'rgba(239, 68, 68, 0.08)',
+            color: '#ef4444',
+            fontSize: '0.68rem',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+        >
+          C
+        </button>
+      </div>
+    </div>
   );
 };
 
@@ -391,13 +472,24 @@ const TaskDetailModal: React.FC<{
   const [currentCategory, setCurrentCategory] = useState<string>(task.category || '');
   const CATEGORY_OPTIONS = ['', ...categories.map(c => c.name)];
 
-  const [contentType, setContentType] = useState<string>(task.content_type || 'video');
+  const [contentType, setContentType] = useState<string>(task.content_type || 'viral');
   const [contentHook, setContentHook] = useState<string>(task.content_hook || '');
   const [contentPromise, setContentPromise] = useState<string>(task.content_promise || '');
   const [contentBody, setContentBody] = useState<string>(task.content_body || '');
   const [contentPayoff, setContentPayoff] = useState<string>(task.content_payoff || '');
   const [contentCta, setContentCta] = useState<string>(task.content_cta || '');
   const [contentLoop, setContentLoop] = useState<string>(task.content_loop || '');
+  const [adBudget, setAdBudget] = useState<string>(task.ad_budget || '');
+
+  const [shootingDate, setShootingDate] = useState<string>(task.shooting_date || '');
+  const [sharingDate, setSharingDate] = useState<string>(task.sharing_date || '');
+  const [designDate, setDesignDate] = useState<string>(task.design_date || '');
+  const [adCost, setAdCost] = useState<string>(task.ad_cost || '');
+  const [adDuration, setAdDuration] = useState<string>(task.ad_duration || '');
+  const [statCta, setStatCta] = useState<string>(task.stat_cta || '');
+  const [statDownloads, setStatDownloads] = useState<number>(task.stat_downloads || 0);
+  const [statLinkClicks, setStatLinkClicks] = useState<number>(task.stat_link_clicks || 0);
+  const [postItems, setPostItems] = useState<any[]>(task.post_items || [{ id: 1, text: '' }]);
 
   const handleDueDateChange = (val: string) => {
     setCurrentDueDate(val || null);
@@ -477,6 +569,16 @@ const TaskDetailModal: React.FC<{
         content_payoff: contentPayoff || null,
         content_cta: contentCta || null,
         content_loop: contentLoop || null,
+        ad_budget: adBudget || null,
+        shooting_date: shootingDate || null,
+        sharing_date: sharingDate || null,
+        design_date: designDate || null,
+        ad_cost: adCost || null,
+        ad_duration: adDuration || null,
+        stat_cta: statCta || null,
+        stat_downloads: statDownloads || 0,
+        stat_link_clicks: statLinkClicks || 0,
+        post_items: postItems || null,
         completed_at: currentStatus === 'completed' ? (task.completed_at || new Date().toISOString()) : null,
         updated_at: new Date().toISOString()
       };
@@ -580,116 +682,282 @@ const TaskDetailModal: React.FC<{
               gap: '14px'
             }}>
               {/* Format selection */}
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
-                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>İÇERİK FORMATI:</span>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {[
-                    { key: 'video', label: '📹 Video (Reels/TikTok)' },
-                    { key: 'post', label: '🖼 Post / Galeri' }
-                  ].map(f => (
-                    <button
-                      key={f.key}
-                      type="button"
-                      onClick={() => setContentType(f.key)}
-                      style={{
-                        padding: '6px 14px',
-                        borderRadius: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 700,
-                        border: '1.5px solid',
-                        borderColor: contentType === f.key ? 'var(--accent-color)' : 'var(--border-glass)',
-                        backgroundColor: contentType === f.key ? 'rgba(255,159,10,0.12)' : 'transparent',
-                        color: contentType === f.key ? 'var(--accent-color)' : 'var(--text-secondary)',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s'
-                      }}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+                {[
+                  { key: 'viral', label: '🔥 Viral İçerik' },
+                  { key: 'post', label: '🖼 Post' },
+                  { key: 'reklam', label: '📢 Reklam' },
+                  { key: 'yari_reklam', label: '⚡ Yarı Reklam' }
+                ].map(f => (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => setContentType(f.key)}
+                    style={{
+                      flex: 1,
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      border: '1.5px solid',
+                      borderColor: contentType === f.key ? 'var(--accent-color)' : 'var(--border-glass)',
+                      backgroundColor: contentType === f.key ? 'rgba(255,159,10,0.12)' : 'transparent',
+                      color: contentType === f.key ? 'var(--accent-color)' : 'var(--text-secondary)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
 
-              {/* Proportional sections */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* Hook Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+              {contentType === 'post' ? (
+                /* ── Post Layout ── */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {postItems.map((item, index) => (
+                      <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 40px', gap: '12px', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {index + 1}. Post
+                        </span>
+                        <AutoResizeTextarea
+                          value={item.text || ''}
+                          onChange={(val) => {
+                            setPostItems(prev => prev.map(p => p.id === item.id ? { ...p, text: val } : p));
+                          }}
+                          placeholder="Post metnini veya görsel tasarım detaylarını yazın..."
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (postItems.length > 1) {
+                              setPostItems(prev => prev.filter(p => p.id !== item.id));
+                            }
+                          }}
+                          disabled={postItems.length <= 1}
+                          style={{
+                            background: 'none', border: 'none', color: '#ef4444', fontSize: '1.2rem', cursor: 'pointer',
+                            opacity: postItems.length <= 1 ? 0.3 : 1
+                          }}
+                          title="Postu sil"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <AutoResizeTextarea
-                    value={contentHook}
-                    onChange={setContentHook}
-                    placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
-                  />
-                </div>
 
-                {/* Kurulum / Vaat Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kurulum / Vaat</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
-                  </div>
-                  <AutoResizeTextarea
-                    value={contentPromise}
-                    onChange={setContentPromise}
-                    placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
-                  />
-                </div>
+                  <button
+                    type="button"
+                    onClick={() => setPostItems([...postItems, { id: Date.now(), text: '' }])}
+                    style={{
+                      alignSelf: 'start',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: '1.5px dashed var(--accent-color)',
+                      backgroundColor: 'transparent',
+                      color: 'var(--accent-color)',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                  >
+                    <Plus size={14} /> Post Ekle
+                  </button>
 
-                {/* Gelişme / Ana Değer Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gelişme / Değer</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-70 Bölümü</span>
+                  {/* Dates for Post */}
+                  <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '4px 0' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>🎨 Tasarım Yapılacak Gün</label>
+                      <input
+                        type="date"
+                        value={designDate || ''}
+                        onChange={e => setDesignDate(e.target.value)}
+                        className="form-input"
+                        style={{ fontSize: '0.85rem' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 Tasarımın Paylaşılacağı Gün</label>
+                      <input
+                        type="date"
+                        value={sharingDate || ''}
+                        onChange={e => setSharingDate(e.target.value)}
+                        className="form-input"
+                        style={{ fontSize: '0.85rem' }}
+                      />
+                    </div>
                   </div>
-                  <AutoResizeTextarea
-                    value={contentBody}
-                    onChange={setContentBody}
-                    placeholder="Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."
-                  />
                 </div>
+              ) : (
+                /* ── Viral or Reklam / Yarı Reklam Layout ── */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Standard Hook to Loop Sections */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {/* Hook */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentHook}
+                        onChange={setContentHook}
+                        placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
+                      />
+                    </div>
 
-                {/* Payoff / Sonuç Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff / Sonuç</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%70-85 Bölümü</span>
-                  </div>
-                  <AutoResizeTextarea
-                    value={contentPayoff}
-                    onChange={setContentPayoff}
-                    placeholder="Alınacak ana ders veya ulaşılan sonuç..."
-                  />
-                </div>
+                    {/* Kurulum / Vaat */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kurulum / Vaat</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentPromise}
+                        onChange={setContentPromise}
+                        placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
+                      />
+                    </div>
 
-                {/* CTA Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA (Çağrı)</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%85-95 Bölümü</span>
-                  </div>
-                  <AutoResizeTextarea
-                    value={contentCta}
-                    onChange={setContentCta}
-                    placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
-                  />
-                </div>
+                    {/* Gelişme / Değer */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gelişme / Değer</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-70 Bölümü</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentBody}
+                        onChange={setContentBody}
+                        placeholder="Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."
+                      />
+                    </div>
 
-                {/* Kapanış / Loop Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
-                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
+                    {/* Payoff / Sonuç */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff / Sonuç</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%70-85 Bölümü</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentPayoff}
+                        onChange={setContentPayoff}
+                        placeholder="Alınacak ana ders veya ulaşılan sonuç..."
+                      />
+                    </div>
+
+                    {/* CTA */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA (Çağrı)</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%85-95 Bölümü</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentCta}
+                        onChange={setContentCta}
+                        placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
+                      />
+                    </div>
+
+                    {/* Kapanış / Loop */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
+                      </div>
+                      <AutoResizeTextarea
+                        value={contentLoop}
+                        onChange={setContentLoop}
+                        placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
+                      />
+                    </div>
                   </div>
-                  <AutoResizeTextarea
-                    value={contentLoop}
-                    onChange={setContentLoop}
-                    placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
-                  />
+
+                  {/* Date fields based on format */}
+                  <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '6px 0' }} />
+
+                  {contentType === 'viral' ? (
+                    /* Viral: Çekim günü & Paylaşım günü */
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📹 Çekim Yapılacak Gün</label>
+                        <input
+                          type="date"
+                          value={shootingDate || ''}
+                          onChange={e => setShootingDate(e.target.value)}
+                          className="form-input"
+                          style={{ fontSize: '0.85rem' }}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 Paylaşılacak Gün</label>
+                        <input
+                          type="date"
+                          value={sharingDate || ''}
+                          onChange={e => setSharingDate(e.target.value)}
+                          className="form-input"
+                          style={{ fontSize: '0.85rem' }}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    /* Reklam / Yarı Reklam: Ücret, Süre, Çekim, Paylaşım */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>💵 Reklam Ücreti</label>
+                          <input
+                            type="text"
+                            value={adCost || ''}
+                            onChange={e => setAdCost(e.target.value)}
+                            placeholder="Örn: 2500 ₺..."
+                            className="form-input"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>⏱ Yayın Süresi</label>
+                          <input
+                            type="text"
+                            value={adDuration || ''}
+                            onChange={e => setAdDuration(e.target.value)}
+                            placeholder="Örn: 5 gün / 1 ay..."
+                            className="form-input"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📹 Çekim Günü</label>
+                          <input
+                            type="date"
+                            value={shootingDate || ''}
+                            onChange={e => setShootingDate(e.target.value)}
+                            className="form-input"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 Paylaşım Günü</label>
+                          <input
+                            type="date"
+                            value={sharingDate || ''}
+                            onChange={e => setSharingDate(e.target.value)}
+                            className="form-input"
+                            style={{ fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <div>
@@ -861,80 +1129,130 @@ const TaskDetailModal: React.FC<{
           <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '0 -24px' }} />
 
           {/* Comments / Attachments tabs */}
-          <div>
-            <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border-glass)', marginBottom: '14px' }}>
-              {[
-                { key: 'comments',    label: 'Yorumlar', icon: <MessageSquare size={13} /> },
-                { key: 'attachments', label: 'Ekler',    icon: <Paperclip size={13} /> },
-              ].map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700,
-                    display: 'flex', alignItems: 'center', gap: '5px',
-                    color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
-                    borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
-                    marginBottom: '-2px',
-                    transition: 'all 0.15s',
-                  }}
-                >
-                  {tab.icon} {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {activeTab === 'comments' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {comments.length === 0 && (
-                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
-                    Henüz yorum yok. İlk yorumu sen yap!
-                  </p>
-                )}
-                {comments.map(c => (
-                  <div key={c.id} style={{
-                    backgroundColor: 'var(--bg-surface-accent)',
-                    padding: '10px 14px', borderRadius: '10px',
-                    border: '1px solid var(--border-glass)',
-                  }}>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
-                      {(c.profile as any)?.full_name || 'Kullanıcı'}
-                      <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
-                        {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
-                  </div>
-                ))}
-                <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+          {/* Comments / Attachments tabs or Reklam Performans Analizi */}
+          {isSocial && (contentType === 'reklam' || contentType === 'yari_reklam') ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{
+                fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase',
+                borderBottom: '1px solid var(--border-glass)', paddingBottom: '6px', marginBottom: '4px'
+              }}>
+                📊 Reklam Performans Verileri
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <div style={{
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--border-glass)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '6px'
+                }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                    🎯 CTA Yönlendirmesi
+                  </label>
                   <input
                     type="text"
-                    placeholder="Yorum ekle..."
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
+                    value={statCta || ''}
+                    onChange={e => setStatCta(e.target.value)}
+                    placeholder="Linke tıkla, kaydet vb..."
                     className="form-input"
-                    style={{ flex: 1, fontSize: '0.85rem', borderRadius: '10px' }}
+                    style={{ width: '100%', fontSize: '0.85rem', borderRadius: '8px', padding: '6px 10px' }}
                   />
-                  <button
-                    className="btn btn-primary"
-                    type="submit"
-                    disabled={submitting || !newComment.trim()}
-                    style={{ minWidth: '90px', borderRadius: '10px', fontSize: '0.85rem' }}
-                  >
-                    {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
-                  </button>
-                </form>
-              </div>
-            )}
+                </div>
 
-            {activeTab === 'attachments' && (
-              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
-                <p>Dosya ekleri yakında kullanıma girecek.</p>
+                <DynamicNumberInput
+                  label="Toplam İndirme"
+                  value={statDownloads}
+                  onChange={setStatDownloads}
+                  icon="📥"
+                />
+
+                <DynamicNumberInput
+                  label="Link Tıklaması"
+                  value={statLinkClicks}
+                  onChange={setStatLinkClicks}
+                  icon="🔗"
+                />
               </div>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border-glass)', marginBottom: '14px' }}>
+                {[
+                  { key: 'comments',    label: 'Yorumlar', icon: <MessageSquare size={13} /> },
+                  { key: 'attachments', label: 'Ekler',    icon: <Paperclip size={13} /> },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveTab(tab.key as any)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700,
+                      display: 'flex', alignItems: 'center', gap: '5px',
+                      color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
+                      borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
+                      marginBottom: '-2px',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {tab.icon} {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === 'comments' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {comments.length === 0 && (
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                      Henüz yorum yok. İlk yorumu sen yap!
+                    </p>
+                  )}
+                  {comments.map(c => (
+                    <div key={c.id} style={{
+                      backgroundColor: 'var(--bg-surface-accent)',
+                      padding: '10px 14px', borderRadius: '10px',
+                      border: '1px solid var(--border-glass)',
+                    }}>
+                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
+                        {(c.profile as any)?.full_name || 'Kullanıcı'}
+                        <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
+                          {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
+                    </div>
+                  ))}
+                  <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <input
+                      type="text"
+                      placeholder="Yorum ekle..."
+                      value={newComment}
+                      onChange={e => setNewComment(e.target.value)}
+                      className="form-input"
+                      style={{ flex: 1, fontSize: '0.85rem', borderRadius: '10px' }}
+                    />
+                    <button
+                      className="btn btn-primary"
+                      type="submit"
+                      disabled={submitting || !newComment.trim()}
+                      style={{ minWidth: '90px', borderRadius: '10px', fontSize: '0.85rem' }}
+                    >
+                      {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
+                    </button>
+                  </form>
+                </div>
+              )}
+
+              {activeTab === 'attachments' && (
+                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                  <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
+                  <p>Dosya ekleri yakında kullanıma girecek.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Footer ── */}
@@ -1184,7 +1502,7 @@ export const TasksScreen: React.FC = () => {
 
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop')
+        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop, ad_budget, shooting_date, sharing_date, design_date, ad_cost, ad_duration, stat_cta, stat_downloads, stat_link_clicks, post_items')
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
         .order('order_index', { ascending: true });
