@@ -976,6 +976,40 @@ const TaskDetailModal: React.FC<{
             </div>
           )}
 
+          {isSocial && (contentType === 'reklam' || contentType === 'yari_reklam') && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.01)' }}>
+              <div style={{
+                fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase',
+                borderBottom: '1px solid var(--border-glass)', paddingBottom: '6px', marginBottom: '4px'
+              }}>
+                📊 Reklam Performans Verileri
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                <DynamicNumberInput
+                  label="CPM (Bin Gösterim)"
+                  value={parseInt(statCta) || 0}
+                  onChange={(val) => setStatCta(String(val))}
+                  icon="📊"
+                  amounts={[5, 10, 50]}
+                />
+
+                <DynamicNumberInput
+                  label="Toplam İndirme"
+                  value={statDownloads}
+                  onChange={setStatDownloads}
+                  icon="📥"
+                />
+
+                <DynamicNumberInput
+                  label="Link Tıklaması"
+                  value={statLinkClicks}
+                  onChange={setStatLinkClicks}
+                  icon="🔗"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Status + Priority — 2-col */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
@@ -1027,38 +1061,40 @@ const TaskDetailModal: React.FC<{
             </div>
           </div>
 
-          {/* Start Date + Due Date — 2-col */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                Başlangıç Tarihi
-              </label>
-              <input
-                type="date"
-                value={currentStartDate || ''}
-                onChange={e => setCurrentStartDate(e.target.value || null)}
-                className="form-input"
-                style={{ borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px' }}
-              />
+          {!isSocial && (
+            /* Start Date + Due Date — 2-col */
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                  Başlangıç Tarihi
+                </label>
+                <input
+                  type="date"
+                  value={currentStartDate || ''}
+                  onChange={e => setCurrentStartDate(e.target.value || null)}
+                  className="form-input"
+                  style={{ borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: isOverdue ? '#dc2626' : 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                  {isOverdue ? '⚠ Son Tarih (Geçti)' : 'Son Tarih'}
+                </label>
+                <input
+                  type="date"
+                  value={currentDueDate || ''}
+                  onChange={e => handleDueDateChange(e.target.value)}
+                  className="form-input"
+                  style={{
+                    borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px',
+                    borderColor: isOverdue ? '#ef4444' : undefined,
+                    color: isOverdue ? '#dc2626' : undefined,
+                    fontWeight: isOverdue ? 700 : 500,
+                  }}
+                />
+              </div>
             </div>
-            <div>
-              <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: isOverdue ? '#dc2626' : 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
-                {isOverdue ? '⚠ Son Tarih (Geçti)' : 'Son Tarih'}
-              </label>
-              <input
-                type="date"
-                value={currentDueDate || ''}
-                onChange={e => handleDueDateChange(e.target.value)}
-                className="form-input"
-                style={{
-                  borderRadius: '10px', fontSize: '0.88rem', width: '100%', padding: '9px 12px',
-                  borderColor: isOverdue ? '#ef4444' : undefined,
-                  color: isOverdue ? '#dc2626' : undefined,
-                  fontWeight: isOverdue ? 700 : 500,
-                }}
-              />
-            </div>
-          </div>
+          )}
 
           {/* Category + Assignee — 2-col */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
@@ -1130,116 +1166,81 @@ const TaskDetailModal: React.FC<{
           <div style={{ height: '1px', backgroundColor: 'var(--border-glass)', margin: '0 -24px' }} />
 
           {/* Comments / Attachments tabs */}
-          {/* Comments / Attachments tabs or Reklam Performans Analizi */}
-          {isSocial && (contentType === 'reklam' || contentType === 'yari_reklam') ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{
-                fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase',
-                borderBottom: '1px solid var(--border-glass)', paddingBottom: '6px', marginBottom: '4px'
-              }}>
-                📊 Reklam Performans Verileri
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                <DynamicNumberInput
-                  label="CPM (Bin Gösterim)"
-                  value={parseInt(statCta) || 0}
-                  onChange={(val) => setStatCta(String(val))}
-                  icon="📊"
-                  amounts={[5, 10, 50]}
-                />
-
-                <DynamicNumberInput
-                  label="Toplam İndirme"
-                  value={statDownloads}
-                  onChange={setStatDownloads}
-                  icon="📥"
-                />
-
-                <DynamicNumberInput
-                  label="Link Tıklaması"
-                  value={statLinkClicks}
-                  onChange={setStatLinkClicks}
-                  icon="🔗"
-                />
-              </div>
+          <div>
+            <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border-glass)', marginBottom: '14px' }}>
+              {[
+                { key: 'comments',    label: 'Yorumlar', icon: <MessageSquare size={13} /> },
+                { key: 'attachments', label: 'Ekler',    icon: <Paperclip size={13} /> },
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key as any)}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', gap: '5px',
+                    color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
+                    borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
+                    marginBottom: '-2px',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {tab.icon} {tab.label}
+                </button>
+              ))}
             </div>
-          ) : (
-            <div>
-              <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border-glass)', marginBottom: '14px' }}>
-                {[
-                  { key: 'comments',    label: 'Yorumlar', icon: <MessageSquare size={13} /> },
-                  { key: 'attachments', label: 'Ekler',    icon: <Paperclip size={13} /> },
-                ].map(tab => (
-                  <button
-                    key={tab.key}
-                    type="button"
-                    onClick={() => setActiveTab(tab.key as any)}
-                    style={{
-                      background: 'none', border: 'none', cursor: 'pointer',
-                      padding: '8px 18px', fontSize: '0.82rem', fontWeight: 700,
-                      display: 'flex', alignItems: 'center', gap: '5px',
-                      color: activeTab === tab.key ? 'var(--accent-color)' : 'var(--text-muted)',
-                      borderBottom: activeTab === tab.key ? '2px solid var(--accent-color)' : '2px solid transparent',
-                      marginBottom: '-2px',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    {tab.icon} {tab.label}
-                  </button>
-                ))}
-              </div>
 
-              {activeTab === 'comments' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {comments.length === 0 && (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
-                      Henüz yorum yok. İlk yorumu sen yap!
-                    </p>
-                  )}
-                  {comments.map(c => (
-                    <div key={c.id} style={{
-                      backgroundColor: 'var(--bg-surface-accent)',
-                      padding: '10px 14px', borderRadius: '10px',
-                      border: '1px solid var(--border-glass)',
-                    }}>
-                      <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
-                        {(c.profile as any)?.full_name || 'Kullanıcı'}
-                        <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
-                          {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
+            {activeTab === 'comments' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {comments.length === 0 && (
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>
+                    Henüz yorum yok. İlk yorumu sen yap!
+                  </p>
+                )}
+                {comments.map(c => (
+                  <div key={c.id} style={{
+                    backgroundColor: 'var(--bg-surface-accent)',
+                    padding: '10px 14px', borderRadius: '10px',
+                    border: '1px solid var(--border-glass)',
+                  }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--accent-color)', marginBottom: '4px' }}>
+                      {(c.profile as any)?.full_name || 'Kullanıcı'}
+                      <span style={{ fontWeight: 400, color: 'var(--text-muted)', marginLeft: '8px' }}>
+                        {new Date(c.created_at).toLocaleString('tr-TR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
-                  ))}
-                  <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                    <input
-                      type="text"
-                      placeholder="Yorum ekle..."
-                      value={newComment}
-                      onChange={e => setNewComment(e.target.value)}
-                      className="form-input"
-                      style={{ flex: 1, fontSize: '0.85rem', borderRadius: '10px' }}
-                    />
-                    <button
-                      className="btn btn-primary"
-                      type="submit"
-                      disabled={submitting || !newComment.trim()}
-                      style={{ minWidth: '90px', borderRadius: '10px', fontSize: '0.85rem' }}
-                    >
-                      {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
-                    </button>
-                  </form>
-                </div>
-              )}
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)' }}>{c.comment_text}</div>
+                  </div>
+                ))}
+                <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <input
+                    type="text"
+                    placeholder="Yorum ekle..."
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    className="form-input"
+                    style={{ flex: 1, fontSize: '0.85rem', borderRadius: '10px' }}
+                  />
+                  <button
+                    className="btn btn-primary"
+                    type="submit"
+                    disabled={submitting || !newComment.trim()}
+                    style={{ minWidth: '90px', borderRadius: '10px', fontSize: '0.85rem' }}
+                  >
+                    {submitting ? <RefreshCw size={14} className="animate-spin" /> : 'Gönder'}
+                  </button>
+                </form>
+              </div>
+            )}
 
-              {activeTab === 'attachments' && (
-                <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                  <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
-                  <p>Dosya ekleri yakında kullanıma girecek.</p>
-                </div>
-              )}
-            </div>
-          )}
+            {activeTab === 'attachments' && (
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                <Paperclip size={32} style={{ opacity: 0.3, marginBottom: '8px' }} />
+                <p>Dosya ekleri yakında kullanıma girecek.</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ── Footer ── */}
