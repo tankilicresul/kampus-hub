@@ -590,6 +590,7 @@ const TaskDetailModal: React.FC<{
   const [currentDueDate, setCurrentDueDate] = useState<string | null>(task.due_date || null);
   const [currentStartDate, setCurrentStartDate] = useState<string | null>(task.start_date || null);
   const [currentCategory, setCurrentCategory] = useState<string>(task.category || '');
+  const [currentAssigneeId, setCurrentAssigneeId] = useState<string>(task.primary_assignee_id || '');
   const CATEGORY_OPTIONS = ['', ...categories.map(c => c.name)];
 
   const [contentType, setContentType] = useState<string>(task.content_type || 'viral');
@@ -715,6 +716,7 @@ const TaskDetailModal: React.FC<{
         priority: currentPriority,
         start_date: currentStartDate || null,
         due_date: currentDueDate || null,
+        primary_assignee_id: currentAssigneeId || null,
         category: currentCategory || null,
         content_type: contentType || null,
         content_hook: contentHook || null,
@@ -775,7 +777,6 @@ const TaskDetailModal: React.FC<{
   const isSocial = isSocialCategory(currentCategory);
   const targetDateVal = isSocial ? sharingDate : currentDueDate;
   const isOverdue = (currentStatus === 'revision_required' || currentStatus === 'overdue' || checkIfDateIsPastDue(targetDateVal)) && currentStatus !== 'completed';
-  const assignee = members.find(m => m.user_id === task.primary_assignee_id);
 
   return (
     <div className="modal-backdrop" onClick={onClose}>
@@ -1289,30 +1290,19 @@ const TaskDetailModal: React.FC<{
               <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                 Atanan Kişi
               </label>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '8px',
-                backgroundColor: 'var(--bg-surface-accent)', border: '1px solid var(--border-glass)',
-                borderRadius: '10px', padding: '9px 12px', minHeight: '40px',
-              }}>
-                {assignee ? (
-                  <>
-                    <div style={{
-                      width: '22px', height: '22px', borderRadius: '50%',
-                      backgroundColor: 'var(--accent-color)', color: 'white',
-                      fontSize: '0.65rem', fontWeight: 800,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
-                    }}>
-                      {assignee.avatar_url
-                        ? <img src={assignee.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : (assignee.full_name || '?').slice(0, 1).toUpperCase()
-                      }
-                    </div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)' }}>{assignee.full_name || 'Kullanıcı'}</span>
-                  </>
-                ) : (
-                  <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>— Atanmamış —</span>
-                )}
-              </div>
+              <select
+                value={currentAssigneeId}
+                onChange={e => setCurrentAssigneeId(e.target.value)}
+                className="form-input"
+                style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px', height: '40px' }}
+              >
+                <option value="">— Atanmamış —</option>
+                {members.map(m => (
+                  <option key={m.user_id} value={m.user_id}>
+                    {m.full_name || 'Kullanıcı'}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
