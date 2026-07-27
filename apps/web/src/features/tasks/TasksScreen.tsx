@@ -510,13 +510,13 @@ const SortableTaskCard: React.FC<{
           );
         })()}
 
-        {/* Display dates/duration inline next to badges for social tasks */}
-        {isSocialCategory(task.category) && renderCardDateMeta(task)}
+        {/* Display dates/duration inline next to badges for all tasks */}
+        {renderCardDateMeta(task)}
       </div>
 
-      {/* Meta: assignee + due_date */}
-      <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-        {assignee && (
+      {/* Meta: assignee */}
+      {assignee && (
+        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
             <div style={{
               width: '18px', height: '18px', borderRadius: '50%',
@@ -532,10 +532,8 @@ const SortableTaskCard: React.FC<{
             </div>
             <span>{(assignee.full_name || '').split(' ')[0]}</span>
           </div>
-        )}
-        {/* Render standard due date only for non-social tasks */}
-        {!isSocialCategory(task.category) && renderCardDateMeta(task)}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
