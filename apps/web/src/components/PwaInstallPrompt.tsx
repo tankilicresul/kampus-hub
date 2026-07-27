@@ -17,6 +17,8 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
   const [isIOS, setIsIOS] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
   const [showIosModal, setShowIosModal] = useState(false);
+  const [showFallbackModal, setShowFallbackModal] = useState(false);
+  const [fallbackPlatform, setFallbackPlatform] = useState<'desktop' | 'android' | 'ios'>('desktop');
   const [isInstalledSuccess, setIsInstalledSuccess] = useState(false);
 
   useEffect(() => {
@@ -30,10 +32,19 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
     const standalone = checkStandalone();
     setIsStandalone(standalone);
 
-    // 2. Check if iOS device
+    // 2. Check platform
     const userAgent = window.navigator.userAgent.toLowerCase();
     const iosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const androidDevice = /android/.test(userAgent);
     setIsIOS(iosDevice);
+
+    if (iosDevice) {
+      setFallbackPlatform('ios');
+    } else if (androidDevice) {
+      setFallbackPlatform('android');
+    } else {
+      setFallbackPlatform('desktop');
+    }
 
     // 3. Check if window already has cached deferredPrompt
     if ((window as any).deferredPrompt) {
@@ -70,7 +81,7 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
       } else if (deferredPrompt) {
         handleInstallClick();
       } else {
-        setShowBanner(true);
+        setShowFallbackModal(true);
       }
     }
   }, [forceOpen]);
@@ -101,7 +112,11 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
       }
     } else {
       // Fallback if beforeinstallprompt wasn't triggered yet or browser doesn't support it
-      setShowIosModal(true);
+      if (isIOS) {
+        setShowIosModal(true);
+      } else {
+        setShowFallbackModal(true);
+      }
     }
   };
 
@@ -236,6 +251,78 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
 
             <div className="modal-footer" style={{ marginTop: '20px' }}>
               <button className="btn btn-primary btn-block" onClick={() => { setShowIosModal(false); if (onCloseForce) onCloseForce(); }}>
+                Tamam
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fallback steps for non-iOS platforms when beforeinstallprompt is missing */}
+      {showFallbackModal && (
+        <div className="modal-backdrop" onClick={() => { setShowFallbackModal(false); if (onCloseForce) onCloseForce(); }}>
+          <div className="modal-content animate-slide-up" style={{ maxWidth: '480px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 800 }}>Uygulama Yükleme Rehberi</span>
+              <button 
+                onClick={() => { setShowFallbackModal(false); if (onCloseForce) onCloseForce(); }} 
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '10px 0' }}>
+              {fallbackPlatform === 'android' ? (
+                <>
+                  <div style={{ textAlign: 'center', margin: '10px 0' }}>
+                    <Smartphone size={32} style={{ color: 'var(--accent-color)' }} />
+                    <h4 style={{ margin: '8px 0', fontWeight: 700 }}>Android Kurulum Adımları</h4>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>1</span>
+                      <span>Tarayıcınızın (örn. Chrome) sağ üst köşesindeki **üç noktaya (⋮)** dokunun.</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>2</span>
+                      <span>Açılan menüden **"Ana Ekrana Ekle"** veya **"Uygulamayı Yükle"** seçeneğini seçin.</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>3</span>
+                      <span>Ekranda beliren onay kutusunda **"Yükle"** butonuna dokunun. Uygulama otomatik olarak telefonunuza yüklenecektir.</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ textAlign: 'center', margin: '10px 0' }}>
+                    <Download size={32} style={{ color: 'var(--accent-color)' }} />
+                    <h4 style={{ margin: '8px 0', fontWeight: 700 }}>Masaüstü Kurulum Adımları</h4>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>1</span>
+                      <span>Tarayıcınızın adres çubuğunun (URL) sağ tarafındaki **"Yükle"** (Ekran ve Aşağı Ok simgesi) veya **üç noktaya (⋮)** tıklayın.</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>2</span>
+                      <span>Menüden **"TanCoreLab uygulamasını yükle"** veya **"Uygulamayı yükle..."** seçeneğini seçin.</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--accent-color)', color: 'white', fontWeight: 800, fontSize: '0.75rem', flexShrink: 0 }}>3</span>
+                      <span>Karşınıza gelen pencerede **"Yükle"** butonuna basarak uygulamayı bilgisayarınıza bağımsız bir ekran/sekme olarak yükleyin.</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="modal-footer" style={{ marginTop: '20px' }}>
+              <button 
+                className="btn btn-primary btn-block" 
+                onClick={() => { setShowFallbackModal(false); if (onCloseForce) onCloseForce(); }}
+              >
                 Tamam
               </button>
             </div>
