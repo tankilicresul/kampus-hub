@@ -1479,6 +1479,22 @@ export const TasksScreen: React.FC = () => {
   const [newRecurrence, setNewRecurrence] = useState('none');
   const [newCategory, setNewCategory] = useState('');
 
+  // Creation social media variables
+  const [newContentType, setNewContentType] = useState<string>('viral');
+  const [newContentHook, setNewContentHook] = useState('');
+  const [newContentPromise, setNewContentPromise] = useState('');
+  const [newContentBody, setNewContentBody] = useState('');
+  const [newContentPayoff, setNewContentPayoff] = useState('');
+  const [newContentCta, setNewContentCta] = useState('');
+  const [newContentLoop, setNewContentLoop] = useState('');
+  const [newAdBudget, setNewAdBudget] = useState('');
+  const [newShootingDate, setNewShootingDate] = useState('');
+  const [newSharingDate, setNewSharingDate] = useState('');
+  const [newDesignDate, setNewDesignDate] = useState('');
+  const [newAdCost, setNewAdCost] = useState('');
+  const [newAdDuration, setNewAdDuration] = useState('');
+  const [newPostItems, setNewPostItems] = useState<any[]>([{ id: 1, text: '' }]);
+
   // Category filter
   const [categories, setCategories] = useState<WorkspaceCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -1761,25 +1777,87 @@ export const TasksScreen: React.FC = () => {
       const maxIdx = todoTasks.length > 0 ? Math.max(...todoTasks.map(t => t.order_index)) : 0.0;
       const newOrderIdx = maxIdx + 1.0;
 
-      const { error } = await supabase.from('tasks').insert({
+      const isNewSocial = isSocialCategory(newCategory || activeCategory);
+
+      // Determine next status based on start/end dates
+      let initialStatus: Task['status'] = 'todo';
+      const startDateVal = isNewSocial
+        ? (newContentType === 'post' ? newDesignDate : newShootingDate)
+        : newStartDate;
+      const endDateVal = isNewSocial ? newSharingDate : newDueDate;
+
+      const today = new Date();
+      const currentHour = today.getHours();
+      
+      const effectiveEndDate = new Date(today);
+      if (currentHour < 6) {
+        effectiveEndDate.setDate(effectiveEndDate.getDate() - 1);
+      }
+      const yyyyEnd = effectiveEndDate.getFullYear();
+      const mmEnd = String(effectiveEndDate.getMonth() + 1).padStart(2, '0');
+      const ddEnd = String(effectiveEndDate.getDate()).padStart(2, '0');
+      const effectiveEndDateStr = `${yyyyEnd}-${mmEnd}-${ddEnd}`;
+
+      const yyyyStart = today.getFullYear();
+      const mmStart = String(today.getMonth() + 1).padStart(2, '0');
+      const ddStart = String(today.getDate()).padStart(2, '0');
+      const todayDateStr = `${yyyyStart}-${mmStart}-${ddStart}`;
+
+      if (endDateVal && endDateVal < effectiveEndDateStr) {
+        initialStatus = 'revision_required';
+      } else if (startDateVal) {
+        if (startDateVal <= todayDateStr) {
+          initialStatus = 'in_progress';
+        } else {
+          initialStatus = 'todo';
+        }
+      }
+
+      const taskPayload: any = {
         workspace_id: activeWorkspace.id,
         title: newTitle.trim(),
-        description: newDesc.trim() || null,
+        description: isNewSocial ? null : (newDesc.trim() || null),
         priority: newPriority,
-        status: 'todo',
+        status: initialStatus,
         created_by: user?.id || null,
         primary_assignee_id: newAssignee || null,
-        start_date: newStartDate || null,
-        due_date: newDueDate || null,
         tags: newTags.length > 0 ? newTags : [],
-        recurrence: newRecurrence,
         category: newCategory || activeCategory || null,
         order_index: newOrderIdx,
-      });
+      };
+
+      if (isNewSocial) {
+        taskPayload.content_type = newContentType || 'viral';
+        taskPayload.content_hook = newContentHook.trim() || null;
+        taskPayload.content_promise = newContentPromise.trim() || null;
+        taskPayload.content_body = newContentBody.trim() || null;
+        taskPayload.content_payoff = newContentPayoff.trim() || null;
+        taskPayload.content_cta = newContentCta.trim() || null;
+        taskPayload.content_loop = newContentLoop.trim() || null;
+        taskPayload.ad_budget = newAdBudget.trim() || null;
+        taskPayload.shooting_date = newShootingDate || null;
+        taskPayload.sharing_date = newSharingDate || null;
+        taskPayload.design_date = newDesignDate || null;
+        taskPayload.ad_cost = newAdCost || null;
+        taskPayload.ad_duration = newAdDuration || null;
+        taskPayload.post_items = newPostItems || null;
+      } else {
+        taskPayload.start_date = newStartDate || null;
+        taskPayload.due_date = newDueDate || null;
+        taskPayload.recurrence = newRecurrence;
+      }
+
+      const { error } = await supabase.from('tasks').insert(taskPayload);
       if (error) throw error;
       setShowAddModal(false);
+      
+      // Reset all states
       setNewTitle(''); setNewDesc(''); setNewPriority('normal');
       setNewAssignee(''); setNewStartDate(''); setNewDueDate(''); setNewTags([]); setNewTagInput(''); setNewRecurrence('none'); setNewCategory('');
+      setNewContentType('viral'); setNewContentHook(''); setNewContentPromise(''); setNewContentBody(''); setNewContentPayoff(''); setNewContentCta(''); setNewContentLoop('');
+      setNewAdBudget(''); setNewShootingDate(''); setNewSharingDate(''); setNewDesignDate(''); setNewAdCost(''); setNewAdDuration('');
+      setNewPostItems([{ id: 1, text: '' }]);
+
       await loadTasks();
     } catch (err) {
       console.error('Create task failed:', err);
@@ -1915,7 +1993,7 @@ export const TasksScreen: React.FC = () => {
           <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
             <RefreshCw size={16} />
           </button>
-          <button className="btn btn-primary" onClick={() => setShowAddModal(true)}>
+          <button className="btn btn-primary" onClick={() => { setNewCategory(activeCategory); setShowAddModal(true); }}>
             <Plus size={18} />
             <span className="btn-text">{isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
           </button>
@@ -2145,124 +2223,466 @@ export const TasksScreen: React.FC = () => {
       )}
 
       {/* Add Task Modal */}
-      {showAddModal && (
-        <div className="modal-backdrop">
-          <div className="modal-content" style={{ maxWidth: '520px', width: '95%' }}>
-            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>{isSocialCategory(activeCategory || newCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                <X size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div className="form-group">
-                <label className="form-label">Başlık *</label>
-                <input type="text" required value={newTitle} onChange={e => setNewTitle(e.target.value)} className="form-input" placeholder="Görev başlığı..." />
+      {showAddModal && (() => {
+        const isNewSocial = isSocialCategory(newCategory || activeCategory);
+        return (
+          <div className="modal-backdrop">
+            <div 
+              className="modal-content" 
+              style={{ 
+                maxWidth: isNewSocial ? '760px' : '520px', 
+                width: '95%', 
+                transition: 'max-width 0.2s ease-in-out',
+                padding: 0,
+                overflow: 'hidden',
+                borderRadius: '16px'
+              }}
+            >
+              {/* Header */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '18px 24px 16px',
+                borderBottom: '1px solid var(--border-glass)',
+                background: 'var(--bg-surface)'
+              }}>
+                <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                  {isNewSocial ? 'Yeni İçerik Planla' : 'Yeni Görev Tanımla'}
+                </span>
+                <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '4px' }}>
+                  <X size={20} />
+                </button>
               </div>
-              <div className="form-group">
-                <label className="form-label">Açıklama</label>
-                <textarea value={newDesc} onChange={e => setNewDesc(e.target.value)} className="form-input" rows={2} placeholder="Opsiyonel açıklama..." />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label"><AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }} />Öncelik</label>
-                  <select value={newPriority} onChange={e => setNewPriority(e.target.value as Task['priority'])} className="form-input">
-                    <option value="critical">🔴 Acil</option>
-                    <option value="high">🟡 Önemli</option>
-                    <option value="normal">🔵 Acelesi Yok</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label"><Repeat size={12} style={{ display: 'inline', marginRight: '4px' }} />Tekrar</label>
-                  <select value={newRecurrence} onChange={e => setNewRecurrence(e.target.value)} className="form-input">
-                    <option value="none">Yok</option>
-                    <option value="daily">Günlük</option>
-                    <option value="weekly">Haftalık</option>
-                    <option value="monthly">Aylık</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label className="form-label"><User size={12} style={{ display: 'inline', marginRight: '4px' }} />Kişi Ata</label>
-                  <select value={newAssignee} onChange={e => setNewAssignee(e.target.value)} className="form-input">
-                    <option value="">Seçilmedi</option>
-                    {members.map(m => (
-                      <option key={m.user_id} value={m.user_id}>{m.full_name || m.user_id.slice(0, 8)}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Başlangıç Tarihi</label>
-                  <input 
-                    type="date" 
-                    value={newStartDate} 
-                    onChange={e => setNewStartDate(e.target.value)} 
-                    className="form-input" 
-                  />
-                </div>
-                <div className="form-group">
-                  <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Bitiş Tarihi</label>
-                  <input 
-                    type="date" 
-                    value={newDueDate} 
-                    onChange={e => {
-                      const val = e.target.value;
-                      setNewDueDate(val);
-                      if (val) {
-                        setNewPriority(calculatePriorityFromDueDate(val));
-                      }
-                    }} 
-                    className="form-input" 
-                  />
-                </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />İş Tanımı / Kategori</label>
-                <select value={newCategory} onChange={e => setNewCategory(e.target.value)} className="form-input">
-                  <option value="">— Kategori Seçin —</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />Etiketler (Enter ile ekle)</label>
-                <input
-                  type="text"
-                  value={newTagInput}
-                  onChange={e => setNewTagInput(e.target.value)}
-                  onKeyDown={handleTagKeyDown}
-                  className="form-input"
-                  placeholder="#etiket yaz, Enter'a bas..."
-                />
-                {newTags.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                    {newTags.map(tag => (
-                      <span key={tag} style={{
-                        padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem',
-                        backgroundColor: 'rgba(183,1,22,0.08)', color: 'var(--accent-color)',
-                        border: '1px solid rgba(183,1,22,0.2)', display: 'flex', alignItems: 'center', gap: '4px',
-                      }}>
-                        #{tag}
-                        <button
-                          type="button"
-                          onClick={() => setNewTags(prev => prev.filter(t => t !== tag))}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', padding: 0, lineHeight: 1 }}
-                        >×</button>
-                      </span>
-                    ))}
+
+              {/* Form */}
+              <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column' }}>
+                <div style={{ 
+                  padding: '20px 24px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '18px', 
+                  overflowY: 'auto', 
+                  maxHeight: 'calc(90vh - 140px)' 
+                }}>
+
+                  {/* Row 1: Category selection is now first! */}
+                  <div>
+                    <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                      İş Tanımı / Kategori
+                    </label>
+                    <select 
+                      value={newCategory} 
+                      onChange={e => setNewCategory(e.target.value)} 
+                      className="form-input"
+                      style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                    >
+                      <option value="">— Kategori Seçin —</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
                   </div>
-                )}
-              </div>
-              <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
-                <button type="submit" className="btn btn-primary">{isSocialCategory(activeCategory || newCategory) ? 'İçerik Oluştur' : 'Görev Oluştur'}</button>
-              </div>
-            </form>
+
+                  {/* Title */}
+                  <div>
+                    <label style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.08em', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                      {isNewSocial ? 'İçerik Başlığı *' : 'Görev Başlığı *'}
+                    </label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={newTitle} 
+                      onChange={e => setNewTitle(e.target.value)} 
+                      className="form-input" 
+                      placeholder={isNewSocial ? "İçerik başlığı..." : "Görev başlığı..."} 
+                      style={{ fontWeight: 700, fontSize: '0.95rem', width: '100%', borderRadius: '10px', padding: '10px 14px' }}
+                    />
+                  </div>
+
+                  {/* Meta: Priority, Recurrence, Assignee */}
+                  <div style={{ display: 'grid', gridTemplateColumns: isNewSocial ? '1fr 1fr' : '1fr 1fr 1fr', gap: '12px' }}>
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><AlertCircle size={12} style={{ display: 'inline', marginRight: '4px' }} />Öncelik</label>
+                      <select 
+                        value={newPriority} 
+                        onChange={e => setNewPriority(e.target.value as Task['priority'])} 
+                        className="form-input"
+                        style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                      >
+                        <option value="critical">🔴 Acil</option>
+                        <option value="high">🟡 Önemli</option>
+                        <option value="normal">🔵 Acelesi Yok</option>
+                      </select>
+                    </div>
+
+                    {!isNewSocial && (
+                      <div className="form-group">
+                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><Repeat size={12} style={{ display: 'inline', marginRight: '4px' }} />Tekrar</label>
+                        <select 
+                          value={newRecurrence} 
+                          onChange={e => setNewRecurrence(e.target.value)} 
+                          className="form-input"
+                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                        >
+                          <option value="none">Yok</option>
+                          <option value="daily">Günlük</option>
+                          <option value="weekly">Haftalık</option>
+                          <option value="monthly">Aylık</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="form-group">
+                      <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 700 }}><User size={12} style={{ display: 'inline', marginRight: '4px' }} />Kişi Ata</label>
+                      <select 
+                        value={newAssignee} 
+                        onChange={e => setNewAssignee(e.target.value)} 
+                        className="form-input"
+                        style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px', height: '40px' }}
+                      >
+                        <option value="">— Atanmamış —</option>
+                        {members.map(m => (
+                          <option key={m.user_id} value={m.user_id}>{m.full_name || 'Kullanıcı'}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Content Specific Form Fields */}
+                  {isNewSocial ? (
+                    /* ── Social Media Editor ── */
+                    <div style={{
+                      border: '1px solid var(--border-glass)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      backgroundColor: 'rgba(255,255,255,0.01)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '14px'
+                    }}>
+                      {/* Format selection */}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+                        {[
+                          { key: 'viral', label: '🔥 Viral İçerik' },
+                          { key: 'post', label: '🖼 Post' },
+                          { key: 'reklam', label: '📢 Reklam' },
+                          { key: 'yari_reklam', label: '⚡ Yarı Reklam' }
+                        ].map(f => (
+                          <button
+                            key={f.key}
+                            type="button"
+                            onClick={() => setNewContentType(f.key)}
+                            style={{
+                              flex: 1,
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              border: '1.5px solid',
+                              borderColor: newContentType === f.key ? 'var(--accent-color)' : 'var(--border-glass)',
+                              backgroundColor: newContentType === f.key ? 'rgba(255,159,10,0.12)' : 'transparent',
+                              color: newContentType === f.key ? 'var(--accent-color)' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s'
+                            }}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {newContentType === 'post' ? (
+                        /* ── Post Layout ── */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {newPostItems.map((item, index) => (
+                              <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 40px', gap: '12px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {index + 1}. Post
+                                </span>
+                                <AutoResizeTextarea
+                                  value={item.text || ''}
+                                  onChange={(val) => {
+                                    setNewPostItems(prev => prev.map(p => p.id === item.id ? { ...p, text: val } : p));
+                                  }}
+                                  placeholder="Post metnini veya görsel tasarım detaylarını yazın..."
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (newPostItems.length > 1) {
+                                      setNewPostItems(prev => prev.filter(p => p.id !== item.id));
+                                    }
+                                  }}
+                                  disabled={newPostItems.length <= 1}
+                                  style={{
+                                    background: 'none', border: 'none', color: '#ef4444', fontSize: '1.2rem', cursor: 'pointer',
+                                    opacity: newPostItems.length <= 1 ? 0.3 : 1
+                                  }}
+                                  title="Postu sil"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => setNewPostItems(prev => [...prev, { id: Date.now(), text: '' }])}
+                              style={{
+                                padding: '6px 12px', borderRadius: '8px', border: '1.5px dashed var(--border-glass)',
+                                backgroundColor: 'transparent', color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 700,
+                                cursor: 'pointer', alignSelf: 'flex-start', marginTop: '4px'
+                              }}
+                            >
+                              + Post Ekle
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ── Viral / Reklam / Yarı Reklam Layout ── */
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {/* Hook */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentHook}
+                                onChange={setNewContentHook}
+                                placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
+                              />
+                            </div>
+                            {/* Vaat */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Vaat</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentPromise}
+                                onChange={setNewContentPromise}
+                                placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
+                              />
+                            </div>
+                            {/* Gövde */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gövde</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-80 Bölümü</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentBody}
+                                onChange={setNewContentBody}
+                                placeholder="İçeriğin ana konusu, detayları ve kanıtlar..."
+                              />
+                            </div>
+                            {/* Payoff */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%80-90 Bölümü</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentPayoff}
+                                onChange={setNewContentPayoff}
+                                placeholder="İzleyicinin alacağı nihai fayda veya ders..."
+                              />
+                            </div>
+                            {/* CTA */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>Eyleme Çağrı</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentCta}
+                                onChange={setNewContentCta}
+                                placeholder="İzleyiciyi yönlendireceğiniz eylem (Yorum yap, Kaydet vb.)..."
+                              />
+                            </div>
+                            {/* Loop */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Loop</span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Döngü Cümlesi</span>
+                              </div>
+                              <AutoResizeTextarea
+                                value={newContentLoop}
+                                onChange={setNewContentLoop}
+                                placeholder="İçeriğin başına kusursuz dönecek son cümle..."
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Dates inside social panel */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 {newContentType === 'post' ? 'Tasarım Tarihi' : 'Çekim Tarihi'}</label>
+                          <input
+                            type="date"
+                            value={newContentType === 'post' ? newDesignDate : newShootingDate}
+                            onChange={e => {
+                              if (newContentType === 'post') {
+                                setNewDesignDate(e.target.value);
+                              } else {
+                                setNewShootingDate(e.target.value);
+                              }
+                            }}
+                            className="form-input"
+                            style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 Paylaşım Günü (Deadline)</label>
+                          <input
+                            type="date"
+                            value={newSharingDate}
+                            onChange={e => setNewSharingDate(e.target.value)}
+                            className="form-input"
+                            style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Reklam details */}
+                      {(newContentType === 'reklam' || newContentType === 'yari_reklam') && (
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 700 }}>💵 Reklam Bütçesi</label>
+                            <input
+                              type="text"
+                              value={newAdBudget}
+                              onChange={e => setNewAdBudget(e.target.value)}
+                              className="form-input"
+                              placeholder="Örn: 5000 TL"
+                              style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 700 }}>💸 Harcanan Tutar</label>
+                            <input
+                              type="text"
+                              value={newAdCost}
+                              onChange={e => setNewAdCost(e.target.value)}
+                              className="form-input"
+                              placeholder="Örn: 4800 TL"
+                              style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 700 }}>⏱ Reklam Süresi</label>
+                            <input
+                              type="text"
+                              value={newAdDuration}
+                              onChange={e => setNewAdDuration(e.target.value)}
+                              className="form-input"
+                              placeholder="Örn: 5 gün"
+                              style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* ── Standard Task Fields ── */
+                    <>
+                      <div className="form-group">
+                        <label className="form-label">Açıklama</label>
+                        <textarea 
+                          value={newDesc} 
+                          onChange={e => setNewDesc(e.target.value)} 
+                          className="form-input" 
+                          rows={2} 
+                          placeholder="Opsiyonel açıklama..." 
+                          style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                        />
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                        <div className="form-group">
+                          <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Başlangıç Tarihi</label>
+                          <input 
+                            type="date" 
+                            value={newStartDate} 
+                            onChange={e => setNewStartDate(e.target.value)} 
+                            className="form-input" 
+                            style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label"><Calendar size={12} style={{ display: 'inline', marginRight: '4px' }} />Bitiş Tarihi</label>
+                          <input 
+                            type="date" 
+                            value={newDueDate} 
+                            onChange={e => {
+                              const val = e.target.value;
+                              setNewDueDate(val);
+                              if (val) {
+                                setNewPriority(calculatePriorityFromDueDate(val));
+                              }
+                            }} 
+                            className="form-input" 
+                            style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Tags (Common to both) */}
+                  <div className="form-group">
+                    <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />Etiketler (Enter ile ekle)</label>
+                    <input
+                      type="text"
+                      value={newTagInput}
+                      onChange={e => setNewTagInput(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                      className="form-input"
+                      placeholder="#etiket yaz, Enter'a bas..."
+                      style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                    />
+                    {newTags.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                        {newTags.map(tag => (
+                          <span key={tag} style={{
+                            padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem',
+                            backgroundColor: 'rgba(183,1,22,0.08)', color: 'var(--accent-color)',
+                            border: '1px solid rgba(183,1,22,0.2)', display: 'flex', alignItems: 'center', gap: '4px',
+                            fontWeight: 600
+                          }}>
+                            #{tag}
+                            <button
+                              type="button"
+                              onClick={() => setNewTags(prev => prev.filter(t => t !== tag))}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', padding: 0, lineHeight: 1 }}
+                            >×</button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div style={{
+                  display: 'flex', justifyContent: 'flex-end', gap: '8px',
+                  padding: '16px 24px',
+                  borderTop: '1px solid var(--border-glass)',
+                  background: 'var(--bg-surface)'
+                }}>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>İptal</button>
+                  <button type="submit" className="btn btn-primary">
+                    {isNewSocial ? 'İçerik Oluştur' : 'Görev Oluştur'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
 
 
