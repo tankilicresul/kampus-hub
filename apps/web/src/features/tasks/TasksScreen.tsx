@@ -420,8 +420,9 @@ const SortableCategoryPill: React.FC<{
 const SortableTaskCard: React.FC<{
   task: Task;
   members: WorkspaceMember[];
+  comments?: any[];
   onDetailClick: (task: Task) => void;
-}> = ({ task, members, onDetailClick }) => {
+}> = ({ task, members, comments = [], onDetailClick }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -460,7 +461,31 @@ const SortableTaskCard: React.FC<{
         )}
       </div>
 
-      {task.description && <div className="card-desc">{task.description}</div>}
+      {isSocialCategory(task.category) ? (
+        comments.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+            {comments.map(c => (
+              <div 
+                key={c.id} 
+                className="card-desc" 
+                style={{ 
+                  fontSize: '0.68rem', 
+                  color: 'var(--text-secondary)',
+                  lineHeight: '1.3',
+                  backgroundColor: 'rgba(255,255,255,0.02)',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  borderLeft: '2.5px solid var(--accent-color)'
+                }}
+              >
+                {c.comment_text}
+              </div>
+            ))}
+          </div>
+        )
+      ) : (
+        task.description && <div className="card-desc">{task.description}</div>
+      )}
 
       {/* Tags */}
       {task.tags && task.tags.length > 0 && (
@@ -1493,6 +1518,8 @@ export const TasksScreen: React.FC = () => {
   const [newAdDuration, setNewAdDuration] = useState('');
   const [newPostItems, setNewPostItems] = useState<any[]>([{ id: 1, text: '' }]);
 
+  const [taskComments, setTaskComments] = useState<Record<string, any[]>>({});
+
   // Category filter
   const [categories, setCategories] = useState<WorkspaceCategory[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -1718,6 +1745,29 @@ export const TasksScreen: React.FC = () => {
       });
 
       setTasks(processedTasks);
+
+      // Fetch comments for loaded tasks
+      const taskIds = processedTasks.map(t => t.id);
+      if (taskIds.length > 0) {
+        const { data: commentsData } = await supabase
+          .from('task_comments')
+          .select('id, task_id, comment_text, created_at')
+          .in('task_id', taskIds)
+          .order('created_at', { ascending: true });
+        
+        const commentsMap: Record<string, any[]> = {};
+        if (commentsData) {
+          commentsData.forEach(c => {
+            if (!commentsMap[c.task_id]) {
+              commentsMap[c.task_id] = [];
+            }
+            commentsMap[c.task_id].push(c);
+          });
+        }
+        setTaskComments(commentsMap);
+      } else {
+        setTaskComments({});
+      }
 
       // 4. Fetch dynamic categories
       const { data: catData, error: catError } = await supabase
@@ -2121,6 +2171,7 @@ export const TasksScreen: React.FC = () => {
                           key={task.id}
                           task={task}
                           members={members}
+                          comments={taskComments[task.id] || []}
                           onDetailClick={setDetailTask}
                         />
                       ))}
