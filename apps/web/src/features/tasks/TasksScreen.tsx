@@ -103,6 +103,22 @@ const isSocialCategory = (catName: string | null | undefined): boolean => {
   });
 };
 
+const getContentFormatInfo = (type: string | null | undefined) => {
+  switch (type) {
+    case 'viral':
+    case 'video':
+      return { label: 'Viral İçerik', emoji: '🔥', color: '#ff9f0a' };
+    case 'post':
+      return { label: 'Post', emoji: '🖼', color: '#0a84ff' };
+    case 'reklam':
+      return { label: 'Reklam', emoji: '📢', color: '#30d158' };
+    case 'yari_reklam':
+      return { label: 'Yarı Reklam', emoji: '⚡', color: '#bf5af2' };
+    default:
+      return null;
+  }
+};
+
 const AutoResizeTextarea: React.FC<{
   value: string;
   onChange: (val: string) => void;
@@ -375,17 +391,35 @@ const SortableTaskCard: React.FC<{
         </div>
       )}
 
-      {/* Category badge */}
-      {task.category && (
-        <div style={{
-          display: 'inline-flex', alignItems: 'center',
-          padding: '2px 8px', borderRadius: '20px', fontSize: '0.67rem', fontWeight: 700,
-          backgroundColor: 'rgba(255,159,10,0.1)', color: 'var(--accent-color)',
-          border: '1px solid rgba(255,159,10,0.25)', marginTop: '4px', marginBottom: '2px',
-        }}>
-          {task.category}
-        </div>
-      )}
+      {/* Badges container */}
+      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px', marginBottom: '2px' }}>
+        {task.category && (
+          <div style={{
+            display: 'inline-flex', alignItems: 'center',
+            padding: '2px 8px', borderRadius: '20px', fontSize: '0.67rem', fontWeight: 700,
+            backgroundColor: 'rgba(255,159,10,0.1)', color: 'var(--accent-color)',
+            border: '1px solid rgba(255,159,10,0.25)',
+          }}>
+            {task.category}
+          </div>
+        )}
+
+        {isSocialCategory(task.category) && (() => {
+          const info = getContentFormatInfo(task.content_type);
+          if (!info) return null;
+          return (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '2px 8px', borderRadius: '20px', fontSize: '0.67rem', fontWeight: 700,
+              backgroundColor: `${info.color}15`, color: info.color,
+              border: `1px solid ${info.color}35`,
+            }}>
+              <span>{info.emoji}</span>
+              <span>{info.label}</span>
+            </div>
+          );
+        })()}
+      </div>
 
       {/* Meta: assignee + due_date */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
