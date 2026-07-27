@@ -345,29 +345,24 @@ const SortableTaskCard: React.FC<{
       {...listeners} 
       onClick={() => onDetailClick(task)}
     >
-      {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Title with Priority Dot & Recurrence */}
+      <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
         <span 
           title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'} 
           style={{ 
-            width: '10px', 
-            height: '10px', 
+            width: '9px', 
+            height: '9px', 
             borderRadius: '50%', 
             backgroundColor: task.status === 'completed' ? '#22c55e' : (task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
-            display: 'inline-block',
-            margin: '6px'
+            flexShrink: 0
           }} 
         />
+        <span style={{ flex: 1 }}>{task.title}</span>
         {task.recurrence && task.recurrence !== 'none' && (
-          <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex' }}>
+          <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
             <Repeat size={12} style={{ color: 'var(--text-muted)' }} />
           </span>
         )}
-      </div>
-
-      {/* Title */}
-      <div className="card-title" style={{ marginTop: '6px' }}>
-        {task.title}
       </div>
 
       {task.description && <div className="card-desc">{task.description}</div>}
