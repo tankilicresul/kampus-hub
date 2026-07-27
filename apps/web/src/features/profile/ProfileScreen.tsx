@@ -95,7 +95,13 @@ export const ProfileScreen: React.FC = () => {
   const [tasks, setTasks] = useState<UserTask[]>([]);
 
   const [loading, setLoading] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_calendar'>('my_tasks');
+  const [activeSubTab, setActiveSubTab] = useState<'my_tasks' | 'my_calendar'>(() => {
+    return (localStorage.getItem('kh_profile_subtab') as any) || 'my_tasks';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kh_profile_subtab', activeSubTab);
+  }, [activeSubTab]);
   const [showEditModal, setShowEditModal] = useState(false);
 
   // Calendar navigation state

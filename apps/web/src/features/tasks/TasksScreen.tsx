@@ -1485,7 +1485,13 @@ export const TasksScreen: React.FC = () => {
   const { activeWorkspace, user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const [viewMode, setViewMode] = useState<'kanban' | 'list'>(() => {
+    return (localStorage.getItem('kh_tasks_view_mode') as 'kanban' | 'list') || 'kanban';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kh_tasks_view_mode', viewMode);
+  }, [viewMode]);
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
@@ -1522,7 +1528,13 @@ export const TasksScreen: React.FC = () => {
 
   // Category filter
   const [categories, setCategories] = useState<WorkspaceCategory[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string>('');
+  const [activeCategory, setActiveCategory] = useState<string>(() => {
+    return localStorage.getItem('kh_tasks_active_category') || '';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kh_tasks_active_category', activeCategory);
+  }, [activeCategory]);
 
   const categorySensors = useSensors(
     useSensor(MouseSensor, {
@@ -1648,6 +1660,29 @@ export const TasksScreen: React.FC = () => {
 
   // Detail modal
   const [detailTask, setDetailTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    if (detailTask) {
+      localStorage.setItem('kh_open_task_id', detailTask.id);
+    } else {
+      localStorage.removeItem('kh_open_task_id');
+    }
+  }, [detailTask]);
+
+  useEffect(() => {
+    if (tasks.length === 0) return;
+    const savedOpenTaskId = localStorage.getItem('kh_open_task_id');
+    if (savedOpenTaskId) {
+      const found = tasks.find(t => t.id === savedOpenTaskId);
+      if (found) {
+        if (!detailTask || detailTask.id !== savedOpenTaskId) {
+          setDetailTask(found);
+        } else if (JSON.stringify(found) !== JSON.stringify(detailTask)) {
+          setDetailTask(found);
+        }
+      }
+    }
+  }, [tasks]);
 
   // Drag
   const [activeId, setActiveId] = useState<string | null>(null);

@@ -31,7 +31,13 @@ export const AppLayout: React.FC = () => {
     refreshWorkspaces
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin'>('tasks');
+  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin'>(() => {
+    return (localStorage.getItem('kh_active_tab') as any) || 'tasks';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('kh_active_tab', activeTab);
+  }, [activeTab]);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showWsSettings, setShowWsSettings] = useState(false);
