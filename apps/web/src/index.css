@@ -1574,8 +1574,8 @@ html, body, #root {
 }
 
 @keyframes tcOrbit {
-  0% { transform: rotate(0deg) translateY(-24px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateY(-24px) rotate(-360deg); }
+  0% { transform: rotate(0deg) translateY(-18px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateY(-18px) rotate(-360deg); }
 }
 
 @keyframes logoBreath {
