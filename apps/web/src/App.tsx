@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { LoginScreen } from './features/auth/LoginScreen';
 import { AppLayout } from './app_layout';
-import { ShieldAlert, LogOut, RefreshCw } from 'lucide-react';
+import { ShieldAlert, LogOut } from 'lucide-react';
 
 const NavigationContainer: React.FC = () => {
   const { status, errorMessage, logOut } = useAuth();
