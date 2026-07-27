@@ -35,16 +35,30 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
     const iosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(iosDevice);
 
-    // 3. Listen for Android / Chrome beforeinstallprompt event
+    // 3. Check if window already has cached deferredPrompt
+    if ((window as any).deferredPrompt) {
+      setDeferredPrompt((window as any).deferredPrompt);
+    }
+
+    // 4. Listen for Android / Chrome beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
+    const handleCustomPromptReady = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setDeferredPrompt(customEvent.detail);
+      }
+    };
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('pwa-prompt-ready', handleCustomPromptReady);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('pwa-prompt-ready', handleCustomPromptReady);
     };
   }, []);
 
@@ -80,8 +94,10 @@ export const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ forceOpen, o
           localStorage.setItem('pwa_installed', 'true');
         }
         setDeferredPrompt(null);
+        if (onCloseForce) onCloseForce();
       } catch (err) {
         console.error('Install prompt error:', err);
+        if (onCloseForce) onCloseForce();
       }
     } else {
       // Fallback if beforeinstallprompt wasn't triggered yet or browser doesn't support it

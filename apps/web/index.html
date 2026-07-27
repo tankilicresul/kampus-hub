@@ -6,6 +6,13 @@
       (function() {
         const theme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', theme);
+
+        // Listen for PWA beforeinstallprompt early to avoid missing the event
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          window.deferredPrompt = e;
+          window.dispatchEvent(new CustomEvent('pwa-prompt-ready', { detail: e }));
+        });
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
