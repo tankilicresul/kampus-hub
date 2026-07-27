@@ -868,6 +868,39 @@ export const TasksScreen: React.FC = () => {
     }
   };
 
+  const handleRenameCategory = async (id: string, oldName: string) => {
+    const newName = window.prompt("İş alanı / Kategori adını değiştirin:", oldName);
+    if (!newName || !newName.trim() || newName.trim() === oldName || !activeWorkspace?.id) return;
+
+    const trimmedNewName = newName.trim();
+
+    try {
+      // 1. Update in workspace_categories
+      const { error: catError } = await supabase
+        .from('workspace_categories')
+        .update({ name: trimmedNewName })
+        .eq('id', id);
+      if (catError) throw catError;
+
+      // 2. Update tasks using the old category name in workspace
+      const { error: taskError } = await supabase
+        .from('tasks')
+        .update({ category: trimmedNewName })
+        .eq('workspace_id', activeWorkspace.id)
+        .eq('category', oldName);
+      if (taskError) throw taskError;
+
+      // 3. Update state
+      setCategories(prev => prev.map(c => c.id === id ? { ...c, name: trimmedNewName } : c));
+      setTasks(prev => prev.map(t => t.category === oldName ? { ...t, category: trimmedNewName } : t));
+      
+      // Keep selected
+      setActiveCategory(trimmedNewName);
+    } catch (err) {
+      console.error('Rename category failed:', err);
+    }
+  };
+
   const handleCategoryDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -1195,7 +1228,13 @@ export const TasksScreen: React.FC = () => {
                     key={cat.id}
                     cat={cat}
                     isActive={activeCategory === cat.name}
-                    onSelect={() => setActiveCategory(activeCategory === cat.name ? '' : cat.name)}
+                    onSelect={() => {
+                      if (activeCategory === cat.name) {
+                        handleRenameCategory(cat.id, cat.name);
+                      } else {
+                        setActiveCategory(cat.name);
+                      }
+                    }}
                     onDelete={() => handleDeleteCategory(cat.id, cat.name)}
                   />
                 ))}
