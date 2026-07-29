@@ -2948,8 +2948,8 @@ export const TasksScreen: React.FC = () => {
                         {newTags.map(tag => (
                           <span key={tag} style={{
                             padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem',
-                            backgroundColor: 'rgba(183,1,22,0.08)', color: 'var(--accent-color)',
-                            border: '1px solid rgba(183,1,22,0.2)', display: 'flex', alignItems: 'center', gap: '4px',
+                            backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.08)', color: 'var(--accent-color)',
+                            border: '1px solid rgba(var(--accent-rgb, 255,159,10), 0.2)', display: 'flex', alignItems: 'center', gap: '4px',
                             fontWeight: 600
                           }}>
                             #{tag}

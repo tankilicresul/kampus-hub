@@ -228,7 +228,7 @@ const BusinessDetailModal: React.FC<{
                     <div style={{ fontWeight: 700, fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {c.name}
                       {c.is_primary && (
-                        <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px', backgroundColor: 'rgba(183,1,22,0.1)', color: 'var(--accent-color)', fontWeight: 700 }}>
+                        <span style={{ fontSize: '0.65rem', padding: '1px 6px', borderRadius: '10px', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', color: 'var(--accent-color)', fontWeight: 700 }}>
                           Birincil
                         </span>
                       )}

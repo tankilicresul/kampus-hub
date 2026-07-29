@@ -215,7 +215,7 @@ export const AdminScreen: React.FC = () => {
       }}>
         <div style={{
           width: '40px', height: '40px', borderRadius: '12px',
-          backgroundColor: 'rgba(183,1,22,0.1)',
+          backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Shield size={20} style={{ color: 'var(--accent-color)' }} />

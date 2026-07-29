@@ -591,7 +591,7 @@ export const MessagesScreen: React.FC = () => {
                     >
                       <div style={{
                         width: '32px', height: '32px', borderRadius: '8px',
-                        background: 'linear-gradient(135deg, rgba(183,1,22,0.15) 0%, rgba(183,1,22,0.05) 100%)',
+                        background: 'linear-gradient(135deg, rgba(var(--accent-rgb, 255,159,10), 0.15) 0%, rgba(var(--accent-rgb, 255,159,10), 0.05) 100%)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-color)'
                       }}>
                         <Users size={16} />
@@ -673,7 +673,7 @@ export const MessagesScreen: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px', textAlign: 'center' }}>
               <div style={{
                 width: '70px', height: '70px', borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgba(183,1,22,0.06) 0%, rgba(183,1,22,0.01) 100%)',
+                background: 'linear-gradient(135deg, rgba(var(--accent-rgb, 255,159,10), 0.06) 0%, rgba(var(--accent-rgb, 255,159,10), 0.01) 100%)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-color)', marginBottom: '16px'
               }}>
                 <MessageSquare size={30} style={{ opacity: 0.6 }} />
@@ -715,9 +715,9 @@ export const MessagesScreen: React.FC = () => {
                 
                 <div style={{
                   width: '36px', height: '36px', borderRadius: chatTab === 'dm' ? '50%' : '10px',
-                  background: chatTab === 'dm' ? getAvatarGradient(getDMUserId(selectedRoom)) : 'linear-gradient(135deg, rgba(183,1,22,0.1) 0%, rgba(183,1,22,0.04) 100%)',
+                  background: chatTab === 'dm' ? getAvatarGradient(getDMUserId(selectedRoom)) : 'linear-gradient(135deg, rgba(var(--accent-rgb, 255,159,10), 0.1) 0%, rgba(var(--accent-rgb, 255,159,10), 0.04) 100%)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: '1px solid rgba(183,1,22,0.15)',
+                  border: '1px solid rgba(var(--accent-rgb, 255,159,10), 0.15)',
                   color: 'var(--accent-color)', flexShrink: 0, overflow: 'hidden'
                 }}>
                   {chatTab === 'general' ? (
@@ -740,7 +740,7 @@ export const MessagesScreen: React.FC = () => {
                     </span>
                     {messages.length > 0 && (
                       <span style={{
-                        fontSize: '0.62rem', backgroundColor: 'rgba(183,1,22,0.06)', color: 'var(--accent-color)',
+                        fontSize: '0.62rem', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.06)', color: 'var(--accent-color)',
                         padding: '1px 6px', borderRadius: '8px', fontWeight: 700
                       }}>
                         {messages.length}
@@ -780,7 +780,7 @@ export const MessagesScreen: React.FC = () => {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, padding: '40px', textAlign: 'center' }}>
                     <div style={{
                       width: '60px', height: '60px', borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(183,1,22,0.04) 0%, rgba(183,1,22,0.01) 100%)',
+                      background: 'linear-gradient(135deg, rgba(var(--accent-rgb, 255,159,10), 0.04) 0%, rgba(var(--accent-rgb, 255,159,10), 0.01) 100%)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-color)', marginBottom: '12px'
                     }}>
                       <MessageSquare size={24} style={{ opacity: 0.5 }} />
@@ -880,7 +880,7 @@ export const MessagesScreen: React.FC = () => {
                                   background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.68rem',
                                   color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '2px', padding: '2px 4px', borderRadius: '4px'
                                 }}
-                                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-color)'; e.currentTarget.style.backgroundColor = 'rgba(183, 1, 22, 0.04)'; }}
+                                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--accent-color)'; e.currentTarget.style.backgroundColor = 'rgba(var(--accent-rgb, 255,159,10), 0.04)'; }}
                                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
                               >
                                 <Reply size={10} />

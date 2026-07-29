@@ -437,7 +437,7 @@ export const CalendarScreen: React.FC = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     backgroundColor: cellTasks.length === 0
-                      ? (isToday ? 'rgba(183,1,22,0.05)' : cell.isCurrentMonth ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)')
+                      ? (isToday ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : cell.isCurrentMonth ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)')
                       : 'transparent',
                     cursor: cellTasks.length === 1 ? 'pointer' : 'default',
                     transition: 'all 0.15s'

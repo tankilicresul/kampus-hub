@@ -46,7 +46,7 @@ export const AppLayout: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (isNewsWorkspace && !['news', 'messages'].includes(activeTab)) {
+    if (isNewsWorkspace && !['news', 'messages', 'profile'].includes(activeTab)) {
       setActiveTab('news');
     } else if (!isNewsWorkspace && activeTab === 'news') {
       setActiveTab('tasks');

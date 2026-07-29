@@ -364,6 +364,7 @@ export const ProfileScreen: React.FC = () => {
   const displayName = fullName.trim() || user?.email?.split('@')[0] || 'Kullanıcı';
   const userInitials = displayName.substring(0, 2).toUpperCase();
   const userRoleDisplay = activeWorkspace?.permissionRole || role || 'Personel';
+  const isOwner = user?.email === 'resulkilic16@gmail.com';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', paddingBottom: '48px' }}>
@@ -449,31 +450,48 @@ export const ProfileScreen: React.FC = () => {
               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{myTasks.length}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>görev</div>
             </div>
-            <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>97</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takipçi</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>126</div>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takip</div>
-            </div>
+            {isOwner ? (
+              <>
+                <div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>97</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takipçi</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>126</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takip</div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>0</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bağlantı</div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Bio & Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {displayName} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500, backgroundColor: 'rgba(183,1,22,0.1)', padding: '2px 8px', borderRadius: '12px' }}>{userRoleDisplay}</span>
+            {displayName} <span style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 500, backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '2px 8px', borderRadius: '12px' }}>{userRoleDisplay}</span>
           </h2>
-          <p style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-            AI • Pazarlama • Girişimcilik<br/>
-            <span style={{ color: '#3b82f6' }}>@resultankilic @kampuskapinda</span><br/>
-            İçerik-Reklam Stratejileri<br/>
-            Girişim Ekosistemime Katıl 👇
-          </p>
-          <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}>
-            <LinkIcon size={14} /> tancorelab.vercel.app ve 4 diğer
-          </a>
+          {isOwner ? (
+            <>
+              <p style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                AI • Pazarlama • Girişimcilik<br/>
+                <span style={{ color: '#3b82f6' }}>@resultankilic @kampuskapinda</span><br/>
+                İçerik-Reklam Stratejileri<br/>
+                Girişim Ekosistemime Katıl 👇
+              </p>
+              <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                <LinkIcon size={14} /> tancorelab.vercel.app ve 4 diğer
+              </a>
+            </>
+          ) : (
+            <div style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              {user?.email}
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
