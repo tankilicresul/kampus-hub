@@ -2265,7 +2265,7 @@ export const TasksScreen: React.FC = () => {
         </div>
 
         {/* Row 2: Category filter pills */}
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="mobile-scroll-x" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
 
           <DndContext
             sensors={categorySensors}
@@ -2276,7 +2276,7 @@ export const TasksScreen: React.FC = () => {
               items={categories.map(c => c.id)}
               strategy={horizontalListSortingStrategy}
             >
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                 {categories.map(cat => (
                   <SortableCategoryPill
                     key={cat.id}
@@ -2315,6 +2315,7 @@ export const TasksScreen: React.FC = () => {
               justifyContent: 'center',
               transition: 'all 0.15s',
               padding: 0,
+              flexShrink: 0
             }}
             title="Yeni İş Alanı Ekle"
           >
@@ -2333,14 +2334,15 @@ export const TasksScreen: React.FC = () => {
               transition: 'all 0.15s',
               backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
               color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
-              marginLeft: 'auto'
+              marginLeft: '8px',
+              flexShrink: 0
             }}
           >
             Tümü
           </button>
 
           {activeCategory && (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '4px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px', flexShrink: 0 }}>
               {filteredTasks.length} görev
             </span>
           )}

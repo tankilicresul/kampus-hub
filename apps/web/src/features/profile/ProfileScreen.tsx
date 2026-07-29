@@ -875,6 +875,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
                 <div
                   key={task.id}
                   onClick={() => openTaskEdit(task)}
+                  className="mobile-profile-task-item"
                   style={{
                     backgroundColor: 'var(--bg-surface)',
                     padding: '12px 16px',

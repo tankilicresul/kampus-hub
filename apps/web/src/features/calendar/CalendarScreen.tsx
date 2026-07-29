@@ -36,6 +36,14 @@ export const CalendarScreen: React.FC = () => {
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   // Filters
   const [onlyMine, setOnlyMine] = useState(() => {
@@ -376,7 +384,8 @@ export const CalendarScreen: React.FC = () => {
           <Clock className="animate-spin" size={36} style={{ color: 'var(--accent-color)' }} />
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '20px' }}>
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '20px' }}>
           {/* Calendar Navigation */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
             <button
@@ -422,88 +431,111 @@ export const CalendarScreen: React.FC = () => {
                 return dueDateFormatted === cellDateStr || startDateFormatted === cellDateStr || (!dueDateFormatted && !startDateFormatted && fallbackDate === cellDateStr);
               });
               const isToday = cellDateStr === todayStr;
+              const isSelected = getLocalDate(cell.date) === getLocalDate(selectedDate);
 
               return (
                 <div
                   key={idx}
                   style={{
-                    minHeight: '100px',
+                    minHeight: isMobile ? '52px' : '100px',
                     borderRadius: '12px',
-                    border: isToday
+                    border: isSelected
                       ? '2.5px solid var(--accent-color)'
-                      : '1px solid var(--border-glass)',
+                      : (isToday
+                          ? '2px dashed var(--accent-color)'
+                          : '1px solid var(--border-glass)'),
                     overflow: 'hidden',
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
                     backgroundColor: cellTasks.length === 0
                       ? (isToday ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : cell.isCurrentMonth ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)')
-                      : 'transparent',
-                    cursor: cellTasks.length === 1 ? 'pointer' : 'default',
+                      : (isSelected ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : 'transparent'),
+                    cursor: 'pointer',
                     transition: 'all 0.15s'
                   }}
-                  onClick={cellTasks.length === 1 ? () => openTaskEdit(cellTasks[0]) : undefined}
+                  onClick={() => {
+                    setSelectedDate(cell.date);
+                    if (cellTasks.length === 1 && !isMobile) {
+                      openTaskEdit(cellTasks[0]);
+                    }
+                  }}
                 >
                   {/* Day number */}
                   <span style={{
                     position: 'absolute',
-                    top: '6px',
-                    right: '8px',
-                    fontSize: '0.75rem',
-                    fontWeight: isToday ? 900 : 700,
-                    color: cellTasks.length > 0 ? 'rgba(255,255,255,0.9)' : (isToday ? 'var(--accent-color)' : cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
+                    top: isMobile ? '4px' : '6px',
+                    right: isMobile ? '6px' : '8px',
+                    fontSize: isMobile ? '0.7rem' : '0.75rem',
+                    fontWeight: (isToday || isSelected) ? 900 : 700,
+                    color: isToday ? 'var(--accent-color)' : (cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
                     zIndex: 2,
-                    textShadow: cellTasks.length > 0 ? '0 1px 3px rgba(0,0,0,0.5)' : 'none',
                   }}>
                     {cell.day}
                   </span>
 
                   {/* Tasks */}
                   {cellTasks.length > 0 && (
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      width: '100%',
-                      flex: 1,
-                    }}>
-                      {cellTasks.map((t, ti) => {
-                        const color = getStatusColor(t.status);
-                        return (
-                          <div
-                            key={ti}
-                            onClick={cellTasks.length > 1 ? (e) => { e.stopPropagation(); openTaskEdit(t); } : undefined}
+                    isMobile ? (
+                      <div className="calendar-dots-container">
+                        {cellTasks.slice(0, 3).map((t, ti) => (
+                          <span 
+                            key={ti} 
+                            className="calendar-dot" 
+                            style={{ backgroundColor: getStatusColor(t.status) }} 
                             title={t.title}
-                            style={{
-                              flex: 1,
-                              backgroundColor: color,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              padding: '6px 20px 6px 8px',
-                              cursor: 'pointer',
-                              borderTop: ti > 0 ? '1.5px solid rgba(255,255,255,0.15)' : 'none',
-                              transition: 'opacity 0.1s'
-                            }}
-                          >
-                            <span style={{
-                              fontSize: '0.75rem',
-                              fontWeight: 800,
-                              color: 'white',
-                              textAlign: 'center',
-                              textShadow: '0 1px-3px rgba(0,0,0,0.4)',
-                              overflow: 'hidden',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              lineHeight: 1.2,
-                            }}>
-                              {t.title}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          />
+                        ))}
+                        {cellTasks.length > 3 && (
+                          <span style={{ fontSize: '0.5rem', fontWeight: 800, color: 'var(--text-muted)', lineHeight: 1 }}>+</span>
+                        )}
+                      </div>
+                    ) : (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                        width: '100%',
+                        flex: 1,
+                      }}>
+                        {cellTasks.map((t, ti) => {
+                          const color = getStatusColor(t.status);
+                          return (
+                            <div
+                              key={ti}
+                              onClick={(e) => { e.stopPropagation(); openTaskEdit(t); }}
+                              title={t.title}
+                              style={{
+                                flex: 1,
+                                backgroundColor: color,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '6px 20px 6px 8px',
+                                cursor: 'pointer',
+                                borderTop: ti > 0 ? '1.5px solid rgba(255,255,255,0.15)' : 'none',
+                                transition: 'opacity 0.1s'
+                              }}
+                            >
+                              <span style={{
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                color: 'white',
+                                textAlign: 'center',
+                                textShadow: '0 1px -3px rgba(0,0,0,0.4)',
+                                overflow: 'hidden',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                lineHeight: 1.2,
+                              }}>
+                                {t.title}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
               );
@@ -526,7 +558,82 @@ export const CalendarScreen: React.FC = () => {
             ))}
           </div>
         </div>
-      )}
+        {isMobile && selectedDate && (
+          <div className="mobile-calendar-detail">
+            <div className="mobile-calendar-detail-title">
+              <span>{selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</span>
+              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+                {filteredTasks.filter(t => {
+                  const isSocial = t.category ? ['sosyal medya', 'reklam', 'post', 'viral', 'içerik'].some(word => t.category!.toLowerCase().includes(word)) : false;
+                  const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
+                  const endDate = isSocial ? t.sharing_date : t.due_date;
+                  const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
+                  const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
+                  const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+                  return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
+                }).length} Görev
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {filteredTasks.filter(t => {
+                const isSocial = t.category ? ['sosyal medya', 'reklam', 'post', 'viral', 'içerik'].some(word => t.category!.toLowerCase().includes(word)) : false;
+                const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
+                const endDate = isSocial ? t.sharing_date : t.due_date;
+                const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
+                const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
+                const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+                return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
+              }).length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
+                  Bugün için planlanmış bir görev bulunmuyor.
+                </div>
+              ) : (
+                filteredTasks.filter(t => {
+                  const isSocial = t.category ? ['sosyal medya', 'reklam', 'post', 'viral', 'içerik'].some(word => t.category!.toLowerCase().includes(word)) : false;
+                  const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
+                  const endDate = isSocial ? t.sharing_date : t.due_date;
+                  const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
+                  const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
+                  const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+                  return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
+                }).map((task) => (
+                  <div 
+                    key={task.id} 
+                    onClick={() => openTaskEdit(task)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--bg-card)',
+                      border: '1px solid var(--border-glass)',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getStatusColor(task.status) }} />
+                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{task.title}</span>
+                    </div>
+                    <span style={{
+                      fontSize: '0.7rem',
+                      padding: '3px 8px',
+                      borderRadius: '12px',
+                      backgroundColor: 'var(--bg-surface-accent)',
+                      color: getStatusColor(task.status),
+                      fontWeight: 700,
+                      border: `1px solid ${getStatusColor(task.status)}30`
+                    }}>
+                      {task.status === 'completed' ? 'Tamamlandı' : task.status === 'in_progress' ? 'Sürüyor' : task.status === 'revision_required' ? 'Tekrar Yapılmalı' : 'Yapılacak'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </>
+    )}
 
       {/* Task Edit Modal */}
       {selectedTask && (

@@ -434,6 +434,7 @@ export const DailyUpdatesScreen: React.FC = () => {
                 setEditReportStatus(update.tomorrow_plan as any || 'ongoing');
                 setShowEditModal(true);
               }}
+              className="mobile-card-stacked"
               style={{
                 backgroundColor: 'var(--bg-card, #ffffff)',
                 borderRadius: 'var(--radius-lg)',

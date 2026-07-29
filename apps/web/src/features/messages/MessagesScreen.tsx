@@ -709,14 +709,12 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
               
               {/* Header */}
-              <div style={{
-                background: 'linear-gradient(135deg, var(--bg-surface) 0%, rgba(255, 255, 255, 0.95) 100%)',
+              <div className="chat-header-glass" style={{
                 padding: '12px 16px',
                 borderBottom: '1px solid var(--border-glass)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                backdropFilter: 'blur(10px)',
               }}>
                 {chatTab !== 'general' && (
                   <button

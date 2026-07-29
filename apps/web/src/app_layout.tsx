@@ -404,13 +404,7 @@ export const AppLayout: React.FC = () => {
           </div>
 
           {/* ORTA — workspace selector (absolute center) */}
-          <div ref={workspaceDropdownRef} style={{ 
-            position: 'absolute', 
-            left: '50%', 
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            alignItems: 'center',
-          }}>
+          <div ref={workspaceDropdownRef} className="app-bar-center">
             <button
               onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
               className="btn btn-secondary"
