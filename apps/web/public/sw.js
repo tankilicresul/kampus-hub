@@ -1,6 +1,6 @@
 // KAMPÜS HUB — Service Worker
-// Sürüm: 2026-07-24 (bu satırı değiştirmek SW güncellemesini tetikler)
-const CACHE_NAME = 'kampus-hub-v4';
+// Sürüm: 2026-07-27 (bu satırı değiştirmek SW güncellemesini tetikler)
+const CACHE_NAME = 'kampus-hub-v5';
 
 // ── Install: hemen kontrolü al ───────────────────────────────────────────────
 self.addEventListener('install', (event) => {

@@ -7,13 +7,14 @@ import { ProfileScreen } from './features/profile/ProfileScreen';
 import { MessagesScreen } from './features/messages/MessagesScreen';
 import { CalendarScreen } from './features/calendar/CalendarScreen';
 import { AdminScreen } from './features/admin/AdminScreen';
+import { NewsScreen } from './features/news/NewsScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays
+  MessageSquare, Shield, CalendarDays, Newspaper
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -32,13 +33,25 @@ export const AppLayout: React.FC = () => {
     refreshWorkspaces
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar'>(() => {
-    return (localStorage.getItem('kh_active_tab') as any) || 'tasks';
+  const isNewsWorkspace = activeWorkspace?.name === 'tankilic.ai for all';
+
+  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
+    const saved = localStorage.getItem('kh_active_tab');
+    if (saved) return saved as any;
+    return 'tasks';
   });
 
   useEffect(() => {
     localStorage.setItem('kh_active_tab', activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    if (isNewsWorkspace && !['news', 'messages'].includes(activeTab)) {
+      setActiveTab('news');
+    } else if (!isNewsWorkspace && activeTab === 'news') {
+      setActiveTab('tasks');
+    }
+  }, [activeWorkspace, activeTab, isNewsWorkspace]);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showWsSettings, setShowWsSettings] = useState(false);
@@ -84,7 +97,7 @@ export const AppLayout: React.FC = () => {
       });
   }, [activeWorkspace?.id]);
   
-  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar') => {
+  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
   };
@@ -478,59 +491,80 @@ export const AppLayout: React.FC = () => {
 
         {/* Tab Navigation (Desktop view) */}
         <div className="nav-tabs">
-          <div 
-            className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-            onClick={() => handleTabChange('tasks')}
-          >
-            <CheckSquare size={16} />
-            <span>Görevler</span>
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
-            onClick={() => handleTabChange('updates')}
-          >
-            <Calendar size={16} />
-            <span>Bugün Neler Yaptım</span>
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'calendar' ? 'active' : ''}`}
-            onClick={() => handleTabChange('calendar')}
-          >
-            <CalendarDays size={16} />
-            <span>Görev Takvimi</span>
-          </div>
-          {role && ['owner', 'admin', 'manager'].includes(role) && (
-            <div 
-              className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
-              onClick={() => handleTabChange('crm')}
-            >
-              <BarChart4 size={16} />
-              <span>CRM</span>
-            </div>
+          {isNewsWorkspace ? (
+            <>
+              <div 
+                className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
+                onClick={() => handleTabChange('news')}
+              >
+                <Newspaper size={16} />
+                <span>Girişimcilik Haberleri</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+                onClick={() => handleTabChange('messages')}
+              >
+                <MessageSquare size={16} />
+                <span>Sohbet</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div 
+                className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+                onClick={() => handleTabChange('tasks')}
+              >
+                <CheckSquare size={16} />
+                <span>Görevler</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
+                onClick={() => handleTabChange('updates')}
+              >
+                <Calendar size={16} />
+                <span>Bugün Neler Yaptım</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'calendar' ? 'active' : ''}`}
+                onClick={() => handleTabChange('calendar')}
+              >
+                <CalendarDays size={16} />
+                <span>Görev Takvimi</span>
+              </div>
+              {role && ['owner', 'admin', 'manager'].includes(role) && (
+                <div 
+                  className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('crm')}
+                >
+                  <BarChart4 size={16} />
+                  <span>CRM</span>
+                </div>
+              )}
+              <div 
+                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+                onClick={() => handleTabChange('messages')}
+              >
+                <MessageSquare size={16} />
+                <span>Sohbet</span>
+              </div>
+              {role && ['owner', 'admin'].includes(role) && (
+                <div 
+                  className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => handleTabChange('admin')}
+                >
+                  <Shield size={16} />
+                  <span>Admin</span>
+                </div>
+              )}
+              <div 
+                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => handleTabChange('profile')}
+              >
+                <User size={16} />
+                <span>Profil</span>
+              </div>
+            </>
           )}
-          <div 
-            className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
-            onClick={() => handleTabChange('messages')}
-          >
-            <MessageSquare size={16} />
-            <span>Sohbet</span>
-          </div>
-          {role && ['owner', 'admin'].includes(role) && (
-            <div 
-              className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-              onClick={() => handleTabChange('admin')}
-            >
-              <Shield size={16} />
-              <span>Admin</span>
-            </div>
-          )}
-          <div 
-            className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => handleTabChange('profile')}
-          >
-            <User size={16} />
-            <span>Profil</span>
-          </div>
         </div>
 
         {/* View Area */}
@@ -617,6 +651,7 @@ export const AppLayout: React.FC = () => {
             </div>
           ) : (
             <>
+              {activeTab === 'news' && <NewsScreen />}
               {activeTab === 'tasks' && <TasksScreen />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
               {activeTab === 'calendar' && <CalendarScreen />}
@@ -648,59 +683,80 @@ export const AppLayout: React.FC = () => {
 
       {/* Sticky Bottom Navigation Bar (Mobile View) */}
       <div className="mobile-nav-bar">
-        <button 
-          className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
-          onClick={() => handleTabChange('tasks')}
-        >
-          <CheckSquare size={20} />
-          <span>Görevler</span>
-        </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
-          onClick={() => handleTabChange('updates')}
-        >
-          <Calendar size={20} />
-          <span>Rapor</span>
-        </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
-          onClick={() => handleTabChange('calendar')}
-        >
-          <CalendarDays size={20} />
-          <span>Takvim</span>
-        </button>
-        {role && ['owner', 'admin', 'manager'].includes(role) && (
-          <button 
-            className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => handleTabChange('crm')}
-          >
-            <BarChart4 size={20} />
-            <span>CRM</span>
-          </button>
+        {isNewsWorkspace ? (
+          <>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
+              onClick={() => handleTabChange('news')}
+            >
+              <Newspaper size={20} />
+              <span>Haberler</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+              onClick={() => handleTabChange('messages')}
+            >
+              <MessageSquare size={20} />
+              <span>Sohbet</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+              onClick={() => handleTabChange('tasks')}
+            >
+              <CheckSquare size={20} />
+              <span>Görevler</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
+              onClick={() => handleTabChange('updates')}
+            >
+              <Calendar size={20} />
+              <span>Rapor</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
+              onClick={() => handleTabChange('calendar')}
+            >
+              <CalendarDays size={20} />
+              <span>Takvim</span>
+            </button>
+            {role && ['owner', 'admin', 'manager'].includes(role) && (
+              <button 
+                className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
+                onClick={() => handleTabChange('crm')}
+              >
+                <BarChart4 size={20} />
+                <span>CRM</span>
+              </button>
+            )}
+            <button 
+              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+              onClick={() => handleTabChange('messages')}
+            >
+              <MessageSquare size={20} />
+              <span>Sohbet</span>
+            </button>
+            {role && ['owner', 'admin'].includes(role) && (
+              <button 
+                className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
+                onClick={() => handleTabChange('admin')}
+              >
+                <Shield size={20} />
+                <span>Admin</span>
+              </button>
+            )}
+            <button 
+              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleTabChange('profile')}
+            >
+              <User size={20} />
+              <span>Profil</span>
+            </button>
+          </>
         )}
-        <button 
-          className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
-          onClick={() => handleTabChange('messages')}
-        >
-          <MessageSquare size={20} />
-          <span>Sohbet</span>
-        </button>
-        {role && ['owner', 'admin'].includes(role) && (
-          <button 
-            className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={() => handleTabChange('admin')}
-          >
-            <Shield size={20} />
-            <span>Admin</span>
-          </button>
-        )}
-        <button 
-          className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => handleTabChange('profile')}
-        >
-          <User size={20} />
-          <span>Profil</span>
-        </button>
       </div>
 
       {/* Mobile Navigation & Workspace Drawer */}
