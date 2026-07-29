@@ -35,6 +35,7 @@ export const MessagesScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState('');
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [visibility, setVisibility] = useState<'everyone' | 'specific' | 'close_friends'>('everyone');
   const [sending, setSending] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -183,7 +184,7 @@ export const MessagesScreen: React.FC = () => {
         <div style={{ flex: 1, minWidth: 0 }}>
           <h2 style={{ fontWeight: 800, fontSize: '0.98rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {activeWorkspace?.name || 'Ekip'} Sohbeti
+              {activeWorkspace?.name || 'Ekip'} Grubu
             </span>
             {messages.length > 0 && (
               <span style={{
@@ -515,11 +516,40 @@ export const MessagesScreen: React.FC = () => {
         </div>
       )}
 
+      {/* Visibility Selector */}
+      <div style={{
+        padding: '0 14px 6px',
+        backgroundColor: 'var(--bg-main)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
+      }}>
+        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)' }}>Kime Gönderilecek:</span>
+        <select 
+          value={visibility}
+          onChange={(e) => setVisibility(e.target.value as any)}
+          style={{
+            fontSize: '0.75rem',
+            padding: '4px 8px',
+            borderRadius: '6px',
+            border: '1px solid var(--border-color)',
+            backgroundColor: 'var(--bg-surface)',
+            color: 'var(--text-primary)',
+            outline: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="everyone">Herkese</option>
+          <option value="specific">Belirli Kişilere</option>
+          <option value="close_friends">Sadece Yakın Arkadaşlara</option>
+        </select>
+      </div>
+
       {/* WhatsApp-Style Message Input Area */}
       <div style={{ 
-        padding: '10px 14px 14px',
+        padding: '6px 14px 14px',
         backgroundColor: 'var(--bg-main)', 
-        borderTop: replyTo ? 'none' : '1px solid var(--border-glass)',
+        borderTop: 'none',
         display: 'flex',
         gap: '8px',
         alignItems: 'flex-end',

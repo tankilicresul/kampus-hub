@@ -1,19 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
-import { 
-  ShieldCheck, 
-  Clock, 
+import {
   RefreshCw,
   AlertCircle,
   Camera,
   User as UserIcon,
   Lock,
   Save,
-  Mail,
-  Building,
   Bell,
-  X
+  X,
+  Link as LinkIcon,
+  Clock
 } from 'lucide-react';
 
 interface UserTask {
@@ -28,6 +26,7 @@ interface UserTask {
   primary_assignee_id?: string | null;
   created_by?: string | null;
   created_at: string;
+  workspace?: { id: string; name: string } | null;
 }
 
 interface UserDailyUpdate {
@@ -134,7 +133,7 @@ export const ProfileScreen: React.FC = () => {
       await supabase
         .from('tasks')
         .update({ status: 'overdue', updated_at: new Date().toISOString() })
-        .eq('workspace_id', activeWorkspace.id)
+        .eq('primary_assignee_id', user.id)
         .is('deleted_at', null)
         .not('status', 'eq', 'completed')
         .not('status', 'eq', 'overdue')
@@ -143,12 +142,12 @@ export const ProfileScreen: React.FC = () => {
 
       const { data: taskData } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, start_date, due_date, completed_at, primary_assignee_id, created_by, created_at')
-        .eq('workspace_id', activeWorkspace.id)
+        .select('id, title, description, status, priority, start_date, due_date, completed_at, primary_assignee_id, created_by, created_at, workspace:workspaces(id, name)')
+        .eq('primary_assignee_id', user.id)
         .order('created_at', { ascending: false });
 
       if (taskData) {
-        setTasks(taskData as UserTask[]);
+        setTasks((taskData as unknown) as UserTask[]);
       }
 
 
@@ -348,9 +347,7 @@ export const ProfileScreen: React.FC = () => {
     }
   };
 
-  const myTasks = tasks.filter(t => !t.primary_assignee_id || t.primary_assignee_id === user?.id || t.created_by === user?.id);
-  const myCompletedCount = myTasks.filter(t => t.status === 'completed').length;
-  const myActiveCount = myTasks.filter(t => t.status !== 'completed').length;
+  const myTasks = tasks;
 
 
 
@@ -371,7 +368,7 @@ export const ProfileScreen: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', paddingBottom: '48px' }}>
       
-      {/* Profile Top Hero Card */}
+      {/* Profile Top Hero Card (Social Media Style) */}
       <div style={{
         backgroundColor: 'var(--bg-surface)',
         borderRadius: 'var(--radius-lg)',
@@ -382,52 +379,58 @@ export const ProfileScreen: React.FC = () => {
         flexDirection: 'column',
         gap: '20px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          
-          {/* Avatar Sphere with Supabase Storage File Picker */}
+        {/* Top row: Avatar & Stats */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+          {/* Avatar Sphere with Story Ring & File Picker */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div 
               onClick={() => fileInputRef.current?.click()}
               style={{
-                width: '84px',
-                height: '84px',
+                width: '90px',
+                height: '90px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--accent-color)',
-                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                fontWeight: 800,
-                fontSize: '1.8rem',
-                boxShadow: '0 8px 24px rgba(183, 1, 22, 0.25)',
-                position: 'relative',
+                padding: '3px',
+                background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
                 cursor: 'pointer',
-                border: '3px solid var(--bg-surface)',
-                overflow: 'hidden'
               }}
               title="Profil Fotoğrafını Değiştir"
             >
-              {!avatarUrl && userInitials}
-
-              {/* Camera Icon Overlay */}
               <div style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                backdropFilter: 'blur(4px)',
-                padding: '4px 0',
+                width: '100%',
+                height: '100%',
+                borderRadius: '50%',
+                backgroundColor: 'var(--bg-surface)',
+                border: '2px solid var(--bg-surface)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'white',
-                fontSize: '0.7rem'
+                overflow: 'hidden',
+                position: 'relative',
+                backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                color: 'var(--text-primary)',
+                fontWeight: 800,
+                fontSize: '1.8rem',
               }}>
-                {isUploadingPhoto ? <RefreshCw className="animate-spin" size={14} /> : <Camera size={14} />}
+                {!avatarUrl && userInitials}
+                
+                {/* Camera Icon Overlay */}
+                <div style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                  backdropFilter: 'blur(4px)',
+                  padding: '2px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'white'
+                }}>
+                  {isUploadingPhoto ? <RefreshCw className="animate-spin" size={12} /> : <Camera size={12} />}
+                </div>
               </div>
             </div>
 
@@ -440,49 +443,79 @@ export const ProfileScreen: React.FC = () => {
             />
           </div>
 
-          {/* User Meta Info */}
-          <div style={{ flex: 1, minWidth: '200px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-                {displayName}
-              </h2>
-              <span className="badge" style={{
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                padding: '4px 12px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(183, 1, 22, 0.12)',
-                color: 'var(--accent-color)',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}>
-                <ShieldCheck size={14} />
-                {userRoleDisplay.toUpperCase()}
-              </span>
+          {/* Social Stats (Right) */}
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'space-around', textAlign: 'center', maxWidth: '300px' }}>
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{myTasks.length}</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>görev</div>
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
-              <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail size={14} style={{ color: 'var(--text-muted)' }} />
-                {user?.email}
-              </span>
-              {activeWorkspace && (
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Building size={14} style={{ color: 'var(--accent-color)' }} />
-                  Ekip: <strong>{activeWorkspace.name}</strong>
-                </span>
-              )}
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>97</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takipçi</div>
+            </div>
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>126</div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>takip</div>
             </div>
           </div>
+        </div>
 
+        {/* Bio & Details */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {displayName} <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500, backgroundColor: 'rgba(183,1,22,0.1)', padding: '2px 8px', borderRadius: '12px' }}>{userRoleDisplay}</span>
+          </h2>
+          <p style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+            AI • Pazarlama • Girişimcilik<br/>
+            <span style={{ color: '#3b82f6' }}>@resultankilic @kampuskapinda</span><br/>
+            İçerik-Reklam Stratejileri<br/>
+            Girişim Ekosistemime Katıl 👇
+          </p>
+          <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}>
+            <LinkIcon size={14} /> tancorelab.vercel.app ve 4 diğer
+          </a>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
           <button 
-            className="btn btn-secondary" 
             onClick={() => setShowEditModal(true)}
-            style={{ fontSize: '0.82rem', padding: '8px 14px' }}
+            style={{
+              flex: 1,
+              padding: '8px 0',
+              borderRadius: '8px',
+              backgroundColor: 'var(--bg-surface-accent)',
+              border: '1px solid var(--border-glass)',
+              color: 'var(--text-primary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
           >
-            <UserIcon size={15} />
-            <span>Profili Düzenle</span>
+            Profili düzenle
+          </button>
+          <button 
+            style={{
+              flex: 1,
+              padding: '8px 0',
+              borderRadius: '8px',
+              backgroundColor: 'var(--bg-surface-accent)',
+              border: '1px solid var(--border-glass)',
+              color: 'var(--text-primary)',
+              fontWeight: 600,
+              fontSize: '0.9rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}
+          >
+            Bağlantılarım
           </button>
         </div>
 
@@ -498,41 +531,6 @@ export const ProfileScreen: React.FC = () => {
             {photoFeedback.message}
           </div>
         )}
-
-        {/* Stats Summary Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: '10px',
-          backgroundColor: 'var(--bg-surface-accent)',
-          padding: '14px',
-          borderRadius: 'var(--radius-md)',
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-primary)' }}>
-              {myTasks.length}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Toplam Görev
-            </div>
-          </div>
-          <div style={{ textAlign: 'center', borderLeft: '1px solid var(--border-glass)', borderRight: '1px solid var(--border-glass)' }}>
-            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--color-success)' }}>
-              {myCompletedCount}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Tamamlanan
-            </div>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--accent-color)' }}>
-              {myActiveCount}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-              Aktif Görev
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Main View Area */}
@@ -569,8 +567,31 @@ export const ProfileScreen: React.FC = () => {
                     flexWrap: 'wrap'
                   }}
                 >
+                  {/* Workspace Tag (Leftmost) */}
+                  <div style={{ flexShrink: 0, width: '130px', display: 'flex', alignItems: 'center' }}>
+                    <span style={{
+                      display: 'inline-block',
+                      padding: '4px 8px',
+                      backgroundColor: task.workspace?.id 
+                        ? `hsl(${parseInt(task.workspace.id.substring(0,8), 16) % 360}, 70%, 90%)` 
+                        : '#e2e8f0',
+                      color: task.workspace?.id
+                        ? `hsl(${parseInt(task.workspace.id.substring(0,8), 16) % 360}, 80%, 30%)`
+                        : '#475569',
+                      borderRadius: '6px',
+                      fontSize: '0.7rem',
+                      fontWeight: 700,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%'
+                    }} title={task.workspace?.name}>
+                      {task.workspace?.name || 'Bilinmeyen Grup'}
+                    </span>
+                  </div>
+
                   {/* Left: Priority dot + Title */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 250px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: '1 1 200px', minWidth: 0 }}>
                     <span
                       title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'}
                       style={{
