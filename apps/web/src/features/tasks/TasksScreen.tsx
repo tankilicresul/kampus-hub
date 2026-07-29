@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
   Search, Plus, List, Kanban, RefreshCw, AlertCircle, X,

@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, CheckCheck, BellOff, Trash2 } from 'lucide-react';
+import { Bell, CheckCheck, BellOff } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 import { ConfirmModal } from './ConfirmModal';
 
