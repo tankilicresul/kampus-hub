@@ -507,6 +507,13 @@ export const AppLayout: React.FC = () => {
                 <MessageSquare size={16} />
                 <span>Sohbet</span>
               </div>
+              <div 
+                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => handleTabChange('profile')}
+              >
+                <User size={16} />
+                <span>Profil</span>
+              </div>
             </>
           ) : (
             <>
@@ -698,6 +705,13 @@ export const AppLayout: React.FC = () => {
             >
               <MessageSquare size={20} />
               <span>Sohbet</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleTabChange('profile')}
+            >
+              <User size={20} />
+              <span>Profil</span>
             </button>
           </>
         ) : (
