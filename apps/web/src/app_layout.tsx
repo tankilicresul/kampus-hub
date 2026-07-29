@@ -100,6 +100,10 @@ export const AppLayout: React.FC = () => {
   const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
+    if (tab === 'messages') {
+      setUnreadMsgCount(0);
+      localStorage.setItem('kh_last_messages_view_time', new Date().toISOString());
+    }
   };
   
   // Create Workspace Form State
@@ -127,6 +131,55 @@ export const AppLayout: React.FC = () => {
 
   const [isCreatingWs, setIsCreatingWs] = useState(false);
   const [createWsError, setCreateWsError] = useState<string | null>(null);
+
+  const [unreadMsgCount, setUnreadMsgCount] = useState(0);
+
+  // Initialize unreadMsgCount
+  useEffect(() => {
+    const initUnreads = async () => {
+      if (!user?.id || workspaces.length === 0) return;
+      const lastViewTime = localStorage.getItem('kh_last_messages_view_time') || new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+      
+      const { count, error } = await supabase
+        .from('workspace_messages')
+        .select('id', { count: 'exact', head: true })
+        .in('workspace_id', workspaces.map(w => w.id))
+        .neq('user_id', user.id)
+        .gt('created_at', lastViewTime);
+        
+      if (!error && count !== null) {
+        setUnreadMsgCount(count);
+      }
+    };
+    initUnreads();
+  }, [user?.id, workspaces]);
+
+  // Realtime subscription for unreads
+  useEffect(() => {
+    if (!user?.id || workspaces.length === 0) return;
+
+    const channel = supabase
+      .channel('global-messages-changes')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'workspace_messages' },
+        (payload: any) => {
+          const newMsg = payload.new;
+          if (newMsg.user_id !== user.id) {
+            const isMyWs = workspaces.some(w => w.id === newMsg.workspace_id);
+            if (isMyWs && activeTab !== 'messages') {
+              setUnreadMsgCount(prev => prev + 1);
+              if (navigator.vibrate) navigator.vibrate(10);
+            }
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, workspaces, activeTab]);
 
   const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
   const workspaceDropdownRef = useRef<HTMLDivElement>(null);
@@ -251,6 +304,9 @@ export const AppLayout: React.FC = () => {
             return (
               <div
                 key={member.user_id}
+                onClick={() => {
+                  if (isMe) handleTabChange('profile');
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -260,6 +316,7 @@ export const AppLayout: React.FC = () => {
                   background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.04)' : 'transparent',
                   border: isMe ? '1px solid rgba(var(--accent-rgb, 183,1,22), 0.15)' : '1px solid transparent',
                   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+                  cursor: isMe ? 'pointer' : 'default',
                 }}
               >
                 {/* Avatar */}
@@ -524,7 +581,12 @@ export const AppLayout: React.FC = () => {
             >
               {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <div className="user-profile-info desktop-workspace-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+             <div 
+              className="user-profile-info desktop-workspace-title" 
+              onClick={() => handleTabChange('profile')}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-secondary)', cursor: 'pointer' }}
+              title="Profilime Git"
+            >
               <User size={16} />
               <span style={{ whiteSpace: 'nowrap' }}>
                 {user?.email}
@@ -614,9 +676,26 @@ export const AppLayout: React.FC = () => {
               <div 
                 className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
                 onClick={() => handleTabChange('messages')}
+                style={{ position: 'relative' }}
               >
                 <MessageSquare size={16} />
                 <span>Sohbet</span>
+                {unreadMsgCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '12px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    borderRadius: '50%',
+                    padding: '2px 5px',
+                    lineHeight: 1
+                  }}>
+                    {unreadMsgCount}
+                  </span>
+                )}
               </div>
               <div 
                 className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
@@ -661,9 +740,26 @@ export const AppLayout: React.FC = () => {
               <div 
                 className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
                 onClick={() => handleTabChange('messages')}
+                style={{ position: 'relative' }}
               >
                 <MessageSquare size={16} />
                 <span>Sohbet</span>
+                {unreadMsgCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '12px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    borderRadius: '50%',
+                    padding: '2px 5px',
+                    lineHeight: 1
+                  }}>
+                    {unreadMsgCount}
+                  </span>
+                )}
               </div>
               {role && ['owner', 'admin'].includes(role) && (
                 <div 
@@ -813,9 +909,26 @@ export const AppLayout: React.FC = () => {
             <button 
               className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
               onClick={() => handleTabChange('messages')}
+              style={{ position: 'relative' }}
             >
               <MessageSquare size={20} />
               <span>Sohbet</span>
+              {unreadMsgCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: 'calc(50% - 18px)',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  borderRadius: '50%',
+                  padding: '2px 5px',
+                  lineHeight: 1
+                }}>
+                  {unreadMsgCount}
+                </span>
+              )}
             </button>
             <button 
               className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
@@ -860,9 +973,26 @@ export const AppLayout: React.FC = () => {
             <button 
               className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
               onClick={() => handleTabChange('messages')}
+              style={{ position: 'relative' }}
             >
               <MessageSquare size={20} />
               <span>Sohbet</span>
+              {unreadMsgCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: 'calc(50% - 18px)',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  borderRadius: '50%',
+                  padding: '2px 5px',
+                  lineHeight: 1
+                }}>
+                  {unreadMsgCount}
+                </span>
+              )}
             </button>
             {role && ['owner', 'admin'].includes(role) && (
               <button 
@@ -983,6 +1113,12 @@ export const AppLayout: React.FC = () => {
                 return (
                   <div
                     key={member.user_id}
+                    onClick={() => {
+                      if (isMe) {
+                        handleTabChange('profile');
+                        setIsMobileMenuOpen(false);
+                      }
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -992,6 +1128,7 @@ export const AppLayout: React.FC = () => {
                       marginBottom: '4px',
                       background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.08)' : 'var(--bg-surface-accent)',
                       border: `1px solid ${isMe ? 'var(--accent-color)' : 'var(--border-glass)'}`,
+                      cursor: isMe ? 'pointer' : 'default',
                     }}
                   >
                     {/* Avatar */}
