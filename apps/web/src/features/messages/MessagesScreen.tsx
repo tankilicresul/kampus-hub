@@ -31,7 +31,15 @@ const getAvatarGradient = (userId: string) => {
   return gradients[hash % gradients.length];
 };
 
-export const MessagesScreen: React.FC = () => {
+interface MessagesScreenProps {
+  initialDMUserId?: string | null;
+  onClearInitialDM?: () => void;
+}
+
+export const MessagesScreen: React.FC<MessagesScreenProps> = ({
+  initialDMUserId,
+  onClearInitialDM
+}) => {
   const { activeWorkspace, user } = useAuth();
   
   // Navigation & Tabs
@@ -368,6 +376,14 @@ export const MessagesScreen: React.FC = () => {
       console.error('Start DM failed:', err);
     }
   };
+
+  useEffect(() => {
+    if (initialDMUserId) {
+      setChatTab('dm');
+      handleStartDM(initialDMUserId);
+      if (onClearInitialDM) onClearInitialDM();
+    }
+  }, [initialDMUserId]);
 
   // Accept/Decline Group Invites
   const handleAcceptInvite = async (roomId: string) => {

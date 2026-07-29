@@ -11,6 +11,7 @@ import { NewsScreen } from './features/news/NewsScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
+import { UserDetailModal } from './components/UserDetailModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
@@ -59,6 +60,8 @@ export const AppLayout: React.FC = () => {
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [dismissingBanner, setDismissingBanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [selectedUserDetailId, setSelectedUserDetailId] = useState<string | null>(null);
+  const [initialDMUserId, setInitialDMUserId] = useState<string | null>(null);
 
   // Auto-dismiss invitation banner after 5.5 s
   useEffect(() => {
@@ -104,6 +107,12 @@ export const AppLayout: React.FC = () => {
       setUnreadMsgCount(0);
       localStorage.setItem('kh_last_messages_view_time', new Date().toISOString());
     }
+  };
+
+  const handleStartDMFromModal = (targetUserId: string) => {
+    setSelectedUserDetailId(null);
+    setInitialDMUserId(targetUserId);
+    handleTabChange('messages');
   };
   
   // Create Workspace Form State
@@ -305,7 +314,11 @@ export const AppLayout: React.FC = () => {
               <div
                 key={member.user_id}
                 onClick={() => {
-                  if (isMe) handleTabChange('profile');
+                  if (isMe) {
+                    handleTabChange('profile');
+                  } else {
+                    setSelectedUserDetailId(member.user_id);
+                  }
                 }}
                 style={{
                   display: 'flex',
@@ -316,7 +329,7 @@ export const AppLayout: React.FC = () => {
                   background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.04)' : 'transparent',
                   border: isMe ? '1px solid rgba(var(--accent-rgb, 183,1,22), 0.15)' : '1px solid transparent',
                   borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                  cursor: isMe ? 'pointer' : 'default',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Avatar */}
@@ -871,7 +884,12 @@ export const AppLayout: React.FC = () => {
               {activeTab === 'calendar' && <CalendarScreen />}
               {activeTab === 'crm' && role && ['owner', 'admin', 'manager'].includes(role) && <CrmDashboardScreen />}
               {activeTab === 'profile' && <ProfileScreen />}
-              {activeTab === 'messages' && <MessagesScreen />}
+              {activeTab === 'messages' && (
+                <MessagesScreen 
+                  initialDMUserId={initialDMUserId} 
+                  onClearInitialDM={() => setInitialDMUserId(null)} 
+                />
+              )}
               {activeTab === 'admin' && role && ['owner', 'admin'].includes(role) && <AdminScreen />}
             </>
           )}
@@ -1376,6 +1394,16 @@ export const AppLayout: React.FC = () => {
             setShowWsSettings(false);
             await refreshWorkspaces();
           }}
+        />
+      )}
+
+      {/* User Details Modal */}
+      {selectedUserDetailId && user && (
+        <UserDetailModal
+          userId={selectedUserDetailId}
+          currentUserId={user.id}
+          onClose={() => setSelectedUserDetailId(null)}
+          onStartDM={handleStartDMFromModal}
         />
       )}
     </div>

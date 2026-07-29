@@ -87,6 +87,7 @@ export const ProfileScreen: React.FC = () => {
   const [settingsFeedback, setSettingsFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
 
   const [tasks, setTasks] = useState<UserTask[]>([]);
+  const [connectionCount, setConnectionCount] = useState(0);
 
   const [loading, setLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -162,6 +163,16 @@ export const ProfileScreen: React.FC = () => {
         setQuietStart(profileData.notification_quiet_start ?? 23);
         setQuietEnd(profileData.notification_quiet_end ?? 8);
         setNotifsEnabled(profileData.notifications_enabled ?? true);
+      }
+
+      // Load connection count
+      const { count: connCount, error: connError } = await supabase
+        .from('user_connections')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'accepted')
+        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+      if (!connError && connCount !== null) {
+        setConnectionCount(connCount);
       }
     } catch (err) {
       console.error('Fetch profile stats failed:', err);
@@ -463,7 +474,7 @@ export const ProfileScreen: React.FC = () => {
               </>
             ) : (
               <div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>0</div>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{connectionCount}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>bağlantı</div>
               </div>
             )}
