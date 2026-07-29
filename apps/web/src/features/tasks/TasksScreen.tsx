@@ -1914,7 +1914,7 @@ export const TasksScreen: React.FC = () => {
         priority: newPriority,
         status: initialStatus,
         created_by: user?.id || null,
-        primary_assignee_id: newAssignee || null,
+        primary_assignee_id: newAssignee || (members.length === 1 ? members[0].user_id : null),
         tags: newTags.length > 0 ? newTags : [],
         category: newCategory || activeCategory || null,
         order_index: newOrderIdx,
@@ -2087,7 +2087,12 @@ export const TasksScreen: React.FC = () => {
           <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
             <RefreshCw size={16} />
           </button>
-          <button className="btn btn-primary" onClick={() => { setNewCategory(activeCategory); setShowAddModal(true); }}>
+          <button className="btn btn-primary" onClick={() => { 
+            setNewCategory(activeCategory); 
+            if (members.length === 1) setNewAssignee(members[0].user_id);
+            else setNewAssignee('');
+            setShowAddModal(true); 
+          }}>
             <Plus size={18} />
             <span className="btn-text">{isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
           </button>
