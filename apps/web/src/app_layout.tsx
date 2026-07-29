@@ -11,7 +11,6 @@ import { NewsScreen } from './features/news/NewsScreen';
 import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
-import { UserDetailModal } from './components/UserDetailModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
@@ -60,7 +59,7 @@ export const AppLayout: React.FC = () => {
   const [dismissedBanner, setDismissedBanner] = useState(false);
   const [dismissingBanner, setDismissingBanner] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [selectedUserDetailId, setSelectedUserDetailId] = useState<string | null>(null);
+  const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [initialDMUserId, setInitialDMUserId] = useState<string | null>(null);
 
   // Auto-dismiss invitation banner after 5.5 s
@@ -110,7 +109,7 @@ export const AppLayout: React.FC = () => {
   };
 
   const handleStartDMFromModal = (targetUserId: string) => {
-    setSelectedUserDetailId(null);
+    setProfileUserId(null);
     setInitialDMUserId(targetUserId);
     handleTabChange('messages');
   };
@@ -315,10 +314,11 @@ export const AppLayout: React.FC = () => {
                 key={member.user_id}
                 onClick={() => {
                   if (isMe) {
-                    handleTabChange('profile');
+                    setProfileUserId(null);
                   } else {
-                    setSelectedUserDetailId(member.user_id);
+                    setProfileUserId(member.user_id);
                   }
+                  handleTabChange('profile');
                 }}
                 style={{
                   display: 'flex',
@@ -883,7 +883,12 @@ export const AppLayout: React.FC = () => {
               {activeTab === 'updates' && <DailyUpdatesScreen />}
               {activeTab === 'calendar' && <CalendarScreen />}
               {activeTab === 'crm' && role && ['owner', 'admin', 'manager'].includes(role) && <CrmDashboardScreen />}
-              {activeTab === 'profile' && <ProfileScreen />}
+              {activeTab === 'profile' && (
+                <ProfileScreen 
+                  targetUserId={profileUserId} 
+                  onStartDM={handleStartDMFromModal}
+                />
+              )}
               {activeTab === 'messages' && (
                 <MessagesScreen 
                   initialDMUserId={initialDMUserId} 
@@ -1394,16 +1399,6 @@ export const AppLayout: React.FC = () => {
             setShowWsSettings(false);
             await refreshWorkspaces();
           }}
-        />
-      )}
-
-      {/* User Details Modal */}
-      {selectedUserDetailId && user && (
-        <UserDetailModal
-          userId={selectedUserDetailId}
-          currentUserId={user.id}
-          onClose={() => setSelectedUserDetailId(null)}
-          onStartDM={handleStartDMFromModal}
         />
       )}
     </div>

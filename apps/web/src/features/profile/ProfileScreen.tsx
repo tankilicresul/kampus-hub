@@ -11,7 +11,11 @@ import {
   Bell,
   X,
   Link as LinkIcon,
-  Clock
+  Clock,
+  UserPlus,
+  UserCheck,
+  UserMinus,
+  MessageSquare
 } from 'lucide-react';
 
 interface UserTask {
@@ -55,17 +59,31 @@ interface DailyUpdateComment {
   };
 }
 
-export const ProfileScreen: React.FC = () => {
+interface ProfileScreenProps {
+  targetUserId?: string | null;
+  onStartDM?: (userId: string) => void;
+}
+
+export const ProfileScreen: React.FC<ProfileScreenProps> = ({
+  targetUserId,
+  onStartDM
+}) => {
   const { user, activeWorkspace, role, updateUserProfile } = useAuth();
   const { pushSupported, pushEnabled, pushLoading, enablePush, disablePush } = useNotifications();
+
+  const effectiveUserId = targetUserId || user?.id || '';
+  const isMe = !targetUserId || targetUserId === user?.id;
   
   const [fullName, setFullName] = useState<string>(() => {
-    return user?.user_metadata?.full_name || user?.user_metadata?.name || '';
+    return (isMe ? (user?.user_metadata?.full_name || user?.user_metadata?.name) : '') || '';
   });
 
   const [avatarUrl, setAvatarUrl] = useState<string | null>(() => {
-    return user?.user_metadata?.avatar_url || null;
+    return isMe ? (user?.user_metadata?.avatar_url || null) : null;
   });
+
+  const [connection, setConnection] = useState<{ id: string; requester_id: string; receiver_id: string; status: 'pending' | 'accepted' | 'rejected' } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoFeedback, setPhotoFeedback] = useState<{ success?: boolean; message?: string } | null>(null);
@@ -106,17 +124,24 @@ export const ProfileScreen: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [profileEmail, setProfileEmail] = useState<string>('');
+  const [profileRole, setProfileRole] = useState<string>('');
+
   useEffect(() => {
-    if (user?.user_metadata?.full_name || user?.user_metadata?.name) {
-      setFullName(user.user_metadata.full_name || user.user_metadata.name);
+    if (isMe && user) {
+      if (user?.user_metadata?.full_name || user?.user_metadata?.name) {
+        setFullName(user.user_metadata.full_name || user.user_metadata.name);
+      }
+      if (user?.user_metadata?.avatar_url) {
+        setAvatarUrl(user.user_metadata.avatar_url);
+      }
+      setProfileEmail(user?.email || '');
+      setProfileRole(activeWorkspace?.permissionRole || role || 'Personel');
     }
-    if (user?.user_metadata?.avatar_url) {
-      setAvatarUrl(user.user_metadata.avatar_url);
-    }
-  }, [user]);
+  }, [user, isMe, activeWorkspace, role]);
 
   const loadUserData = async () => {
-    if (!activeWorkspace?.id || !user) return;
+    if (!activeWorkspace?.id || !user || !effectiveUserId) return;
     setLoading(true);
     try {
       // Sync overdue tasks: if task is not completed, not already overdue, has due date and due date is past the 6:00 AM effective threshold
@@ -131,38 +156,66 @@ export const ProfileScreen: React.FC = () => {
       const dd = String(effectiveDate.getDate()).padStart(2, '0');
       const effectiveDateStr = `${yyyy}-${mm}-${dd}`;
 
-      await supabase
-        .from('tasks')
-        .update({ status: 'overdue', updated_at: new Date().toISOString() })
-        .eq('primary_assignee_id', user.id)
-        .is('deleted_at', null)
-        .not('status', 'eq', 'completed')
-        .not('status', 'eq', 'overdue')
-        .not('due_date', 'is', null)
-        .lt('due_date', effectiveDateStr);
+      if (isMe) {
+        await supabase
+          .from('tasks')
+          .update({ status: 'overdue', updated_at: new Date().toISOString() })
+          .eq('primary_assignee_id', user.id)
+          .is('deleted_at', null)
+          .not('status', 'eq', 'completed')
+          .not('status', 'eq', 'overdue')
+          .not('due_date', 'is', null)
+          .lt('due_date', effectiveDateStr);
+      }
 
       const { data: taskData } = await supabase
         .from('tasks')
         .select('id, title, description, status, priority, start_date, due_date, completed_at, primary_assignee_id, created_by, created_at, workspace:workspaces(id, name)')
-        .eq('primary_assignee_id', user.id)
+        .eq('primary_assignee_id', effectiveUserId)
         .order('created_at', { ascending: false });
 
       if (taskData) {
         setTasks((taskData as unknown) as UserTask[]);
       }
 
+      // Load profile details if not isMe
+      if (!isMe) {
+        const { data: profileDetails, error: detailsError } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url, email, role')
+          .eq('id', effectiveUserId)
+          .single();
+        if (!detailsError && profileDetails) {
+          setFullName(profileDetails.full_name || 'İsimsiz');
+          setAvatarUrl(profileDetails.avatar_url || null);
+          setProfileEmail(profileDetails.email || '');
+          setProfileRole(profileDetails.role || 'Personel');
+        }
 
+        // Fetch connection status
+        const { data: connData, error: connError } = await supabase
+          .from('user_connections')
+          .select('id, requester_id, receiver_id, status')
+          .or(`and(requester_id.eq.${user.id},receiver_id.eq.${effectiveUserId}),and(requester_id.eq.${effectiveUserId},receiver_id.eq.${user.id})`);
+        if (!connError && connData && connData.length > 0) {
+          setConnection(connData[0] as any);
+        } else {
+          setConnection(null);
+        }
+      }
 
-      // Load quiet hours and notification settings
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('notification_quiet_start, notification_quiet_end, notifications_enabled')
-        .eq('id', user.id)
-        .single();
-      if (profileData) {
-        setQuietStart(profileData.notification_quiet_start ?? 23);
-        setQuietEnd(profileData.notification_quiet_end ?? 8);
-        setNotifsEnabled(profileData.notifications_enabled ?? true);
+      // Load quiet hours and notification settings (only if isMe)
+      if (isMe) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('notification_quiet_start, notification_quiet_end, notifications_enabled')
+          .eq('id', user.id)
+          .single();
+        if (profileData) {
+          setQuietStart(profileData.notification_quiet_start ?? 23);
+          setQuietEnd(profileData.notification_quiet_end ?? 8);
+          setNotifsEnabled(profileData.notifications_enabled ?? true);
+        }
       }
 
       // Load connection count
@@ -170,7 +223,7 @@ export const ProfileScreen: React.FC = () => {
         .from('user_connections')
         .select('id', { count: 'exact', head: true })
         .eq('status', 'accepted')
-        .or(`requester_id.eq.${user.id},receiver_id.eq.${user.id}`);
+        .or(`requester_id.eq.${effectiveUserId},receiver_id.eq.${effectiveUserId}`);
       if (!connError && connCount !== null) {
         setConnectionCount(connCount);
       }
@@ -234,7 +287,74 @@ export const ProfileScreen: React.FC = () => {
 
   useEffect(() => {
     loadUserData();
-  }, [activeWorkspace, user]);
+  }, [activeWorkspace?.id, user?.id, targetUserId]);
+
+  const handleSendRequest = async () => {
+    if (!user || isMe) return;
+    setActionLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('user_connections')
+        .insert({
+          requester_id: user.id,
+          receiver_id: effectiveUserId,
+          status: 'pending'
+        })
+        .select();
+
+      if (error) throw error;
+      if (data && data.length > 0) {
+        setConnection(data[0] as any);
+      }
+    } catch (err) {
+      console.error('Failed to send connection request:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAcceptRequest = async () => {
+    if (!connection || isMe) return;
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('user_connections')
+        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .eq('id', connection.id);
+
+      if (error) throw error;
+      setConnection({ ...connection, status: 'accepted' });
+      setConnectionCount(prev => prev + 1);
+    } catch (err) {
+      console.error('Failed to accept connection request:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelOrDisconnect = async () => {
+    if (!connection || isMe) return;
+    if (connection.status === 'accepted' && !window.confirm('Bu kişiyi bağlantılarınızdan çıkarmak istediğinize emin misiniz?')) {
+      return;
+    }
+    setActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('user_connections')
+        .delete()
+        .eq('id', connection.id);
+
+      if (error) throw error;
+      if (connection.status === 'accepted') {
+        setConnectionCount(prev => Math.max(0, prev - 1));
+      }
+      setConnection(null);
+    } catch (err) {
+      console.error('Failed to disconnect/cancel:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Handle Photo Upload to Supabase Storage ('avatars' bucket)
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -372,10 +492,10 @@ export const ProfileScreen: React.FC = () => {
     overdue: { title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c' },
   };
 
-  const displayName = fullName.trim() || user?.email?.split('@')[0] || 'Kullanıcı';
+  const displayName = fullName.trim() || profileEmail.split('@')[0] || 'Kullanıcı';
   const userInitials = displayName.substring(0, 2).toUpperCase();
-  const userRoleDisplay = activeWorkspace?.permissionRole || role || 'Personel';
-  const isOwner = user?.email === 'resulkilic16@gmail.com';
+  const userRoleDisplay = profileRole || 'Personel';
+  const isResulProfile = profileEmail === 'resulkilic16@gmail.com';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', paddingBottom: '48px' }}>
@@ -396,16 +516,16 @@ export const ProfileScreen: React.FC = () => {
           {/* Avatar Sphere with Story Ring & File Picker */}
           <div style={{ position: 'relative', flexShrink: 0 }}>
             <div 
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => isMe && fileInputRef.current?.click()}
               style={{
                 width: '90px',
                 height: '90px',
                 borderRadius: '50%',
                 padding: '3px',
                 background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-                cursor: 'pointer',
+                cursor: isMe ? 'pointer' : 'default',
               }}
-              title="Profil Fotoğrafını Değiştir"
+              title={isMe ? "Profil Fotoğrafını Değiştir" : undefined}
             >
               <div style={{
                 width: '100%',
@@ -428,21 +548,23 @@ export const ProfileScreen: React.FC = () => {
                 {!avatarUrl && userInitials}
                 
                 {/* Camera Icon Overlay */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                  backdropFilter: 'blur(4px)',
-                  padding: '2px 0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'white'
-                }}>
-                  {isUploadingPhoto ? <RefreshCw className="animate-spin" size={12} /> : <Camera size={12} />}
-                </div>
+                {isMe && (
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '2px 0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white'
+                  }}>
+                    {isUploadingPhoto ? <RefreshCw className="animate-spin" size={12} /> : <Camera size={12} />}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -461,7 +583,7 @@ export const ProfileScreen: React.FC = () => {
               <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{myTasks.length}</div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>görev</div>
             </div>
-            {isOwner ? (
+            {isResulProfile ? (
               <>
                 <div>
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>97</div>
@@ -486,7 +608,7 @@ export const ProfileScreen: React.FC = () => {
           <h2 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             {displayName} <span style={{ fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: 500, backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '2px 8px', borderRadius: '12px' }}>{userRoleDisplay}</span>
           </h2>
-          {isOwner ? (
+          {isResulProfile ? (
             <>
               <p style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
                 AI • Pazarlama • Girişimcilik<br/>
@@ -500,52 +622,224 @@ export const ProfileScreen: React.FC = () => {
             </>
           ) : (
             <div style={{ margin: '4px 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-              {user?.email}
+              {profileEmail}
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
-          <button 
-            onClick={() => setShowEditModal(true)}
-            style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '8px',
-              backgroundColor: 'var(--bg-surface-accent)',
-              border: '1px solid var(--border-glass)',
-              color: 'var(--text-primary)',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
-          >
-            Profili düzenle
-          </button>
-          <button 
-            style={{
-              flex: 1,
-              padding: '8px 0',
-              borderRadius: '8px',
-              backgroundColor: 'var(--bg-surface-accent)',
-              border: '1px solid var(--border-glass)',
-              color: 'var(--text-primary)',
-              fontWeight: 600,
-              fontSize: '0.9rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px'
-            }}
-          >
-            Bağlantılarım
-          </button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '8px', flexWrap: 'wrap' }}>
+          {isMe ? (
+            <>
+              <button 
+                onClick={() => setShowEditModal(true)}
+                style={{
+                  flex: 1,
+                  padding: '8px 0',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  border: '1px solid var(--border-glass)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                Profili düzenle
+              </button>
+              <button 
+                style={{
+                  flex: 1,
+                  padding: '8px 0',
+                  borderRadius: '8px',
+                  backgroundColor: 'var(--bg-surface-accent)',
+                  border: '1px solid var(--border-glass)',
+                  color: 'var(--text-primary)',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                Bağlantılarım
+              </button>
+            </>
+          ) : (
+            <div style={{ display: 'flex', gap: '10px', width: '100%', flexWrap: 'wrap' }}>
+              {/* Connection Status Buttons */}
+              {!connection && (
+                <button
+                  onClick={handleSendRequest}
+                  disabled={actionLoading}
+                  style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--accent-color)',
+                    border: '1px solid transparent',
+                    color: 'white',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {actionLoading ? <RefreshCw className="animate-spin" size={14} /> : <UserPlus size={14} />}
+                  <span>Bağlantı Kur</span>
+                </button>
+              )}
+
+              {connection && connection.status === 'pending' && connection.requester_id === user?.id && (
+                <button
+                  onClick={handleCancelOrDisconnect}
+                  disabled={actionLoading}
+                  style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-surface-accent)',
+                    border: '1px solid var(--accent-color)',
+                    color: 'var(--text-primary)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {actionLoading ? <RefreshCw className="animate-spin" size={14} /> : <UserMinus size={14} />}
+                  <span>İsteği İptal Et</span>
+                </button>
+              )}
+
+              {connection && connection.status === 'pending' && connection.receiver_id === user?.id && (
+                <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                  <button
+                    onClick={handleAcceptRequest}
+                    disabled={actionLoading}
+                    style={{
+                      flex: 2,
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--accent-color)',
+                      border: '1px solid transparent',
+                      color: 'white',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    {actionLoading ? <RefreshCw className="animate-spin" size={14} /> : <UserCheck size={14} />}
+                    <span>Kabul Et</span>
+                  </button>
+                  <button
+                    onClick={handleCancelOrDisconnect}
+                    disabled={actionLoading}
+                    style={{
+                      flex: 1,
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--bg-surface-accent)',
+                      border: '1px solid var(--border-glass)',
+                      color: '#ef4444',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Reddet
+                  </button>
+                </div>
+              )}
+
+              {connection && connection.status === 'accepted' && (
+                <div style={{ display: 'flex', gap: '10px', flex: 1, flexWrap: 'wrap' }}>
+                  <div style={{
+                    flex: 1,
+                    minWidth: '120px',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    color: '#10b981',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}>
+                    <UserCheck size={14} />
+                    <span>Bağlantınız</span>
+                  </div>
+                  <button
+                    onClick={handleCancelOrDisconnect}
+                    disabled={actionLoading}
+                    style={{
+                      flex: 1,
+                      minWidth: '120px',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      backgroundColor: 'var(--bg-surface-accent)',
+                      border: '1px solid var(--border-glass)',
+                      color: '#ef4444',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    {actionLoading ? <RefreshCw className="animate-spin" size={14} /> : <UserMinus size={14} />}
+                    <span>Bağlantıyı Kes</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Message Button ONLY if allowed */}
+              {((user?.email === 'resultankilic.business@gmail.com' || user?.email === 'resultankilic65@gmail.com') || (connection && connection.status === 'accepted')) && (
+                <button
+                  onClick={() => onStartDM && onStartDM(effectiveUserId)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    backgroundColor: 'var(--bg-surface-accent)',
+                    border: '1px solid var(--border-glass)',
+                    color: 'var(--text-primary)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    marginTop: '4px'
+                  }}
+                >
+                  <MessageSquare size={14} style={{ color: 'var(--accent-color)' }} />
+                  <span>Mesaj Gönder</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {photoFeedback && (
