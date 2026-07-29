@@ -1,47 +1,49 @@
 -- Migration: Auto-join 'tankilic.ai for all' workspace
 -- Target: Supabase DB Local Setup
 
--- Recreate trigger function with auto-join logic
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+-- 1. Add trigger function
+CREATE OR REPLACE FUNCTION public.auto_add_profile_to_tankilic_workspace()
 RETURNS TRIGGER AS $$
 DECLARE
-    v_role user_role;
-    v_full_name TEXT;
     v_target_ws_id UUID;
 BEGIN
-    -- Derive display name
-    v_full_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1));
+    SELECT id INTO v_target_ws_id FROM public.workspaces WHERE name = 'tankilic.ai for all' LIMIT 1;
     
-    -- Assign default legacy roles for backward compatibility (does not impact workspace permission models)
-    IF NEW.email = 'resultankilic.business@gmail.com' THEN
-        v_role := 'admin'::user_role;
-    ELSE
-        v_role := 'intern'::user_role;
+    IF v_target_ws_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1 FROM public.workspace_members 
+        WHERE workspace_id = v_target_ws_id 
+          AND user_id = NEW.id 
+          AND deleted_at IS NULL
+    ) THEN
+        INSERT INTO public.workspace_members (workspace_id, user_id, permission_role, membership_status)
+        VALUES (v_target_ws_id, NEW.id, 'member', 'active');
     END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-    -- Sync user profile record idempotently
-    INSERT INTO public.profiles (id, email, role, full_name, avatar_url)
-    VALUES (
-        NEW.id,
-        NEW.email,
-        v_role,
-        v_full_name,
-        NEW.raw_user_meta_data->>'avatar_url'
-    )
-    ON CONFLICT (id) DO UPDATE SET 
-        email = EXCLUDED.email,
-        full_name = EXCLUDED.full_name,
-        avatar_url = EXCLUDED.avatar_url;
-        
-    -- Auto-join "tankilic.ai for all" workspace if it exists
+-- 2. Add trigger
+CREATE OR REPLACE TRIGGER trg_auto_join_tankilic_workspace
+AFTER INSERT ON public.profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.auto_add_profile_to_tankilic_workspace();
+
+-- 3. Add existing users
+DO $$
+DECLARE
+    v_target_ws_id UUID;
+BEGIN
     SELECT id INTO v_target_ws_id FROM public.workspaces WHERE name = 'tankilic.ai for all' LIMIT 1;
     
     IF v_target_ws_id IS NOT NULL THEN
-        INSERT INTO public.workspace_members (workspace_id, user_id, permission_role)
-        VALUES (v_target_ws_id, NEW.id, 'member')
-        ON CONFLICT (workspace_id, user_id) DO NOTHING;
+        INSERT INTO public.workspace_members (workspace_id, user_id, permission_role, membership_status)
+        SELECT v_target_ws_id, id, 'member', 'active'
+        FROM public.profiles
+        WHERE id NOT IN (
+            SELECT user_id 
+            FROM public.workspace_members 
+            WHERE workspace_id = v_target_ws_id 
+              AND deleted_at IS NULL
+        );
     END IF;
-        
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_catalog;
+END $$;
