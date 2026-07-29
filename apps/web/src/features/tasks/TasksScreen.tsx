@@ -23,6 +23,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ConfirmModal } from '../../components/ConfirmModal';
 
 interface Task {
   id: string;
@@ -422,8 +423,23 @@ const SortableTaskCard: React.FC<{
   members: WorkspaceMember[];
   comments?: any[];
   onDetailClick: (task: Task) => void;
-}> = ({ task, members, comments = [], onDetailClick }) => {
+  onUpdatePriority: (taskId: string, priority: Task['priority']) => void;
+}> = ({ task, members, comments = [], onDetailClick, onUpdatePriority }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
+  
+  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
+  const priorityMenuRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (priorityMenuRef.current && !priorityMenuRef.current.contains(e.target as Node)) {
+        setShowPriorityMenu(false);
+      }
+    };
+    if (showPriorityMenu) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [showPriorityMenu]);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -443,16 +459,77 @@ const SortableTaskCard: React.FC<{
     >
       {/* Title with Priority Dot & Recurrence */}
       <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-        <span 
-          title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'} 
-          style={{ 
-            width: '9px', 
-            height: '9px', 
-            borderRadius: '50%', 
-            backgroundColor: task.status === 'completed' ? '#22c55e' : (task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
-            flexShrink: 0
-          }} 
-        />
+        <div 
+          ref={priorityMenuRef}
+          style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowPriorityMenu(!showPriorityMenu);
+          }}
+        >
+          <span 
+            title={task.priority === 'critical' ? 'Acil' : task.priority === 'high' ? 'Önemli' : 'Acelesi Yok'} 
+            style={{ 
+              width: '12px', 
+              height: '12px', 
+              borderRadius: '50%', 
+              backgroundColor: task.status === 'completed' ? '#22c55e' : (task.priority === 'critical' ? '#ef4444' : task.priority === 'high' ? '#f59e0b' : '#3b82f6'), 
+              flexShrink: 0,
+              cursor: 'pointer',
+              border: '2px solid transparent',
+              transition: 'border 0.2s',
+            }} 
+            onMouseEnter={(e) => e.currentTarget.style.border = '2px solid var(--border-color)'}
+            onMouseLeave={(e) => e.currentTarget.style.border = '2px solid transparent'}
+          />
+          {showPriorityMenu && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              marginTop: '4px',
+              backgroundColor: 'var(--bg-surface-accent)',
+              border: '1px solid var(--border-glass)',
+              borderRadius: '8px',
+              padding: '4px',
+              zIndex: 1000,
+              boxShadow: 'var(--shadow-lg)',
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: '110px'
+            }}>
+              {[
+                { val: 'critical', label: 'Acil', color: '#ef4444' },
+                { val: 'high', label: 'Önemli', color: '#f59e0b' },
+                { val: 'normal', label: 'Acelesi Yok', color: '#3b82f6' }
+              ].map(p => (
+                <div 
+                  key={p.val}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUpdatePriority(task.id, p.val as Task['priority']);
+                    setShowPriorityMenu(false);
+                  }}
+                  style={{
+                    padding: '6px 8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.05)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: p.color }} />
+                  {p.label}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         <span style={{ flex: 1 }}>{task.title}</span>
         {task.recurrence && task.recurrence !== 'none' && (
           <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
@@ -635,6 +712,43 @@ const TaskDetailModal: React.FC<{
   const [statLinkClicks, setStatLinkClicks] = useState<number>(task.stat_link_clicks || 0);
   const [postItems, setPostItems] = useState<any[]>(task.post_items || [{ id: 1, text: '' }]);
 
+  const [isDirty, setIsDirty] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  useEffect(() => {
+    const isChanged = currentTitle !== task.title ||
+      currentDescription !== (task.description || '') ||
+      currentStatus !== task.status ||
+      currentPriority !== task.priority ||
+      currentDueDate !== (task.due_date || null) ||
+      currentStartDate !== (task.start_date || null) ||
+      currentCategory !== (task.category || '') ||
+      currentAssigneeId !== (task.primary_assignee_id || '') ||
+      contentType !== (task.content_type || 'viral') ||
+      contentHook !== (task.content_hook || '') ||
+      contentPromise !== (task.content_promise || '') ||
+      contentBody !== (task.content_body || '') ||
+      contentPayoff !== (task.content_payoff || '') ||
+      contentCta !== (task.content_cta || '') ||
+      contentLoop !== (task.content_loop || '') ||
+      adBudget !== (task.ad_budget || '') ||
+      shootingDate !== (task.shooting_date || '') ||
+      sharingDate !== (task.sharing_date || '') ||
+      designDate !== (task.design_date || '') ||
+      adCost !== (task.ad_cost || '') ||
+      adDuration !== (task.ad_duration || '') ||
+      statCta !== (task.stat_cta || '') ||
+      statDownloads !== (task.stat_downloads || 0) ||
+      statLinkClicks !== (task.stat_link_clicks || 0) ||
+      JSON.stringify(postItems) !== JSON.stringify(task.post_items || [{ id: 1, text: '' }]);
+
+    setIsDirty(isChanged);
+  }, [
+    currentTitle, currentDescription, currentStatus, currentPriority, currentDueDate, currentStartDate, currentCategory, currentAssigneeId,
+    contentType, contentHook, contentPromise, contentBody, contentPayoff, contentCta, contentLoop, adBudget, shootingDate, sharingDate, designDate, adCost, adDuration, statCta, statDownloads, statLinkClicks, postItems, task
+  ]);
+
   const handleDueDateChange = (val: string) => {
     setCurrentDueDate(val || null);
     if (val) {
@@ -674,7 +788,6 @@ const TaskDetailModal: React.FC<{
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Bu görevi silmek istediğinize emin misiniz?')) return;
     try {
       const { error } = await supabase
         .from('tasks')
@@ -685,6 +798,14 @@ const TaskDetailModal: React.FC<{
       onClose();
     } catch (err) {
       console.error('Delete task failed:', err);
+    }
+  };
+
+  const handleCloseAttempt = () => {
+    if (isDirty) {
+      setShowCloseConfirm(true);
+    } else {
+      onClose();
     }
   };
 
@@ -802,7 +923,7 @@ const TaskDetailModal: React.FC<{
   const isOverdue = (currentStatus === 'revision_required' || currentStatus === 'overdue' || checkIfDateIsPastDue(targetDateVal)) && currentStatus !== 'completed';
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop" onClick={handleCloseAttempt}>
       <div
         className="modal-content"
         style={{ maxWidth: isSocial ? '760px' : '560px', width: '95%', padding: 0, overflow: 'hidden', borderRadius: '16px', transition: 'max-width 0.2s ease-in-out' }}
@@ -825,7 +946,7 @@ const TaskDetailModal: React.FC<{
               {isSocial ? 'İçerik Script Planlayıcı' : 'Görev Detayı'}
             </span>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '4px' }}>
+          <button onClick={handleCloseAttempt} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
@@ -1437,7 +1558,7 @@ const TaskDetailModal: React.FC<{
         }}>
           <button
             type="button"
-            onClick={handleDelete}
+            onClick={() => setShowDeleteConfirm(true)}
             style={{
               display: 'flex', alignItems: 'center', gap: '6px',
               backgroundColor: 'rgba(239,68,68,0.1)', color: '#dc2626',
@@ -1452,7 +1573,7 @@ const TaskDetailModal: React.FC<{
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleCloseAttempt}
               style={{
                 padding: '8px 18px', borderRadius: '10px', fontWeight: 700,
                 fontSize: '0.85rem', cursor: 'pointer',
@@ -1475,6 +1596,26 @@ const TaskDetailModal: React.FC<{
         </div>
 
       </div>
+
+      <ConfirmModal
+        isOpen={showCloseConfirm}
+        title="Kaydedilmeyen Değişiklikler"
+        message="Yaptığınız değişiklikleri kaydetmeden çıkmak istediğinize emin misiniz? Değişiklikleriniz kaybolacaktır."
+        confirmText="Evet, Çık"
+        onConfirm={onClose}
+        onCancel={() => setShowCloseConfirm(false)}
+        isDestructive={true}
+      />
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="Görevi Sil"
+        message="Bu görevi silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Evet, Sil"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isDestructive={true}
+      />
     </div>
   );
 };
@@ -1494,6 +1635,7 @@ export const TasksScreen: React.FC = () => {
   }, [viewMode]);
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
 
   // Create task modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -2032,6 +2174,18 @@ export const TasksScreen: React.FC = () => {
     }
   };
 
+  const handleUpdatePriority = async (taskId: string, newPriority: Task['priority']) => {
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, priority: newPriority } : t));
+    try {
+      const { error } = await supabase.from('tasks').update({ priority: newPriority, updated_at: new Date().toISOString() }).eq('id', taskId);
+      if (error) throw error;
+    } catch (err) {
+      console.error('Update priority failed:', err);
+      loadTasks(); // rollback on error
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => setActiveId(String(event.active.id));
 
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -2048,7 +2202,19 @@ export const TasksScreen: React.FC = () => {
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !activeCategory || t.category === activeCategory;
-    return matchesSearch && matchesCategory;
+    
+    // Filter completed tasks older than 7 days
+    let matchesArchived = true;
+    if (t.status === 'completed' && !showAllCompleted && t.completed_at) {
+      const completedDate = new Date(t.completed_at);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      if (completedDate < sevenDaysAgo) {
+        matchesArchived = false;
+      }
+    }
+
+    return matchesSearch && matchesCategory && matchesArchived;
   });
 
 
@@ -2211,9 +2377,19 @@ export const TasksScreen: React.FC = () => {
               return (
                 <div key={col.key} className="board-column" id={col.key}>
                   <div className="column-header">
-                    <div className="column-title-container">
+                    <div className="column-title-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                       <span className="column-dot" style={{ backgroundColor: col.color }} />
                       <span style={{ fontWeight: 700 }}>{col.title}</span>
+                      {col.key === 'completed' && (
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '2px 6px', fontSize: '0.65rem', marginLeft: 'auto', marginRight: '6px' }}
+                          onClick={() => setShowAllCompleted(!showAllCompleted)}
+                          title={showAllCompleted ? "Son 7 Günü Göster" : "Tümünü Göster"}
+                        >
+                          {showAllCompleted ? "Son 7 Gün" : "Tümü"}
+                        </button>
+                      )}
                     </div>
                     <span className="column-badge">{columnTasks.length}</span>
                   </div>
@@ -2226,6 +2402,7 @@ export const TasksScreen: React.FC = () => {
                           members={members}
                           comments={taskComments[task.id] || []}
                           onDetailClick={setDetailTask}
+                          onUpdatePriority={handleUpdatePriority}
                         />
                       ))}
                     </DroppableCardsArea>

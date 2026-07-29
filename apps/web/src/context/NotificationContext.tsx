@@ -26,6 +26,7 @@ export interface AppNotification {
   is_read: boolean;
   created_at: string;
   notification_scope: 'workspace' | 'global';
+  action_url?: string | null;
 }
 
 interface NotificationContextType {
@@ -40,6 +41,7 @@ interface NotificationContextType {
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
+  deleteAllNotifications: () => Promise<void>;
   sendPushToWorkspace: (params: {
     workspace_id: string;
     title: string;
@@ -97,11 +99,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // ── Bildirimleri yükle ──────────────────────────────────────────────────────
   const loadNotifications = useCallback(async () => {
     if (!user?.id || !activeWorkspace?.id) return;
-    setLoading(true);
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('notifications')
-        .select('*')
+        .select('id, user_id, workspace_id, title, body, is_read, created_at, notification_scope, action_url')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -277,6 +279,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  const deleteAllNotifications = async (): Promise<void> => {
+    if (!user?.id) return;
+    try {
+      const { error } = await supabase.from('notifications').delete().eq('user_id', user.id);
+      if (error) throw error;
+      setNotifications([]);
+    } catch (err) {
+      console.error('Delete all notifications failed:', err);
+    }
+  };
+
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
@@ -293,6 +306,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         markAsRead,
         markAllAsRead,
         deleteNotification,
+        deleteAllNotifications,
         sendPushToWorkspace,
       }}
     >

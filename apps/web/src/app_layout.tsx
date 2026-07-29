@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth, supabase } from './context/AuthContext';
 import { TasksScreen } from './features/tasks/TasksScreen';
 import { DailyUpdatesScreen } from './features/daily_updates/DailyUpdatesScreen';
@@ -14,7 +14,7 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays, Newspaper
+  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -128,6 +128,19 @@ export const AppLayout: React.FC = () => {
   const [isCreatingWs, setIsCreatingWs] = useState(false);
   const [createWsError, setCreateWsError] = useState<string | null>(null);
 
+  const [isWorkspaceDropdownOpen, setIsWorkspaceDropdownOpen] = useState(false);
+  const workspaceDropdownRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (workspaceDropdownRef.current && !workspaceDropdownRef.current.contains(e.target as Node)) {
+        setIsWorkspaceDropdownOpen(false);
+      }
+    };
+    if (isWorkspaceDropdownOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [isWorkspaceDropdownOpen]);
+
   const handleCreateWs = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreateWsError(null);
@@ -224,7 +237,7 @@ export const AppLayout: React.FC = () => {
           <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
         </div>
 
-        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column' }}>
+        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', maxHeight: '40vh' }}>
           {workspaceMembers.length === 0 && (
             <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic' }}>
               Yükleniyor...
@@ -321,44 +334,142 @@ export const AppLayout: React.FC = () => {
           </div>
 
           {/* ORTA — workspace selector (absolute center) */}
-          <div style={{ 
+          <div ref={workspaceDropdownRef} style={{ 
             position: 'absolute', 
             left: '50%', 
             transform: 'translateX(-50%)',
             display: 'flex',
             alignItems: 'center',
           }}>
-            <select 
-              value={activeWorkspace?.id || '__none__'} 
-              onChange={(e) => {
-                if (e.target.value === '__add_new_workspace__') {
-                  setShowWorkspaceModal(true);
-                } else if (e.target.value === '__invite_team__') {
-                  setShowTeamModal(true);
-                } else if (e.target.value !== '__none__') {
-                  selectWorkspace(e.target.value);
-                }
-              }}
-              className="form-input"
-              style={{ 
-                padding: '6px 12px', 
-                fontSize: '0.85rem', 
-                maxWidth: '160px', 
+            <button
+              onClick={() => setIsWorkspaceDropdownOpen(!isWorkspaceDropdownOpen)}
+              className="btn btn-secondary"
+              style={{
+                padding: '6px 12px',
+                fontSize: '0.85rem',
+                minWidth: '140px',
                 borderRadius: '14px',
                 backgroundColor: 'var(--bg-surface-accent)',
                 border: '1px solid var(--border-glass)',
                 color: 'var(--text-primary)',
                 fontWeight: 700,
-                textAlign: 'center',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                transition: 'all 0.2s',
               }}
             >
-              {!activeWorkspace && <option value="__none__">Ekip Seçilmedi</option>}
-              {workspaces.map((ws) => (
-                <option key={ws.id} value={ws.id}>{ws.name}</option>
-              ))}
-              <option value="__invite_team__">+ Üye Davet</option>
-              <option value="__add_new_workspace__">+ Yeni Ekip</option>
-            </select>
+              <div style={{
+                width: '18px', height: '18px', borderRadius: '4px',
+                backgroundColor: 'var(--accent-color)', color: '#fff',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.6rem', fontWeight: 800
+              }}>
+                {activeWorkspace ? activeWorkspace.name.substring(0, 2).toUpperCase() : '?'}
+              </div>
+              <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {activeWorkspace ? activeWorkspace.name : 'Ekip Seçilmedi'}
+              </span>
+              <ChevronDown size={14} style={{ opacity: 0.6, transform: isWorkspaceDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+            </button>
+
+            {isWorkspaceDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '240px',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '12px',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
+                zIndex: 1000,
+                overflow: 'hidden',
+              }}>
+                <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {workspaces.map((ws) => (
+                    <div
+                      key={ws.id}
+                      onClick={() => {
+                        selectWorkspace(ws.id);
+                        setIsWorkspaceDropdownOpen(false);
+                      }}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        background: activeWorkspace?.id === ws.id ? 'rgba(var(--accent-rgb, 183,1,22), 0.1)' : 'transparent',
+                        color: activeWorkspace?.id === ws.id ? 'var(--accent-color)' : 'var(--text-primary)',
+                        transition: 'background 0.2s',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = 'var(--bg-surface-accent)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (activeWorkspace?.id !== ws.id) e.currentTarget.style.background = 'transparent';
+                      }}
+                    >
+                      <div style={{
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        backgroundColor: activeWorkspace?.id === ws.id ? 'var(--accent-color)' : 'var(--bg-surface)',
+                        color: activeWorkspace?.id === ws.id ? '#fff' : 'var(--text-secondary)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.65rem', fontWeight: 800
+                      }}>
+                        {ws.name.substring(0, 2).toUpperCase()}
+                      </div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {ws.name}
+                      </span>
+                      {activeWorkspace?.id === ws.id && <Check size={14} />}
+                    </div>
+                  ))}
+                  
+                  <div style={{ height: '1px', background: 'var(--border-glass)', margin: '4px 0' }} />
+                  
+                  <div
+                    onClick={() => {
+                      setShowTeamModal(true);
+                      setIsWorkspaceDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '8px 12px', borderRadius: '8px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600,
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface-accent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <UserPlus size={16} />
+                    <span>Üye Davet Et</span>
+                  </div>
+                  
+                  <div
+                    onClick={() => {
+                      setShowWorkspaceModal(true);
+                      setIsWorkspaceDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '8px 12px', borderRadius: '8px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 600,
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-surface-accent)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Plus size={16} />
+                    <span>Yeni Ekip Oluştur</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* SAĞ — mobilde: sadece bildirim zili (davet sayısı dahil). Masaüstünde ekstra düğmeler */}

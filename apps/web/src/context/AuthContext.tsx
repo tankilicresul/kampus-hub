@@ -63,6 +63,21 @@ export interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// ── Provider ──────────────────────────────────────────────────────────────────
+
+const mapAuthError = (message: string): string => {
+  if (!message) return 'Bilinmeyen bir hata oluştu.';
+  const lowerMsg = message.toLowerCase();
+  
+  if (lowerMsg.includes('invalid login credentials')) return 'E-posta adresi veya şifre hatalı.';
+  if (lowerMsg.includes('user already registered')) return 'Bu e-posta adresi zaten kayıtlı.';
+  if (lowerMsg.includes('password should be at least')) return 'Şifre en az 6 karakter olmalıdır.';
+  if (lowerMsg.includes('email link is invalid or has expired')) return 'Onay bağlantısı geçersiz veya süresi dolmuş.';
+  if (lowerMsg.includes('rate limit')) return 'Çok fazla deneme yaptınız. Lütfen daha sonra tekrar deneyin.';
+  
+  return message;
+};
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [status, setStatus] = useState<AuthStatus>('checking');
@@ -219,7 +234,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return true;
     } catch (err: any) {
-      setErrorMessage(err.message || 'Giriş işlemi başarısız oldu.');
+      setErrorMessage(mapAuthError(err.message || 'Giriş işlemi başarısız oldu.'));
       setStatus('unauthenticated');
       return false;
     }
@@ -265,7 +280,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const loggedIn = await signIn(email, password);
       if (loggedIn) return true;
 
-      setErrorMessage(err.message || 'Kayıt işlemi başarısız oldu.');
+      setErrorMessage(mapAuthError(err.message || 'Kayıt işlemi başarısız oldu.'));
       setStatus('unauthenticated');
       return false;
     }

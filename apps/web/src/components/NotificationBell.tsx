@@ -7,12 +7,15 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, CheckCheck, BellOff } from 'lucide-react';
+import { Bell, CheckCheck, BellOff, Trash2 } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
+import { ConfirmModal } from './ConfirmModal';
 
 export const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications } = useNotifications();
   const [open, setOpen] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Panel dışına tıklayınca kapat
@@ -105,17 +108,29 @@ export const NotificationBell: React.FC = () => {
             <span style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
               Bildirimler {unreadCount > 0 && <span style={{ color: 'var(--accent-color)' }}>({unreadCount})</span>}
             </span>
-            {unreadCount > 0 && (
-              <button
-                className="btn btn-secondary"
-                style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
-                onClick={markAllAsRead}
-                title="Tümünü okundu işaretle"
-              >
-                <CheckCheck size={13} />
-                Tümü
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {unreadCount > 0 && (
+                <button
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  onClick={markAllAsRead}
+                  title="Tümünü okundu işaretle"
+                >
+                  <CheckCheck size={13} />
+                  Tümü
+                </button>
+              )}
+              {notifications.length > 0 && (
+                <button
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '5px', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                  onClick={() => setShowClearConfirm(true)}
+                  title="Tümünü temizle"
+                >
+                  Temizle
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Liste */}
@@ -136,11 +151,17 @@ export const NotificationBell: React.FC = () => {
               notifications.map((notif) => (
                 <div
                   key={notif.id}
-                  onClick={() => !notif.is_read && markAsRead(notif.id)}
+                  onClick={() => {
+                    if (!notif.is_read) markAsRead(notif.id);
+                    if (notif.action_url) {
+                      setOpen(false);
+                      window.location.href = notif.action_url;
+                    }
+                  }}
                   style={{
                     padding: '12px 16px',
                     borderBottom: '1px solid var(--border-glass)',
-                    cursor: notif.is_read ? 'default' : 'pointer',
+                    cursor: (notif.is_read && !notif.action_url) ? 'default' : 'pointer',
                     background: notif.is_read ? 'transparent' : 'rgba(var(--accent-rgb, 183,1,22), 0.06)',
                     transition: 'background 0.2s',
                     display: 'flex',
@@ -192,9 +213,7 @@ export const NotificationBell: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (confirm('Bu bildirimi silmek istiyor musunuz?')) {
-                          deleteNotification(notif.id);
-                        }
+                        setDeleteConfirmId(notif.id);
                       }}
                       style={{
                         background: 'rgba(239, 68, 68, 0.1)',
@@ -235,6 +254,34 @@ export const NotificationBell: React.FC = () => {
           )}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showClearConfirm}
+        title="Tüm Bildirimleri Sil"
+        message="Tüm bildirimleri kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
+        confirmText="Tümünü Sil"
+        onConfirm={() => {
+          deleteAllNotifications();
+          setShowClearConfirm(false);
+        }}
+        onCancel={() => setShowClearConfirm(false)}
+        isDestructive={true}
+      />
+
+      <ConfirmModal
+        isOpen={deleteConfirmId !== null}
+        title="Bildirimi Sil"
+        message="Bu bildirimi silmek istediğinize emin misiniz?"
+        confirmText="Sil"
+        onConfirm={() => {
+          if (deleteConfirmId) {
+            deleteNotification(deleteConfirmId);
+          }
+          setDeleteConfirmId(null);
+        }}
+        onCancel={() => setDeleteConfirmId(null)}
+        isDestructive={true}
+      />
     </div>
   );
 };
