@@ -55,51 +55,26 @@ export const NewsScreen: React.FC = () => {
   ];
 
   return (
-    <div className="news-screen fade-in" style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%',
-      backgroundColor: 'var(--bg-main)',
-      color: 'var(--text-primary)',
-      padding: '24px',
-      gap: '24px',
-      overflowY: 'auto'
-    }}>
+    <div className="news-container fade-in">
       {/* Header Section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
-        <h1 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.02em', margin: 0, display: 'flex', alignItems: 'center', gap: '12px' }}>
-          Girişimcilik Dünyasından Haberler 🚀
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', maxWidth: '600px', lineHeight: 1.5 }}>
+      <div className="news-header">
+        <h1>Girişimcilik Dünyasından Haberler 🚀</h1>
+        <p>
           Hoş geldin, <strong>{userName}</strong>. Teknoloji, yapay zeka ve startup ekosistemindeki en güncel gelişmeleri, ilham verici makaleleri ve büyüme stratejilerini buradan takip edebilirsin.
         </p>
       </div>
 
       {/* Featured Headline / Banner */}
-      <div style={{
-        backgroundColor: 'rgba(255, 159, 10, 0.08)',
-        border: '1px solid rgba(255, 159, 10, 0.2)',
-        borderRadius: '16px',
-        padding: '24px',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        cursor: 'pointer',
-        transition: 'transform 0.2s',
-      }}>
-        <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1, color: 'var(--accent-color)' }}>
+      <div className="featured-banner">
+        <div className="featured-banner-icon">
           <TrendingUp size={160} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ backgroundColor: 'var(--accent-color)', color: 'white', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Haftanın Öne Çıkanı
-          </span>
+          <span className="featured-badge">Haftanın Öne Çıkanı</span>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Tavsiye Edilen Okuma</span>
         </div>
-        <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, zIndex: 1 }}>2026'nın En Hızlı Büyüyen 50 B2B Girişimi Açıklandı</h2>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', margin: 0, zIndex: 1, maxWidth: '80%' }}>
+        <h2>2026'nın En Hızlı Büyüyen 50 B2B Girişimi Açıklandı</h2>
+        <p>
           Yıllık rapor yayınlandı. Büyüme rakamlarına göre SaaS pazarında inovasyon yapan firmaların analizine hemen göz atın.
         </p>
         <button style={{
@@ -121,35 +96,9 @@ export const NewsScreen: React.FC = () => {
       </div>
 
       {/* News Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '16px'
-      }}>
+      <div className="news-grid">
         {newsItems.map((news) => (
-          <div key={news.id} style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-glass)',
-            borderRadius: '12px',
-            padding: '20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px',
-            transition: 'all 0.2s',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-sm)',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.borderColor = news.color;
-            e.currentTarget.style.boxShadow = 'var(--shadow-md)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.borderColor = 'var(--border-glass)';
-            e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
-          }}
-          >
+          <div key={news.id} className="news-card">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{
                 display: 'flex',
@@ -167,9 +116,7 @@ export const NewsScreen: React.FC = () => {
               <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>{news.readTime}</span>
             </div>
             
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, lineHeight: 1.4, color: 'var(--text-primary)' }}>
-              {news.title}
-            </h3>
+            <h3>{news.title}</h3>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '8px' }}>
               <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>{news.source}</span>
