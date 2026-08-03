@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://tancorelab.vercel.app/</loc>
-    <lastmod>2026-07-26T21:52:00+03:00</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://tancorelab.com/</loc>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 </urlset>
