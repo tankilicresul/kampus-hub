@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
   Search, Plus, List, Kanban, RefreshCw, AlertCircle, X,
-  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, Trash2, ChevronDown,
+  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, Trash2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -40,7 +40,6 @@ interface Task {
   category?: string | null;
   order_index: number;
   content_type?: string | null;
-  content_stage?: string | null;
   content_hook?: string | null;
   content_promise?: string | null;
   content_body?: string | null;
@@ -119,131 +118,6 @@ const getContentFormatInfo = (type: string | null | undefined) => {
     default:
       return null;
   }
-};
-
-const STAGE_OPTIONS = [
-  { key: 'dusunuluyor', label: 'Düşünülüyor', emoji: '💡', color: '#94a3b8' },
-  { key: 'cekildi', label: 'Çekildi', emoji: '📹', color: '#a855f7' },
-  { key: 'editleniyor', label: 'Editleniyor', emoji: '✂️', color: '#f59e0b' },
-  { key: 'paylasildi', label: 'Paylaşıldı', emoji: '✅', color: '#22c55e' },
-  { key: 'gecikti', label: 'Geçikti', emoji: '⚠️', color: '#ef4444' },
-];
-
-const getContentStageInfo = (task: Task) => {
-  const targetDate = task.sharing_date || task.due_date;
-  const isPastDue = checkIfDateIsPastDue(targetDate);
-  const rawStage = task.content_stage || 'dusunuluyor';
-
-  let effectiveStage = rawStage;
-  if (isPastDue && rawStage !== 'paylasildi' && task.status !== 'completed') {
-    effectiveStage = 'gecikti';
-  }
-
-  switch (effectiveStage) {
-    case 'dusunuluyor':
-      return { key: 'dusunuluyor', label: 'Düşünülüyor', emoji: '💡', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.25)' };
-    case 'cekildi':
-      return { key: 'cekildi', label: 'Çekildi', emoji: '📹', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.25)' };
-    case 'editleniyor':
-      return { key: 'editleniyor', label: 'Editleniyor', emoji: '✂️', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: 'rgba(245, 158, 11, 0.25)' };
-    case 'paylasildi':
-      return { key: 'paylasildi', label: 'Paylaşıldı', emoji: '✅', color: '#22c55e', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.25)' };
-    case 'gecikti':
-      return { key: 'gecikti', label: 'Geçikti', emoji: '⚠️', color: '#ef4444', bg: 'rgba(239, 68, 68, 0.15)', border: 'rgba(239, 68, 68, 0.3)' };
-    default:
-      return { key: 'dusunuluyor', label: 'Düşünülüyor', emoji: '💡', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.12)', border: 'rgba(148, 163, 184, 0.25)' };
-  }
-};
-
-const StageSelectorBadge: React.FC<{ task: Task; onUpdateStage: (taskId: string, stage: string) => void }> = ({ task, onUpdateStage }) => {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const info = getContentStageInfo(task);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    if (open) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [open]);
-
-  return (
-    <div ref={menuRef} style={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        style={{
-          padding: '2px 8px',
-          borderRadius: '12px',
-          fontSize: '0.68rem',
-          fontWeight: 700,
-          backgroundColor: info.bg,
-          color: info.color,
-          border: `1px solid ${info.border}`,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '4px',
-          lineHeight: '1.2',
-          transition: 'all 0.15s ease'
-        }}
-        title="İçerik Süreç Durumu"
-      >
-        <span>{info.emoji}</span>
-        <span>{info.label}</span>
-        <ChevronDown size={10} style={{ opacity: 0.7 }} />
-      </button>
-
-      {open && (
-        <div style={{
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '4px',
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-glass)',
-          borderRadius: '10px',
-          padding: '4px',
-          zIndex: 1000,
-          boxShadow: 'var(--shadow-lg)',
-          display: 'flex',
-          flexDirection: 'column',
-          minWidth: '130px'
-        }}>
-          {STAGE_OPTIONS.map(opt => (
-            <div
-              key={opt.key}
-              onClick={() => {
-                onUpdateStage(task.id, opt.key);
-                setOpen(false);
-              }}
-              style={{
-                padding: '6px 10px',
-                fontSize: '0.73rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                borderRadius: '6px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                color: opt.color,
-                backgroundColor: info.key === opt.key ? 'rgba(255,255,255,0.06)' : 'transparent',
-                transition: 'background-color 0.15s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-accent)'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = info.key === opt.key ? 'rgba(255,255,255,0.06)' : 'transparent'}
-            >
-              <span style={{ fontSize: '0.85rem' }}>{opt.emoji}</span>
-              <span>{opt.label}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 };
 
 const checkIfDateIsPastDue = (dateStr: string | null | undefined): boolean => {
@@ -550,8 +424,7 @@ const SortableTaskCard: React.FC<{
   comments?: any[];
   onDetailClick: (task: Task) => void;
   onUpdatePriority: (taskId: string, priority: Task['priority']) => void;
-  onUpdateStage: (taskId: string, stage: string) => void;
-}> = ({ task, members, comments = [], onDetailClick, onUpdatePriority, onUpdateStage }) => {
+}> = ({ task, members, comments = [], onDetailClick, onUpdatePriority }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
   
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
@@ -584,8 +457,8 @@ const SortableTaskCard: React.FC<{
       {...listeners} 
       onClick={() => onDetailClick(task)}
     >
-      {/* Title with Priority Dot, Stage Selector Badge & Recurrence */}
-      <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
+      {/* Title with Priority Dot & Recurrence */}
+      <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
         <div 
           ref={priorityMenuRef}
           style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
@@ -657,12 +530,7 @@ const SortableTaskCard: React.FC<{
             </div>
           )}
         </div>
-
-        <span style={{ flex: 1, minWidth: '70px', fontWeight: 600 }}>{task.title}</span>
-
-        {/* Stage Selector Badge on same row right next to title */}
-        <StageSelectorBadge task={task} onUpdateStage={onUpdateStage} />
-
+        <span style={{ flex: 1 }}>{task.title}</span>
         {task.recurrence && task.recurrence !== 'none' && (
           <span title={`Tekrar: ${task.recurrence}`} style={{ display: 'inline-flex', flexShrink: 0 }}>
             <Repeat size={12} style={{ color: 'var(--text-muted)' }} />
@@ -1987,7 +1855,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
       // 1. Fetch all tasks for workspace
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_stage, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop, ad_budget, shooting_date, sharing_date, design_date, ad_cost, ad_duration, stat_cta, stat_downloads, stat_link_clicks, post_items')
+        .select('id, title, description, status, priority, primary_assignee_id, start_date, due_date, completed_at, tags, recurrence, category, order_index, content_type, content_hook, content_promise, content_body, content_payoff, content_cta, content_loop, ad_budget, shooting_date, sharing_date, design_date, ad_cost, ad_duration, stat_cta, stat_downloads, stat_link_clicks, post_items')
         .eq('workspace_id', activeWorkspace.id)
         .is('deleted_at', null)
         .order('order_index', { ascending: true });
@@ -2382,38 +2250,6 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
 
 
-  const handleUpdateStage = async (taskId: string, newStage: string) => {
-    const targetTask = tasks.find(t => t.id === taskId);
-    if (!targetTask) return;
-
-    const isPaylasildi = newStage === 'paylasildi';
-    const newStatus = isPaylasildi ? 'completed' : (targetTask.status === 'completed' ? 'in_progress' : targetTask.status);
-    const completedAt = isPaylasildi ? new Date().toISOString() : (targetTask.status === 'completed' ? null : targetTask.completed_at);
-
-    setTasks(prev => prev.map(t => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          content_stage: newStage,
-          status: newStatus as Task['status'],
-          completed_at: completedAt
-        };
-      }
-      return t;
-    }));
-
-    try {
-      await supabase.from('tasks').update({
-        content_stage: newStage,
-        status: newStatus,
-        completed_at: completedAt,
-        updated_at: new Date().toISOString()
-      }).eq('id', taskId);
-    } catch (err) {
-      console.error('Error updating task stage:', err);
-    }
-  };
-
   const isContentMode = boardMode === 'content';
 
   const processColumns = [
@@ -2618,7 +2454,6 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                           comments={taskComments[task.id] || []}
                           onDetailClick={setDetailTask}
                           onUpdatePriority={handleUpdatePriority}
-                          onUpdateStage={handleUpdateStage}
                         />
                       ))}
                     </DroppableCardsArea>
