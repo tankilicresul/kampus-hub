@@ -12,6 +12,7 @@ Whenever performing tasks, the agent MUST inspect and apply available skills in 
 - **GitHub / Repository Tasks**: Proactively use GitHub MCP tools (`issue_read`, `create_pull_request`, `search_code`, `list_commits`, etc.) for managing remote issues, PRs, and commits.
 - **Flutter / Mobile Development**: Always apply `flutter` and `gemini-skills` (Riverpod `StateNotifierProvider` pattern, clean presentation decoupling, non-blocking UI SnackBar feedback).
 - **Android Device & Deployment**: Always apply `android-cli` (ADB wireless pairing `adb pair/connect`, host local IP routing `172.21.164.x`, APK installation diagnostics).
+- **SEO, PWA & Routing Tasks**: Always apply `web-seo-pwa` for Search Console canonicals, robots.txt, sitemap.xml, Vercel X-Robots-Tag headers, and manifest.json start_url standards.
 
 ---
 
