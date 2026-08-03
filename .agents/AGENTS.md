@@ -7,6 +7,7 @@ This document defines mandatory agent behavior rules, automatic skill discovery 
 ## 1. Automatic Skill Trigger Rules
 Whenever performing tasks, the agent MUST inspect and apply available skills in `.agents/skills/` and global customization roots:
 
+- **UI/UX & Frontend Development**: Always apply `ui-ux-design` for modern aesthetic design, typography, glassmorphism, responsive grid systems, dark mode palettes, and dynamic micro-animations.
 - **Database / Supabase Tasks**: Always apply `gemini-skills` and proactively use Supabase MCP tools (`execute_sql`, `list_tables`, `apply_migration`, `get_logs`, etc.) for direct DB management and RPC `STABLE` volatility caching.
 - **GitHub / Repository Tasks**: Proactively use GitHub MCP tools (`issue_read`, `create_pull_request`, `search_code`, `list_commits`, etc.) for managing remote issues, PRs, and commits.
 - **Flutter / Mobile Development**: Always apply `flutter` and `gemini-skills` (Riverpod `StateNotifierProvider` pattern, clean presentation decoupling, non-blocking UI SnackBar feedback).
