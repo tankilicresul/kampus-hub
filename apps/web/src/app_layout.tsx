@@ -14,7 +14,7 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown
+  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown, LayoutDashboard
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -35,10 +35,10 @@ export const AppLayout: React.FC = () => {
   
   const isNewsWorkspace = activeWorkspace?.name === 'tankilic.ai for all';
 
-  const [activeTab, setActiveTab] = useState<'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
+  const [activeTab, setActiveTab] = useState<'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
     const saved = localStorage.getItem('kh_active_tab');
-    if (saved) return saved as any;
-    return 'tasks';
+    if (saved && saved !== 'tasks') return saved as any;
+    return 'content_panel';
   });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export const AppLayout: React.FC = () => {
     if (isNewsWorkspace && !['news', 'messages', 'profile'].includes(activeTab)) {
       setActiveTab('news');
     } else if (!isNewsWorkspace && activeTab === 'news') {
-      setActiveTab('tasks');
+      setActiveTab('content_panel');
     }
   }, [activeWorkspace, activeTab, isNewsWorkspace]);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
@@ -99,7 +99,7 @@ export const AppLayout: React.FC = () => {
       });
   }, [activeWorkspace?.id]);
   
-  const handleTabChange = (tab: 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
+  const handleTabChange = (tab: 'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
     if (tab === 'messages') {
@@ -715,11 +715,11 @@ export const AppLayout: React.FC = () => {
           ) : (
             <>
               <div 
-                className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-                onClick={() => handleTabChange('tasks')}
+                className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
+                onClick={() => handleTabChange('content_panel')}
               >
-                <CheckSquare size={16} />
-                <span>Görevler</span>
+                <LayoutDashboard size={16} />
+                <span>İçerik Panelim</span>
               </div>
               <div 
                 className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
@@ -767,6 +767,13 @@ export const AppLayout: React.FC = () => {
                     {unreadMsgCount}
                   </span>
                 )}
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+                onClick={() => handleTabChange('tasks')}
+              >
+                <CheckSquare size={16} />
+                <span>Görevler</span>
               </div>
               {role && ['owner', 'admin'].includes(role) && (
                 <div 
@@ -873,7 +880,8 @@ export const AppLayout: React.FC = () => {
           ) : (
             <>
               {activeTab === 'news' && <NewsScreen />}
-              {activeTab === 'tasks' && <TasksScreen />}
+              {activeTab === 'content_panel' && <TasksScreen boardMode="content" />}
+              {activeTab === 'tasks' && <TasksScreen boardMode="tasks" />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
               {activeTab === 'calendar' && <CalendarScreen />}
               {activeTab === 'crm' && role && ['owner', 'admin', 'manager'].includes(role) && <CrmDashboardScreen />}
@@ -896,17 +904,17 @@ export const AppLayout: React.FC = () => {
       </div>
 
       {/* Mobile Floating Action Button (FAB) */}
-      {(activeTab === 'tasks' || activeTab === 'updates') && (
+      {(activeTab === 'content_panel' || activeTab === 'tasks' || activeTab === 'updates') && (
         <button
           className="mobile-fab animate-fade-in"
           onClick={() => {
-            if (activeTab === 'tasks') {
+            if (activeTab === 'content_panel' || activeTab === 'tasks') {
               window.dispatchEvent(new CustomEvent('trigger-add-task'));
             } else if (activeTab === 'updates') {
               window.dispatchEvent(new CustomEvent('trigger-add-report'));
             }
           }}
-          title={activeTab === 'tasks' ? 'Yeni Görev Ekle' : 'Bugün Neler Yaptım Ekle'}
+          title={activeTab === 'content_panel' ? 'Yeni İçerik Ekle' : activeTab === 'tasks' ? 'Yeni Görev Ekle' : 'Bugün Neler Yaptım Ekle'}
         >
           <Plus size={24} />
         </button>
@@ -958,11 +966,11 @@ export const AppLayout: React.FC = () => {
         ) : (
           <>
             <button 
-              className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
-              onClick={() => handleTabChange('tasks')}
+              className={`mobile-nav-item ${activeTab === 'content_panel' ? 'active' : ''}`}
+              onClick={() => handleTabChange('content_panel')}
             >
-              <CheckSquare size={20} />
-              <span>Görevler</span>
+              <LayoutDashboard size={20} />
+              <span>İçerik</span>
             </button>
             <button 
               className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
@@ -1010,6 +1018,13 @@ export const AppLayout: React.FC = () => {
                   {unreadMsgCount}
                 </span>
               )}
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+              onClick={() => handleTabChange('tasks')}
+            >
+              <CheckSquare size={20} />
+              <span>Görevler</span>
             </button>
             {role && ['owner', 'admin'].includes(role) && (
               <button 

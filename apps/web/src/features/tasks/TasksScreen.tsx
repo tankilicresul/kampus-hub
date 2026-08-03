@@ -1621,8 +1621,11 @@ const TaskDetailModal: React.FC<{
 };
 
 
-// ─── Main TasksScreen ─────────────────────────────────────────────────────────
-export const TasksScreen: React.FC = () => {
+export interface TasksScreenProps {
+  boardMode?: 'content' | 'tasks';
+}
+
+export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' }) => {
   const { activeWorkspace, user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -2102,22 +2105,32 @@ export const TasksScreen: React.FC = () => {
 
 
 
+  // Helper to map task content type for Content Panel mode
+  const getTaskContentTypeKey = (t: Task): string => {
+    if (t.content_type === 'viral' || t.content_type === 'video') return 'viral';
+    if (t.content_type === 'reklam') return 'reklam';
+    if (t.content_type === 'yari_reklam') return 'yari_reklam';
+    return 'post';
+  };
+
   // Drag & drop handler
   const handleDragEnd = async (event: DragEndEvent) => {
     setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // over.id could be a column key or a task id — determine target column
-    const columns = ['todo', 'in_progress', 'completed', 'revision_required'];
+    const isContentMode = boardMode === 'content';
+    const validColKeys = isContentMode 
+      ? ['viral', 'post', 'reklam', 'yari_reklam']
+      : ['todo', 'in_progress', 'completed', 'revision_required'];
+
     let targetCol: string | null = null;
-    if (columns.includes(String(over.id))) {
+    if (validColKeys.includes(String(over.id))) {
       targetCol = String(over.id);
     } else {
       const overTask = tasks.find(t => t.id === over.id);
       if (overTask) {
-        // Map database status 'overdue' to column 'revision_required'
-        targetCol = overTask.status === 'overdue' ? 'revision_required' : overTask.status;
+        targetCol = isContentMode ? getTaskContentTypeKey(overTask) : (overTask.status === 'overdue' ? 'revision_required' : overTask.status);
       }
     }
 
@@ -2126,7 +2139,12 @@ export const TasksScreen: React.FC = () => {
 
     // Get all tasks in target column (excluding the dragged task) sorted by order_index
     const colTasks = tasks
-      .filter(t => (t.status === targetCol || (targetCol === 'revision_required' && t.status === 'overdue')) && t.id !== active.id)
+      .filter(t => {
+        if (isContentMode) {
+          return getTaskContentTypeKey(t) === targetCol && t.id !== active.id;
+        }
+        return (t.status === targetCol || (targetCol === 'revision_required' && t.status === 'overdue')) && t.id !== active.id;
+      })
       .sort((a, b) => a.order_index - b.order_index);
 
     let newOrderIndex = 0.0;
@@ -2152,20 +2170,33 @@ export const TasksScreen: React.FC = () => {
 
     // Optimistic update (sort locally right away)
     setTasks(prev => {
-      const updated = prev.map(t => t.id === active.id ? { ...t, status: targetCol as Task['status'], order_index: newOrderIndex } : t);
+      const updated = prev.map(t => {
+        if (t.id === active.id) {
+          if (isContentMode) {
+            return { ...t, content_type: targetCol, order_index: newOrderIndex };
+          } else {
+            return { ...t, status: targetCol as Task['status'], order_index: newOrderIndex };
+          }
+        }
+        return t;
+      });
       return updated.sort((a, b) => a.order_index - b.order_index);
     });
 
     try {
       const updates: any = { 
-        status: targetCol, 
         order_index: newOrderIndex,
         updated_at: new Date().toISOString() 
       };
-      if (targetCol === 'completed') {
-        updates.completed_at = new Date().toISOString();
+      if (isContentMode) {
+        updates.content_type = targetCol;
       } else {
-        updates.completed_at = null;
+        updates.status = targetCol;
+        if (targetCol === 'completed') {
+          updates.completed_at = new Date().toISOString();
+        } else {
+          updates.completed_at = null;
+        }
       }
       await supabase.from('tasks').update(updates).eq('id', active.id);
     } catch (err) {
@@ -2219,12 +2250,23 @@ export const TasksScreen: React.FC = () => {
 
 
 
-  const columns = [
-    { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b' },
-    { key: 'todo', title: 'Yapılacak', color: '#38bdf8' },
-    { key: 'revision_required', title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c' },
-    { key: 'completed', title: 'Bitti', color: '#10b981' },
+  const isContentMode = boardMode === 'content';
+
+  const processColumns = [
+    { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b', emoji: '' },
+    { key: 'todo', title: 'Yapılacak', color: '#38bdf8', emoji: '' },
+    { key: 'revision_required', title: 'Süresi Geçti Tekrar Yapılmalı', color: '#ea580c', emoji: '' },
+    { key: 'completed', title: 'Bitti', color: '#10b981', emoji: '' },
   ] as const;
+
+  const contentColumns = [
+    { key: 'viral', title: 'Viral İçerik', color: '#ff9f0a', emoji: '🔥' },
+    { key: 'post', title: 'Post', color: '#0a84ff', emoji: '🖼️' },
+    { key: 'reklam', title: 'Reklam', color: '#30d158', emoji: '📢' },
+    { key: 'yari_reklam', title: 'Yarı Reklam', color: '#bf5af2', emoji: '⚡' },
+  ] as const;
+
+  const columns = isContentMode ? contentColumns : processColumns;
 
   const draggedTask = tasks.find(t => t.id === activeId) || null;
 
@@ -2239,7 +2281,7 @@ export const TasksScreen: React.FC = () => {
             <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
             <input
               type="text"
-              placeholder="Görev ara..."
+              placeholder={isContentMode ? "İçerik ara..." : "Görev ara..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="form-input"
@@ -2260,7 +2302,7 @@ export const TasksScreen: React.FC = () => {
             setShowAddModal(true); 
           }}>
             <Plus size={18} />
-            <span className="btn-text">{isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
+            <span className="btn-text">{isContentMode ? 'Yeni İçerik' : (isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev')}</span>
           </button>
         </div>
 
@@ -2343,7 +2385,7 @@ export const TasksScreen: React.FC = () => {
 
           {activeCategory && (
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px', flexShrink: 0 }}>
-              {filteredTasks.length} görev
+              {filteredTasks.length} {isContentMode ? 'içerik' : 'görev'}
             </span>
           )}
         </div>
@@ -2358,8 +2400,8 @@ export const TasksScreen: React.FC = () => {
       ) : filteredTasks.length === 0 ? (
         <div style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '12px', color: 'var(--text-muted)' }}>
           <AlertCircle size={48} style={{ opacity: 0.3 }} />
-          <h3 style={{ fontWeight: 700 }}>Görev Yok</h3>
-          <p style={{ fontSize: '0.85rem' }}>Yeni görev ekleyerek başlayın</p>
+          <h3 style={{ fontWeight: 700 }}>{isContentMode ? 'İçerik Yok' : 'Görev Yok'}</h3>
+          <p style={{ fontSize: '0.85rem' }}>{isContentMode ? 'Yeni içerik ekleyerek başlayın' : 'Yeni görev ekleyerek başlayın'}</p>
         </div>
       ) : viewMode === 'kanban' ? (
         <DndContext
@@ -2371,6 +2413,9 @@ export const TasksScreen: React.FC = () => {
           <div className="board-container">
             {columns.map(col => {
               const columnTasks = filteredTasks.filter(t => {
+                if (isContentMode) {
+                  return getTaskContentTypeKey(t) === col.key;
+                }
                 if (col.key === 'revision_required') {
                   return t.status === 'revision_required' || t.status === 'overdue';
                 }
@@ -2380,9 +2425,13 @@ export const TasksScreen: React.FC = () => {
                 <div key={col.key} className="board-column" id={col.key}>
                   <div className="column-header">
                     <div className="column-title-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                      <span className="column-dot" style={{ backgroundColor: col.color }} />
+                      {col.emoji ? (
+                        <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{col.emoji}</span>
+                      ) : (
+                        <span className="column-dot" style={{ backgroundColor: col.color }} />
+                      )}
                       <span style={{ fontWeight: 700 }}>{col.title}</span>
-                      {col.key === 'completed' && (
+                      {col.key === 'completed' && !isContentMode && (
                         <button 
                           className="btn btn-secondary" 
                           style={{ padding: '2px 6px', fontSize: '0.65rem', marginLeft: 'auto', marginRight: '6px' }}
@@ -2436,7 +2485,7 @@ export const TasksScreen: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', overflowY: 'auto' }}>
           {filteredTasks.map(task => {
             const assignee = members.find(m => m.user_id === task.primary_assignee_id);
-            const col = columns.find(c => c.key === task.status);
+            const col = columns.find(c => isContentMode ? c.key === getTaskContentTypeKey(task) : c.key === task.status);
             const isSocial = isSocialCategory(task.category);
             const targetDateVal = isSocial ? task.sharing_date : task.due_date;
             const isOverdue = (task.status === 'revision_required' || task.status === 'overdue' || checkIfDateIsPastDue(targetDateVal)) && task.status !== 'completed';
