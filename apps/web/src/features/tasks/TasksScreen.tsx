@@ -2144,9 +2144,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
     e.preventDefault();
     if (!activeWorkspace || !newTitle.trim()) return;
     try {
-      const todoTasks = tasks.filter(t => t.status === 'todo');
-      const maxIdx = todoTasks.length > 0 ? Math.max(...todoTasks.map(t => t.order_index)) : 0.0;
-      const newOrderIdx = maxIdx + 1.0;
+      const minIdx = tasks.length > 0 ? Math.min(...tasks.map(t => t.order_index || 0)) : 0.0;
+      const newOrderIdx = minIdx - 1.0;
 
       const isNewSocial = isSocialCategory(newCategory || activeCategory);
 
@@ -2437,123 +2436,125 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
-      {/* Search & Filter Header */}
-      <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {/* Row 1: Search + Action buttons */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
-            <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input
-              type="text"
-              placeholder={isContentMode ? "İçerik ara..." : "Görev ara..."}
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="form-input"
-              style={{ paddingLeft: '44px' }}
-            />
+      {/* Search & Filter Header (Only shown in Görevler mode) */}
+      {!isContentMode && (
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Row 1: Search + Action buttons */}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: '130px' }}>
+              <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                placeholder="Görev ara..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="form-input"
+                style={{ paddingLeft: '44px' }}
+              />
+            </div>
+            <button className="btn btn-secondary" onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}>
+              {viewMode === 'kanban' ? <List size={18} /> : <Kanban size={18} />}
+              <span className="btn-text">{viewMode === 'kanban' ? 'Liste' : 'Pano'}</span>
+            </button>
+            <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
+              <RefreshCw size={16} />
+            </button>
+            <button className="btn btn-primary" onClick={() => { 
+              setNewCategory(activeCategory); 
+              if (members.length === 1) setNewAssignee(members[0].user_id);
+              else setNewAssignee('');
+              setShowAddModal(true); 
+            }}>
+              <Plus size={18} />
+              <span className="btn-text">{isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev'}</span>
+            </button>
           </div>
-          <button className="btn btn-secondary" onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}>
-            {viewMode === 'kanban' ? <List size={18} /> : <Kanban size={18} />}
-            <span className="btn-text">{viewMode === 'kanban' ? 'Liste' : 'Pano'}</span>
-          </button>
-          <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
-            <RefreshCw size={16} />
-          </button>
-          <button className="btn btn-primary" onClick={() => { 
-            setNewCategory(activeCategory); 
-            if (members.length === 1) setNewAssignee(members[0].user_id);
-            else setNewAssignee('');
-            setShowAddModal(true); 
-          }}>
-            <Plus size={18} />
-            <span className="btn-text">{isContentMode ? 'Yeni İçerik' : (isSocialCategory(activeCategory) ? 'Yeni İçerik' : 'Yeni Görev')}</span>
-          </button>
-        </div>
 
-        {/* Row 2: Category filter pills */}
-        <div className="mobile-scroll-x" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          {/* Row 2: Category filter pills */}
+          <div className="mobile-scroll-x" style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
 
-          <DndContext
-            sensors={categorySensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleCategoryDragEnd}
-          >
-            <SortableContext
-              items={categories.map(c => c.id)}
-              strategy={horizontalListSortingStrategy}
+            <DndContext
+              sensors={categorySensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleCategoryDragEnd}
             >
-              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                {categories.map(cat => (
-                  <SortableCategoryPill
-                    key={cat.id}
-                    cat={cat}
-                    isActive={activeCategory === cat.name}
-                    onSelect={() => {
-                      if (activeCategory === cat.name) {
-                        handleRenameCategory(cat.id, cat.name);
-                      } else {
-                        setActiveCategory(cat.name);
-                      }
-                    }}
-                    onDelete={() => handleDeleteCategory(cat.id, cat.name)}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+              <SortableContext
+                items={categories.map(c => c.id)}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  {categories.map(cat => (
+                    <SortableCategoryPill
+                      key={cat.id}
+                      cat={cat}
+                      isActive={activeCategory === cat.name}
+                      onSelect={() => {
+                        if (activeCategory === cat.name) {
+                          handleRenameCategory(cat.id, cat.name);
+                        } else {
+                          setActiveCategory(cat.name);
+                        }
+                      }}
+                      onDelete={() => handleDeleteCategory(cat.id, cat.name)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
 
-          {/* Plus icon to create category */}
-          <button
-            type="button"
-            onClick={handleCreateCategory}
-            style={{
-              width: '28px',
-              height: '28px',
-              borderRadius: '50%',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              border: '1.5px dashed var(--accent-color)',
-              cursor: 'pointer',
-              backgroundColor: 'transparent',
-              color: 'var(--accent-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.15s',
-              padding: 0,
-              flexShrink: 0
-            }}
-            title="Yeni İş Alanı Ekle"
-          >
-            <Plus size={14} />
-          </button>
+            {/* Plus icon to create category */}
+            <button
+              type="button"
+              onClick={handleCreateCategory}
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: '1.5px dashed var(--accent-color)',
+                cursor: 'pointer',
+                backgroundColor: 'transparent',
+                color: 'var(--accent-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.15s',
+                padding: 0,
+                flexShrink: 0
+              }}
+              title="Yeni İş Alanı Ekle"
+            >
+              <Plus size={14} />
+            </button>
 
-          <button
-            onClick={() => setActiveCategory('')}
-            style={{
-              padding: '4px 14px',
-              borderRadius: '20px',
-              fontSize: '0.78rem',
-              fontWeight: 700,
-              border: '1px solid var(--border-glass)',
-              cursor: 'pointer',
-              transition: 'all 0.15s',
-              backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
-              color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
-              marginLeft: '8px',
-              flexShrink: 0
-            }}
-          >
-            Tümü
-          </button>
+            <button
+              onClick={() => setActiveCategory('')}
+              style={{
+                padding: '4px 14px',
+                borderRadius: '20px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                border: '1px solid var(--border-glass)',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                backgroundColor: activeCategory === '' ? 'var(--accent-color)' : 'var(--bg-surface-accent)',
+                color: activeCategory === '' ? 'white' : 'var(--text-secondary)',
+                marginLeft: '8px',
+                flexShrink: 0
+              }}
+            >
+              Tümü
+            </button>
 
-          {activeCategory && (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px', flexShrink: 0 }}>
-              {filteredTasks.length} {isContentMode ? 'içerik' : 'görev'}
-            </span>
-          )}
+            {activeCategory && (
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '8px', flexShrink: 0 }}>
+                {filteredTasks.length} görev
+              </span>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
 
       {/* Board / List */}
@@ -2587,26 +2588,59 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
               });
               return (
                 <div key={col.key} className="board-column" id={col.key}>
-                  <div className="column-header">
-                    <div className="column-title-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                      {col.emoji ? (
-                        <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{col.emoji}</span>
-                      ) : (
-                        <span className="column-dot" style={{ backgroundColor: col.color }} />
-                      )}
-                      <span style={{ fontWeight: 700 }}>{col.title}</span>
-                      {col.key === 'completed' && !isContentMode && (
-                        <button 
-                          className="btn btn-secondary" 
-                          style={{ padding: '2px 6px', fontSize: '0.65rem', marginLeft: 'auto', marginRight: '6px' }}
-                          onClick={() => setShowAllCompleted(!showAllCompleted)}
-                          title={showAllCompleted ? "Son 7 Günü Göster" : "Tümünü Göster"}
+                  <div className="column-header" style={isContentMode ? { display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}}>
+                    {isContentMode ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', width: '100%' }}>
+                        {col.emoji && <span style={{ fontSize: '1.05rem', lineHeight: 1 }}>{col.emoji}</span>}
+                        <span style={{ fontWeight: 800 }}>{col.title}</span>
+                        <span className="column-badge" style={{ marginLeft: '2px' }}>{columnTasks.length}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewContentType(col.key);
+                            if (members.length === 1) setNewAssignee(members[0].user_id);
+                            else setNewAssignee('');
+                            setShowAddModal(true);
+                          }}
+                          style={{
+                            marginLeft: '6px',
+                            width: '22px',
+                            height: '22px',
+                            borderRadius: '50%',
+                            backgroundColor: 'var(--bg-surface-accent)',
+                            border: '1px solid var(--border-glass)',
+                            color: 'var(--accent-color)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s',
+                            padding: 0
+                          }}
+                          title={`${col.title} Ekle`}
                         >
-                          {showAllCompleted ? "Son 7 Gün" : "Tümü"}
+                          <Plus size={14} />
                         </button>
-                      )}
-                    </div>
-                    <span className="column-badge">{columnTasks.length}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="column-title-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                          <span className="column-dot" style={{ backgroundColor: col.color }} />
+                          <span style={{ fontWeight: 700 }}>{col.title}</span>
+                          {col.key === 'completed' && (
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '2px 6px', fontSize: '0.65rem', marginLeft: 'auto', marginRight: '6px' }}
+                              onClick={() => setShowAllCompleted(!showAllCompleted)}
+                              title={showAllCompleted ? "Son 7 Günü Göster" : "Tümünü Göster"}
+                            >
+                              {showAllCompleted ? "Son 7 Gün" : "Tümü"}
+                            </button>
+                          )}
+                        </div>
+                        <span className="column-badge">{columnTasks.length}</span>
+                      </>
+                    )}
                   </div>
                   <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     <DroppableCardsArea id={col.key}>
