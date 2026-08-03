@@ -2,7 +2,7 @@
   "short_name": "TanCoreLab",
   "name": "TanCoreLab",
   "description": "TanCoreLab Görev, Rapor ve Müşteri Panosu",
-  "start_url": "/",
+  "start_url": "/app",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",

@@ -1,72 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
-import { LoginScreen } from './features/auth/LoginScreen';
-import { AppLayout } from './app_layout';
-import { ShieldAlert, LogOut } from 'lucide-react';
-
-const NavigationContainer: React.FC = () => {
-  const { status, errorMessage, logOut } = useAuth();
-  const [minLoadingDone, setMinLoadingDone] = useState(false);
-
-  useEffect(() => {
-    // Show the gorgeous loader for at least 4.0 seconds
-    const timer = setTimeout(() => {
-      setMinLoadingDone(true);
-    }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (status === 'checking' || !minLoadingDone) {
-    return (
-      <div className="tc-loader-wrap">
-        {/* Orbit ring spinner */}
-        <div className="tc-spinner-ring" style={{ position: 'relative' }}>
-          <div className="tc-orbit" />
-        </div>
-
-        {/* Bouncing dots */}
-        <div className="tc-dots">
-          <div className="tc-dot" />
-          <div className="tc-dot" />
-          <div className="tc-dot" />
-        </div>
-      </div>
-    );
-  }
-
-  if (status === 'unauthenticated') {
-    return <LoginScreen />;
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="auth-container">
-        <div className="auth-card" style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <ShieldAlert size={48} style={{ color: 'var(--color-danger)', margin: '0 auto' }} />
-          <div className="auth-title">Erişim Engellendi</div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            {errorMessage || 'Bu hesaba erişim yetkiniz bulunmuyor.'}
-          </p>
-          <button className="btn btn-secondary btn-block" onClick={logOut}>
-            <LogOut size={16} />
-            <span>Girişe Dön</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return <AppLayout />;
-};
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { PublicLandingPlaceholder } from './features/landing/PublicLandingPlaceholder';
+import { AuthenticatedShell } from './routing/AuthenticatedShell';
+import { LoginRoute } from './routing/LoginRoute';
+import { ProtectedAppRoute } from './routing/ProtectedAppRoute';
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <NavigationContainer />
-      </NotificationProvider>
-    </AuthProvider>
+    <Routes>
+      <Route path="/" element={<PublicLandingPlaceholder />} />
+      <Route element={<AuthenticatedShell />}>
+        <Route path="/login" element={<LoginRoute />} />
+        <Route path="/app/*" element={<ProtectedAppRoute />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 
