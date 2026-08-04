@@ -1799,6 +1799,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   const [newDesignDate, setNewDesignDate] = useState('');
   const [newAdCost, setNewAdCost] = useState('');
   const [newAdDuration, setNewAdDuration] = useState('');
+  const [newAdFormat, setNewAdFormat] = useState<'video' | 'post'>('video');
   const [newPostItems, setNewPostItems] = useState<any[]>([{ id: 1, text: '' }]);
 
   const [taskComments, setTaskComments] = useState<Record<string, any[]>>({});
@@ -2833,7 +2834,59 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                         </span>
                       </div>
 
-                      {newContentType === 'post' ? (
+                      {/* Reklam Sub-Format Selector (Reklam Videosu vs Meta Reklam Postu) */}
+                      {(newContentType === 'reklam' || newContentType === 'yari_reklam') && (
+                        <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setNewAdFormat('video')}
+                            style={{
+                              flex: 1,
+                              padding: '7px 12px',
+                              borderRadius: '8px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              border: '1.5px solid',
+                              borderColor: newAdFormat === 'video' ? 'var(--accent-color)' : 'var(--border-glass)',
+                              backgroundColor: newAdFormat === 'video' ? 'rgba(255,159,10,0.12)' : 'transparent',
+                              color: newAdFormat === 'video' ? 'var(--accent-color)' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <span>📹</span> Reklam Videosu
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setNewAdFormat('post')}
+                            style={{
+                              flex: 1,
+                              padding: '7px 12px',
+                              borderRadius: '8px',
+                              fontSize: '0.78rem',
+                              fontWeight: 700,
+                              border: '1.5px solid',
+                              borderColor: newAdFormat === 'post' ? 'var(--accent-color)' : 'var(--border-glass)',
+                              backgroundColor: newAdFormat === 'post' ? 'rgba(255,159,10,0.12)' : 'transparent',
+                              color: newAdFormat === 'post' ? 'var(--accent-color)' : 'var(--text-secondary)',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            <span>🖼️</span> Meta Reklam Postu
+                          </button>
+                        </div>
+                      )}
+
+                      {(newContentType === 'post' || ((newContentType === 'reklam' || newContentType === 'yari_reklam') && newAdFormat === 'post')) ? (
                         /* ── Post Layout ── */
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -2881,7 +2934,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                           </div>
                         </div>
                       ) : (
-                        /* ── Viral / Reklam / Yarı Reklam Layout ── */
+                        /* ── Video Layout (Reels / Reklam Videosu) ── */
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {/* Hook */}
@@ -2963,12 +3016,12 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                       {/* Dates inside social panel */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
                         <div className="form-group">
-                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 {newContentType === 'post' ? 'Tasarım Tarihi' : 'Çekim Tarihi'}</label>
+                          <label className="form-label" style={{ fontSize: '0.75rem', fontWeight: 700 }}>📅 {(newContentType === 'post' || newAdFormat === 'post') ? 'Tasarım Tarihi' : 'Çekim Tarihi'}</label>
                           <input
                             type="date"
-                            value={newContentType === 'post' ? newDesignDate : newShootingDate}
+                            value={(newContentType === 'post' || newAdFormat === 'post') ? newDesignDate : newShootingDate}
                             onChange={e => {
-                              if (newContentType === 'post') {
+                              if (newContentType === 'post' || newAdFormat === 'post') {
                                 setNewDesignDate(e.target.value);
                               } else {
                                 setNewShootingDate(e.target.value);
