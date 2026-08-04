@@ -218,16 +218,16 @@ export const LoginScreen: React.FC = () => {
             </button>
           </form>
 
-          {/* Developer Attribution (Mobile Only) & Footer Links */}
+          {/* Developer Attribution & Link */}
           <div style={{ 
-            marginTop: '28px', 
-            padding: '18px', 
-            borderRadius: '14px', 
-            backgroundColor: 'rgba(255, 159, 10, 0.08)', 
-            border: '1px solid rgba(255, 159, 10, 0.25)',
+            marginTop: '22px', 
+            padding: '14px 16px', 
+            borderRadius: '12px', 
+            backgroundColor: 'rgba(255, 159, 10, 0.07)', 
+            border: '1px solid rgba(255, 159, 10, 0.2)',
             textAlign: 'center' 
           }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.5, fontWeight: 600 }}>
+            <p style={{ fontSize: '0.86rem', color: 'var(--text-primary)', margin: '0 0 6px', lineHeight: 1.3, fontWeight: 600 }}>
               TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -236,14 +236,14 @@ export const LoginScreen: React.FC = () => {
                 style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 
-                  gap: '6px', 
+                  gap: '4px', 
                   color: 'var(--accent-color)', 
                   fontWeight: 800, 
-                  fontSize: '0.875rem',
+                  fontSize: '0.85rem',
                   textDecoration: 'none' 
                 }}
               >
-                Resul Tankılıç hakkında <ArrowRight size={15} />
+                Resul Tankılıç hakkında <ArrowRight size={14} />
               </Link>
             </div>
           </div>

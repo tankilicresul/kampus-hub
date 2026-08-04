@@ -723,7 +723,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: 38px;
   z-index: 2;
   animation: logoFloat 3.8s ease-in-out infinite;
 }
@@ -738,7 +738,7 @@ body {
 
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
-  50% { transform: translateY(-20px) scale(1.03) rotate(1deg); }
+  50% { transform: translateY(-6px) scale(1.02) rotate(0.5deg); }
 }
 
 .auth-brand-title {
