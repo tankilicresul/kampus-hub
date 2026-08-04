@@ -599,10 +599,10 @@ export const CalendarScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Selected date task details box - ONLY on mobile */}
-        {isMobile && selectedDate && (
-          <div className="mobile-calendar-detail">
-            <div className="mobile-calendar-detail-title">
+        {/* Selected date task details box - Desktop & Mobile */}
+        {selectedDate && (
+          <div className="calendar-day-detail">
+            <div className="calendar-day-detail-title">
               <span>{selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</span>
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '2px 8px', borderRadius: '12px' }}>
                 {filteredTasks.filter(t => {

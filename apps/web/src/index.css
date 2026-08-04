@@ -1808,29 +1808,31 @@ html, body, #root {
     flex-shrink: 0 !important;
   }
 
-  /* Calendar Detail List below calendar grid */
-  .mobile-calendar-detail {
-    background: var(--bg-surface) !important;
-    border: 1px solid var(--border-glass) !important;
-    border-radius: var(--radius-lg) !important;
-    padding: 16px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 10px !important;
-    margin-top: 4px !important;
-    box-shadow: var(--shadow-sm) !important;
-  }
-  
-  .mobile-calendar-detail-title {
-    font-size: 0.9rem !important;
-    font-weight: 800 !important;
-    color: var(--text-primary) !important;
-    border-bottom: 1px solid var(--border-glass) !important;
-    padding-bottom: 8px !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-  }
+/* Calendar Detail List below calendar grid (Desktop & Mobile) */
+.calendar-day-detail,
+.mobile-calendar-detail {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-glass) !important;
+  border-radius: 16px !important;
+  padding: 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 6px !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.calendar-day-detail-title,
+.mobile-calendar-detail-title {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border-glass) !important;
+  padding-bottom: 10px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
 
   /* Stacked task rows under Profile */
   .mobile-profile-task-item {
