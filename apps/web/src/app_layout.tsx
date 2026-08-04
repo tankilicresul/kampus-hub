@@ -12,9 +12,9 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
-  LogOut, Plus, CheckSquare, Calendar, BarChart4, User, Crown,
+  LogOut, Plus, CheckSquare, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown, LayoutDashboard
+  MessageSquare, Shield, CalendarDays, ChevronDown, LayoutDashboard
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -33,11 +33,9 @@ export const AppLayout: React.FC = () => {
     refreshWorkspaces
   } = useAuth();
   
-  const isNewsWorkspace = activeWorkspace?.name === 'tankilic.ai for all';
-
   const [activeTab, setActiveTab] = useState<'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
     const saved = localStorage.getItem('kh_active_tab');
-    if (saved && saved !== 'tasks') return saved as any;
+    if (saved) return saved as any;
     return 'content_panel';
   });
 
@@ -46,12 +44,10 @@ export const AppLayout: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (isNewsWorkspace && !['news', 'messages', 'profile'].includes(activeTab)) {
-      setActiveTab('news');
-    } else if (!isNewsWorkspace && activeTab === 'news') {
-      setActiveTab('content_panel');
+    if (!activeWorkspace && workspaces.length > 0) {
+      selectWorkspace(workspaces[0].id);
     }
-  }, [activeWorkspace, activeTab, isNewsWorkspace]);
+  }, [activeWorkspace, workspaces]);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showWsSettings, setShowWsSettings] = useState(false);
@@ -253,12 +249,14 @@ export const AppLayout: React.FC = () => {
       {/* Sidebar - Workspace switcher (Desktop only) */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <img 
-            src="/logo.svg" 
-            alt="TanCoreLab Logo" 
-            style={{ width: '36px', height: '36px', objectFit: 'contain' }} 
-          />
-          <span className="sidebar-logo">TanCoreLab</span>
+          <div className="brand-logo-panel">
+            <img 
+              src="/logo.svg" 
+              alt="TanCoreLab Logo" 
+              className="brand-logo-img" 
+            />
+            <span className="brand-logo-text">TanCoreLab</span>
+          </div>
         </div>
         
         <div className="workspace-list" style={{ flex: '0 0 auto', maxHeight: '200px' }}>
@@ -671,128 +669,74 @@ export const AppLayout: React.FC = () => {
 
         {/* Tab Navigation (Desktop view) */}
         <div className="nav-tabs">
-          {isNewsWorkspace ? (
-            <>
-              <div 
-                className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
-                onClick={() => handleTabChange('news')}
-              >
-                <Newspaper size={16} />
-                <span>Girişimcilik Haberleri</span>
-              </div>
-              <div 
-                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
-                onClick={() => handleTabChange('messages')}
-                style={{ position: 'relative' }}
-              >
-                <MessageSquare size={16} />
-                <span>Sohbet</span>
-                {unreadMsgCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '12px',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    fontSize: '0.62rem',
-                    fontWeight: 800,
-                    borderRadius: '50%',
-                    padding: '2px 5px',
-                    lineHeight: 1
-                  }}>
-                    {unreadMsgCount}
-                  </span>
-                )}
-              </div>
-              <div 
-                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => handleTabChange('profile')}
-              >
-                <User size={16} />
-                <span>Profil</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div 
-                className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
-                onClick={() => handleTabChange('content_panel')}
-              >
-                <LayoutDashboard size={16} />
-                <span>İçerik Panelim</span>
-              </div>
-              <div 
-                className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
-                onClick={() => handleTabChange('updates')}
-              >
-                <Calendar size={16} />
-                <span>Bugün Neler Yaptım</span>
-              </div>
-              <div 
-                className={`nav-tab ${activeTab === 'calendar' ? 'active' : ''}`}
-                onClick={() => handleTabChange('calendar')}
-              >
-                <CalendarDays size={16} />
-                <span>Görev Takvimi</span>
-              </div>
-              {role && ['owner', 'admin', 'manager'].includes(role) && (
-                <div 
-                  className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
-                  onClick={() => handleTabChange('crm')}
-                >
-                  <BarChart4 size={16} />
-                  <span>CRM</span>
-                </div>
-              )}
-              <div 
-                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
-                onClick={() => handleTabChange('messages')}
-                style={{ position: 'relative' }}
-              >
-                <MessageSquare size={16} />
-                <span>Sohbet</span>
-                {unreadMsgCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '12px',
-                    backgroundColor: '#ef4444',
-                    color: 'white',
-                    fontSize: '0.62rem',
-                    fontWeight: 800,
-                    borderRadius: '50%',
-                    padding: '2px 5px',
-                    lineHeight: 1
-                  }}>
-                    {unreadMsgCount}
-                  </span>
-                )}
-              </div>
-              <div 
-                className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-                onClick={() => handleTabChange('tasks')}
-              >
-                <CheckSquare size={16} />
-                <span>Görevler</span>
-              </div>
-              {role && ['owner', 'admin'].includes(role) && (
-                <div 
-                  className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-                  onClick={() => handleTabChange('admin')}
-                >
-                  <Shield size={16} />
-                  <span>Admin</span>
-                </div>
-              )}
-              <div 
-                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
-                onClick={() => handleTabChange('profile')}
-              >
-                <User size={16} />
-                <span>Profil</span>
-              </div>
-            </>
+          <div 
+            className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
+            onClick={() => handleTabChange('content_panel')}
+          >
+            <LayoutDashboard size={16} />
+            <span>İçerik Panelim</span>
+          </div>
+          <div 
+            className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
+            onClick={() => handleTabChange('updates')}
+          >
+            <CalendarDays size={16} />
+            <span>Güncellemeler</span>
+          </div>
+          <div 
+            className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
+            onClick={() => handleTabChange('crm')}
+          >
+            <BarChart4 size={16} />
+            <span>CRM</span>
+          </div>
+          <div 
+            className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+            onClick={() => handleTabChange('messages')}
+            style={{ position: 'relative' }}
+          >
+            <MessageSquare size={16} />
+            <span>Sohbet</span>
+            {unreadMsgCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '8px',
+                right: '12px',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                fontSize: '0.62rem',
+                fontWeight: 800,
+                borderRadius: '50%',
+                padding: '2px 5px',
+                lineHeight: 1
+              }}>
+                {unreadMsgCount}
+              </span>
+            )}
+          </div>
+          <div 
+            className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+            onClick={() => handleTabChange('tasks')}
+          >
+            <CheckSquare size={16} />
+            <span>Görevler</span>
+          </div>
+          {role && ['owner', 'admin'].includes(role) && (
+            <div 
+              className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
+              onClick={() => handleTabChange('admin')}
+            >
+              <Shield size={16} />
+              <span>Admin</span>
+            </div>
           )}
+          <div 
+            className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+            onClick={() => handleTabChange('profile')}
+          >
+            <User size={16} />
+            <span>Profil</span>
+          </div>
         </div>
 
         {/* View Area */}
@@ -922,128 +866,76 @@ export const AppLayout: React.FC = () => {
 
       {/* Sticky Bottom Navigation Bar (Mobile View) */}
       <div className="mobile-nav-bar">
-        {isNewsWorkspace ? (
-          <>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
-              onClick={() => handleTabChange('news')}
-            >
-              <Newspaper size={20} />
-              <span>Haberler</span>
-            </button>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
-              onClick={() => handleTabChange('messages')}
-              style={{ position: 'relative' }}
-            >
-              <MessageSquare size={20} />
-              <span>Sohbet</span>
-              {unreadMsgCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: 'calc(50% - 18px)',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  fontSize: '0.62rem',
-                  fontWeight: 800,
-                  borderRadius: '50%',
-                  padding: '2px 5px',
-                  lineHeight: 1
-                }}>
-                  {unreadMsgCount}
-                </span>
-              )}
-            </button>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={() => handleTabChange('profile')}
-            >
-              <User size={20} />
-              <span>Profil</span>
-            </button>
-          </>
-        ) : (
-          <>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'content_panel' ? 'active' : ''}`}
-              onClick={() => handleTabChange('content_panel')}
-            >
-              <LayoutDashboard size={20} />
-              <span>İçerik</span>
-            </button>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
-              onClick={() => handleTabChange('updates')}
-            >
-              <Calendar size={20} />
-              <span>Rapor</span>
-            </button>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
-              onClick={() => handleTabChange('calendar')}
-            >
-              <CalendarDays size={20} />
-              <span>Takvim</span>
-            </button>
-            {role && ['owner', 'admin', 'manager'].includes(role) && (
-              <button 
-                className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-                onClick={() => handleTabChange('crm')}
-              >
-                <BarChart4 size={20} />
-                <span>CRM</span>
-              </button>
-            )}
-            <button 
-              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
-              onClick={() => handleTabChange('messages')}
-              style={{ position: 'relative' }}
-            >
-              <MessageSquare size={20} />
-              <span>Sohbet</span>
-              {unreadMsgCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '4px',
-                  right: 'calc(50% - 18px)',
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  fontSize: '0.62rem',
-                  fontWeight: 800,
-                  borderRadius: '50%',
-                  padding: '2px 5px',
-                  lineHeight: 1
-                }}>
-                  {unreadMsgCount}
-                </span>
-              )}
-            </button>
-            <button 
-              className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
-              onClick={() => handleTabChange('tasks')}
-            >
-              <CheckSquare size={20} />
-              <span>Görevler</span>
-            </button>
-            {role && ['owner', 'admin'].includes(role) && (
-              <button 
-                className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-                onClick={() => handleTabChange('admin')}
-              >
-                <Shield size={20} />
-                <span>Admin</span>
-              </button>
-            )}
-            <button 
-              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-              onClick={() => handleTabChange('profile')}
-            >
-              <User size={20} />
-              <span>Profil</span>
-            </button>
-          </>
+        <button 
+          className={`mobile-nav-item ${activeTab === 'content_panel' ? 'active' : ''}`}
+          onClick={() => handleTabChange('content_panel')}
+        >
+          <LayoutDashboard size={20} />
+          <span>İçerik</span>
+        </button>
+        <button 
+          className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
+          onClick={() => handleTabChange('updates')}
+        >
+          <CalendarDays size={20} />
+          <span>Rapor</span>
+        </button>
+        {role && ['owner', 'admin', 'manager'].includes(role) && (
+          <button 
+            className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
+            onClick={() => handleTabChange('crm')}
+          >
+            <BarChart4 size={20} />
+            <span>CRM</span>
+          </button>
         )}
+        <button 
+          className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+          onClick={() => handleTabChange('messages')}
+          style={{ position: 'relative' }}
+        >
+          <MessageSquare size={20} />
+          <span>Sohbet</span>
+          {unreadMsgCount > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '4px',
+              right: 'calc(50% - 18px)',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.62rem',
+              fontWeight: 800,
+              borderRadius: '50%',
+              padding: '2px 5px',
+              lineHeight: 1
+            }}>
+              {unreadMsgCount}
+            </span>
+          )}
+        </button>
+        <button 
+          className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          onClick={() => handleTabChange('tasks')}
+        >
+          <CheckSquare size={20} />
+          <span>Görevler</span>
+        </button>
+        {role && ['owner', 'admin'].includes(role) && (
+          <button 
+            className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => handleTabChange('admin')}
+          >
+            <Shield size={20} />
+            <span>Admin</span>
+          </button>
+        )}
+        <button 
+          className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+          onClick={() => handleTabChange('profile')}
+        >
+          <User size={20} />
+          <span>Profil</span>
+        </button>
       </div>
 
       {/* Mobile Navigation & Workspace Drawer */}
@@ -1051,13 +943,13 @@ export const AppLayout: React.FC = () => {
         <div className="mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-sidebar-glass)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="brand-logo-panel mobile-brand-panel">
                 <img 
                   src="/logo.svg" 
                   alt="TanCoreLab" 
-                  style={{ width: '30px', height: '30px', objectFit: 'contain' }} 
+                  className="brand-logo-img" 
                 />
-                <span className="sidebar-logo">TanCoreLab</span>
+                <span className="brand-logo-text">TanCoreLab</span>
               </div>
               <button 
                 className="btn btn-secondary btn-icon-only" 
