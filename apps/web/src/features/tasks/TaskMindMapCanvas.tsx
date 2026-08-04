@@ -374,29 +374,8 @@ export const TaskMindMapCanvas: React.FC = () => {
     return [];
   });
 
-  const [pan, setPan] = useState(() => {
-    const saved = localStorage.getItem('kh_mindmap_pan');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Error parsing saved pan:', e);
-      }
-    }
-    return { x: 0, y: 0 };
-  });
-  const [zoom, setZoom] = useState(() => {
-    const saved = localStorage.getItem('kh_mindmap_zoom');
-    if (saved) {
-      try {
-        const val = parseFloat(saved);
-        if (!isNaN(val)) return val;
-      } catch (e) {
-        console.error('Error parsing saved zoom:', e);
-      }
-    }
-    return 1;
-  });
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -418,7 +397,7 @@ export const TaskMindMapCanvas: React.FC = () => {
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panRef.current = pan; }, [pan]);
 
-  // Sync to localStorage
+  // Sync to localStorage (nodes & edges only)
   useEffect(() => {
     localStorage.setItem('kh_mindmap_nodes', JSON.stringify(nodes));
   }, [nodes]);
@@ -427,18 +406,9 @@ export const TaskMindMapCanvas: React.FC = () => {
     localStorage.setItem('kh_mindmap_edges', JSON.stringify(edges));
   }, [edges]);
 
+  /* ── center on mount ── */
   useEffect(() => {
-    localStorage.setItem('kh_mindmap_pan', JSON.stringify(pan));
-  }, [pan]);
-
-  useEffect(() => {
-    localStorage.setItem('kh_mindmap_zoom', zoom.toString());
-  }, [zoom]);
-
-  /* ── center on mount (only if no saved pan exists) ── */
-  useEffect(() => {
-    const savedPan = localStorage.getItem('kh_mindmap_pan');
-    if (!savedPan && containerRef.current) {
+    if (containerRef.current) {
       const r = containerRef.current.getBoundingClientRect();
       setPan({ x: r.width / 2 - NODE_W / 2, y: r.height / 2 - NODE_H / 2 });
     }
