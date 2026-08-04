@@ -723,7 +723,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: -35px;
   z-index: 2;
   animation: logoFloat 3.8s ease-in-out infinite;
 }
