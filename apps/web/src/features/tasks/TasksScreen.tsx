@@ -2463,8 +2463,26 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
 
 
-      {/* Search & Filter Header (Only shown in Görevler mode) */}
-      {!isContentMode && (
+      {/* Search & Filter Header (Only shown in Görevler mode, hidden in mindmap) */}
+      {!isContentMode && viewMode === 'mindmap' ? (
+        /* Mindmap mode: only show view switcher */
+        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 4px' }}>
+          <div className="view-switcher">
+            <button className={`view-switcher-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+              <List size={15} />
+              <span className="btn-text">Liste</span>
+            </button>
+            <button className={`view-switcher-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
+              <Kanban size={15} />
+              <span className="btn-text">Pano</span>
+            </button>
+            <button className={`view-switcher-btn ${viewMode === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
+              <Share2 size={15} />
+              <span className="btn-text">Harita</span>
+            </button>
+          </div>
+        </div>
+      ) : !isContentMode && (
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Row 1: Search + Action buttons */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2594,8 +2612,10 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
       )}
 
 
-      {/* Board / List */}
-      {loading ? (
+      {/* Board / List / Mindmap */}
+      {viewMode === 'mindmap' && !isContentMode ? (
+        <TaskMindMapCanvas />
+      ) : loading ? (
         <div style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <RefreshCw className="animate-spin" size={32} style={{ color: 'var(--accent-color)' }} />
         </div>
@@ -2605,8 +2625,6 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
           <h3 style={{ fontWeight: 700 }}>Görev Yok</h3>
           <p style={{ fontSize: '0.85rem' }}>Yeni görev ekleyerek başlayın</p>
         </div>
-      ) : viewMode === 'mindmap' ? (
-        <TaskMindMapCanvas />
       ) : viewMode === 'kanban' ? (
         <DndContext
           sensors={sensors}
