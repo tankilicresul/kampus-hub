@@ -78,10 +78,45 @@ const bezierPath = (from: MindMapNode, to: MindMapNode): string => {
   }
 };
 
+/**
+ * Live preview Bézier path from source‑node edge → mouse pointer position.
+ */
+const bezierPathToPoint = (from: MindMapNode, pt: { x: number; y: number }): string => {
+  const fcx = from.x + NODE_W / 2;
+  const fcy = from.y + NODE_H / 2;
+  const dx = pt.x - fcx;
+  const dy = pt.y - fcy;
+
+  let sx: number, sy: number;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    sx = dx >= 0 ? from.x + NODE_W : from.x;
+    sy = fcy;
+  } else {
+    sx = fcx;
+    sy = dy >= 0 ? from.y + NODE_H : from.y;
+  }
+
+  const cp = Math.max(Math.sqrt(dx * dx + dy * dy) * 0.35, 40);
+  return `M${sx},${sy} C${sx + (dx >= 0 ? cp : -cp)},${sy} ${pt.x - (dx >= 0 ? cp : -cp)},${pt.y} ${pt.x},${pt.y}`;
+};
+
 /* ────────────────────── Edge Component ────────────────────── */
-const MindMapEdgeComp = memo(({ d, color }: { d: string; color: string }) => (
-  <g>
+const MindMapEdgeComp = memo(({ id, d, color, onDelete }: { id: string; d: string; color: string; onDelete: (id: string) => void }) => (
+  <g className="mindmap-edge-group">
     <path d={d} className="mindmap-edge-path" style={{ stroke: color }} />
+    <path
+      d={d}
+      className="mindmap-edge-hit-area"
+      style={{ stroke: 'transparent', strokeWidth: 16, cursor: 'pointer' }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (window.confirm('Bu ip bağlantısını silmek istediğinize emin misiniz?')) {
+          onDelete(id);
+        }
+      }}
+    >
+      <title>İp bağlantısını silmek için tıklayın</title>
+    </path>
     <circle r="4" className="mindmap-flow-dot" style={{ fill: color }}>
       <animateMotion dur="2.8s" repeatCount="indefinite" path={d} />
     </circle>
@@ -94,21 +129,25 @@ interface NodeProps {
   node: MindMapNode;
   isSelected: boolean;
   isEditing: boolean;
+  isConnectingSource?: boolean;
+  isConnectingTarget?: boolean;
   onMouseDown: (e: React.MouseEvent, id: string) => void;
   onClick: (e: React.MouseEvent, id: string) => void;
   onDoubleClick: (e: React.MouseEvent, id: string) => void;
   onAddNode: (parentId: string, dir: 'top' | 'right' | 'bottom' | 'left') => void;
+  onStartConnect: (id: string) => void;
   onTitleChange: (id: string, title: string) => void;
   onEditEnd: () => void;
   onDelete: (id: string) => void;
 }
 
 const MindMapNodeCard = memo<NodeProps>(({
-  node, isSelected, isEditing,
+  node, isSelected, isEditing, isConnectingSource, isConnectingTarget,
   onMouseDown, onClick, onDoubleClick,
-  onAddNode, onTitleChange, onEditEnd, onDelete,
+  onAddNode, onStartConnect, onTitleChange, onEditEnd, onDelete,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
   const sc = STATUS_CONFIG[node.status];
   const sColor = sc.color;
 
@@ -119,16 +158,32 @@ const MindMapNodeCard = memo<NodeProps>(({
     }
   }, [isEditing]);
 
+  const handlePlusClick = (e: React.MouseEvent, dir: 'top' | 'right' | 'bottom' | 'left') => {
+    e.stopPropagation();
+    if (clickTimers.current[dir]) {
+      clearTimeout(clickTimers.current[dir]!);
+      clickTimers.current[dir] = null;
+      // Double click: start rope connecting mode!
+      onStartConnect(node.id);
+    } else {
+      clickTimers.current[dir] = setTimeout(() => {
+        clickTimers.current[dir] = null;
+        // Single click: add node in direction
+        onAddNode(node.id, dir);
+      }, 250);
+    }
+  };
+
   return (
     <div
-      className={`mindmap-node${isSelected ? ' selected' : ''}${node.id === 'root' ? ' root' : ''}`}
+      className={`mindmap-node${isSelected ? ' selected' : ''}${node.id === 'root' ? ' root' : ''}${isConnectingSource ? ' connecting-source' : ''}${isConnectingTarget ? ' connecting-target' : ''}`}
       style={{
         left: node.x,
         top: node.y,
         width: NODE_W,
         height: NODE_H,
         '--node-color': sColor,
-        borderColor: isSelected ? sColor : undefined,
+        borderColor: isConnectingSource ? 'var(--accent-color)' : (isConnectingTarget ? '#3b82f6' : (isSelected ? sColor : undefined)),
       } as React.CSSProperties}
       onMouseDown={(e) => onMouseDown(e, node.id)}
       onClick={(e) => onClick(e, node.id)}
@@ -192,9 +247,9 @@ const MindMapNodeCard = memo<NodeProps>(({
         <button
           key={dir}
           className={`mindmap-plus-btn ${dir}`}
-          onClick={(e) => { e.stopPropagation(); onAddNode(node.id, dir); }}
+          onClick={(e) => handlePlusClick(e, dir)}
           onMouseDown={(e) => e.stopPropagation()}
-          title={dir === 'top' ? 'Yukarı ekle' : dir === 'right' ? 'Sağa ekle' : dir === 'bottom' ? 'Aşağı ekle' : 'Sola ekle'}
+          title={dir === 'top' ? 'Tıkla: Yukarı ekle | Çift tıkla: İple bağla' : dir === 'right' ? 'Tıkla: Sağa ekle | Çift tıkla: İple bağla' : dir === 'bottom' ? 'Tıkla: Aşağı ekle | Çift tıkla: İple bağla' : 'Tıkla: Sola ekle | Çift tıkla: İple bağla'}
         >
           <Plus size={14} strokeWidth={2.5} />
         </button>
@@ -380,6 +435,8 @@ export const TaskMindMapCanvas: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailNodeId, setDetailNodeId] = useState<string | null>(null);
+  const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
+  const [mouseWorldPos, setMouseWorldPos] = useState<{ x: number; y: number } | null>(null);
 
   // drag tracking
   const wasDragRef = useRef(false);
@@ -485,6 +542,11 @@ export const TaskMindMapCanvas: React.FC = () => {
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
+    if (connectingFromId) {
+      const wx = (e.clientX - panRef.current.x) / zoomRef.current;
+      const wy = (e.clientY - panRef.current.y) / zoomRef.current;
+      setMouseWorldPos({ x: wx, y: wy });
+    }
     if (isPanningRef.current) {
       setPan({
         x: e.clientX - panStartRef.current.x,
@@ -502,7 +564,7 @@ export const TaskMindMapCanvas: React.FC = () => {
         ),
       );
     }
-  }, []);
+  }, [connectingFromId]);
 
   const handlePointerUp = useCallback(() => {
     isPanningRef.current = false;
@@ -524,15 +586,40 @@ export const TaskMindMapCanvas: React.FC = () => {
     setSelectedId(nodeId);
   }, []);
 
+  const handleStartConnect = useCallback((nodeId: string) => {
+    setConnectingFromId(nodeId);
+    setSelectedId(nodeId);
+  }, []);
+
+  const deleteEdge = useCallback((edgeId: string) => {
+    setEdges((prev) => prev.filter((e) => e.id !== edgeId));
+  }, []);
+
   const handleNodeClick = useCallback((e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
+    if (connectingFromId) {
+      if (connectingFromId !== nodeId) {
+        const newEdgeId = `e_${connectingFromId}_${nodeId}_${Date.now()}`;
+        setEdges((prev) => {
+          const exists = prev.some(
+            (e) => (e.from === connectingFromId && e.to === nodeId) || (e.from === nodeId && e.to === connectingFromId)
+          );
+          if (exists) return prev;
+          return [...prev, { id: newEdgeId, from: connectingFromId, to: nodeId }];
+        });
+      }
+      setConnectingFromId(null);
+      setMouseWorldPos(null);
+      return;
+    }
+
     // Only open detail modal if it wasn't a drag
     if (!wasDragRef.current) {
       setDetailNodeId(nodeId);
     }
     wasDragRef.current = false;
     setSelectedId(nodeId);
-  }, []);
+  }, [connectingFromId]);
 
   const handleNodeDoubleClick = useCallback((e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
@@ -681,13 +768,18 @@ export const TaskMindMapCanvas: React.FC = () => {
       if (e.key === 'Delete' && selectedId && selectedId !== 'root' && !editingId && !detailNodeId) {
         deleteNode(selectedId);
       }
-      if (e.key === 'Escape' && detailNodeId) {
-        setDetailNodeId(null);
+      if (e.key === 'Escape') {
+        if (connectingFromId) {
+          setConnectingFromId(null);
+          setMouseWorldPos(null);
+        } else if (detailNodeId) {
+          setDetailNodeId(null);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, editingId, detailNodeId, deleteNode]);
+  }, [selectedId, editingId, detailNodeId, deleteNode, connectingFromId]);
 
   /* ── cursor style ── */
   const cursorStyle = isPanningRef.current
@@ -697,6 +789,7 @@ export const TaskMindMapCanvas: React.FC = () => {
       : 'grab';
 
   const detailNode = detailNodeId ? nodes.find((n) => n.id === detailNodeId) : null;
+  const connectingFromNode = connectingFromId ? nodes.find((n) => n.id === connectingFromId) : null;
 
   /* ────────────────────── Render ────────────────────── */
   return (
@@ -709,6 +802,23 @@ export const TaskMindMapCanvas: React.FC = () => {
       onPointerLeave={handlePointerUp}
       style={{ cursor: cursorStyle }}
     >
+      {/* Connecting Rope Mode Top Banner */}
+      {connectingFromId && (
+        <div className="mindmap-connecting-banner">
+          <span className="mindmap-connecting-dot" />
+          <span><strong>🔗 İp Bağlama Modu:</strong> Bağlamak istediğiniz hedef göreve tıklayın</span>
+          <button
+            className="mindmap-connecting-cancel-btn"
+            onClick={() => {
+              setConnectingFromId(null);
+              setMouseWorldPos(null);
+            }}
+          >
+            İptal (ESC)
+          </button>
+        </div>
+      )}
+
       {/* Dot‑grid background */}
       <div className="mindmap-grid-pattern" />
 
@@ -729,11 +839,27 @@ export const TaskMindMapCanvas: React.FC = () => {
             return (
               <MindMapEdgeComp
                 key={edge.id}
+                id={edge.id}
                 d={bezierPath(from, to)}
                 color={statusColor(to.status)}
+                onDelete={deleteEdge}
               />
             );
           })}
+          {connectingFromNode && mouseWorldPos && (
+            <g>
+              <path
+                d={bezierPathToPoint(connectingFromNode, mouseWorldPos)}
+                className="mindmap-rope-preview"
+                style={{
+                  stroke: '#ff9f0a',
+                  strokeWidth: 3.5,
+                  fill: 'none',
+                }}
+              />
+              <circle cx={mouseWorldPos.x} cy={mouseWorldPos.y} r={6} fill="#ff9f0a" className="mindmap-flow-dot" />
+            </g>
+          )}
         </svg>
 
         {/* Node layer */}
@@ -743,10 +869,13 @@ export const TaskMindMapCanvas: React.FC = () => {
             node={node}
             isSelected={selectedId === node.id}
             isEditing={editingId === node.id}
+            isConnectingSource={connectingFromId === node.id}
+            isConnectingTarget={Boolean(connectingFromId && connectingFromId !== node.id)}
             onMouseDown={handleNodeMouseDown}
             onClick={handleNodeClick}
             onDoubleClick={handleNodeDoubleClick}
             onAddNode={addNode}
+            onStartConnect={handleStartConnect}
             onTitleChange={handleTitleChange}
             onEditEnd={() => setEditingId(null)}
             onDelete={deleteNode}

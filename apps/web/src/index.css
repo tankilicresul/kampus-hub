@@ -2495,6 +2495,85 @@ html, body, #root {
   opacity: 1;
 }
 
+/* Mindmap Connecting Rope Mode */
+.mindmap-connecting-banner {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  background: var(--bg-surface);
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 4px 20px rgba(var(--accent-rgb, 255, 159, 10), 0.25);
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  animation: slideDownBanner 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mindmap-connecting-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  animation: mindmapRootPulse 1.2s infinite;
+}
+
+.mindmap-connecting-cancel-btn {
+  background: var(--bg-surface-accent);
+  border: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mindmap-connecting-cancel-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.mindmap-node.connecting-source {
+  border-color: var(--accent-color) !important;
+  box-shadow: 0 0 18px rgba(var(--accent-rgb, 255, 159, 10), 0.5) !important;
+}
+
+.mindmap-node.connecting-target {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4) !important;
+  cursor: pointer !important;
+}
+
+.mindmap-node.connecting-target:hover {
+  transform: scale(1.04) !important;
+  border-color: #22c55e !important;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.6) !important;
+}
+
+.mindmap-rope-preview {
+  stroke-dasharray: 6 4;
+  animation: ropeDash 0.8s linear infinite;
+}
+
+@keyframes ropeDash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+.mindmap-edge-group:hover .mindmap-edge-path {
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 6px rgba(var(--accent-rgb, 255, 159, 10), 0.5));
+}
+
 /* ── Animations ── */
 @keyframes mindmapNodeEnter {
   0% {
