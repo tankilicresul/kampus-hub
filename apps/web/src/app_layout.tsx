@@ -14,7 +14,7 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Newspaper, ChevronDown
+  MessageSquare, Newspaper, ChevronDown, LayoutDashboard, CheckSquare, CalendarDays
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -44,10 +44,10 @@ export const AppLayout: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (!activeWorkspace && workspaces.length > 0) {
-      selectWorkspace(workspaces[0].id);
+    if (activeWorkspace && activeTab === 'news') {
+      setActiveTab('content_panel');
     }
-  }, [activeWorkspace, workspaces]);
+  }, [activeWorkspace?.id]);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [showWsSettings, setShowWsSettings] = useState(false);
@@ -779,44 +779,103 @@ export const AppLayout: React.FC = () => {
 
         {/* Tab Navigation (Desktop view) */}
         <div className="nav-tabs">
-          <div 
-            className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
-            onClick={() => handleTabChange('news')}
-          >
-            <Newspaper size={16} />
-            <span>Haberler</span>
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
-            onClick={() => handleTabChange('messages')}
-            style={{ position: 'relative' }}
-          >
-            <MessageSquare size={16} />
-            <span>Sohbet</span>
-            {unreadMsgCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: '8px',
-                right: '12px',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                fontSize: '0.62rem',
-                fontWeight: 800,
-                borderRadius: '50%',
-                padding: '2px 5px',
-                lineHeight: 1
-              }}>
-                {unreadMsgCount}
-              </span>
-            )}
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
-            onClick={() => handleTabChange('profile')}
-          >
-            <User size={16} />
-            <span>Profil</span>
-          </div>
+          {activeWorkspace ? (
+            <>
+              <div 
+                className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
+                onClick={() => handleTabChange('content_panel')}
+              >
+                <LayoutDashboard size={16} />
+                <span>İçerik Paneli</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
+                onClick={() => handleTabChange('tasks')}
+              >
+                <CheckSquare size={16} />
+                <span>Görevler</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'calendar' ? 'active' : ''}`}
+                onClick={() => handleTabChange('calendar')}
+              >
+                <CalendarDays size={16} />
+                <span>Takvim</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+                onClick={() => handleTabChange('messages')}
+                style={{ position: 'relative' }}
+              >
+                <MessageSquare size={16} />
+                <span>Sohbet</span>
+                {unreadMsgCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '12px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    borderRadius: '50%',
+                    padding: '2px 5px',
+                    lineHeight: 1
+                  }}>
+                    {unreadMsgCount}
+                  </span>
+                )}
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => handleTabChange('profile')}
+              >
+                <User size={16} />
+                <span>Profilim</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div 
+                className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
+                onClick={() => handleTabChange('news')}
+              >
+                <Newspaper size={16} />
+                <span>Haberler</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
+                onClick={() => handleTabChange('messages')}
+                style={{ position: 'relative' }}
+              >
+                <MessageSquare size={16} />
+                <span>Sohbet</span>
+                {unreadMsgCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '12px',
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    borderRadius: '50%',
+                    padding: '2px 5px',
+                    lineHeight: 1
+                  }}>
+                    {unreadMsgCount}
+                  </span>
+                )}
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
+                onClick={() => handleTabChange('profile')}
+              >
+                <User size={16} />
+                <span>Profilim</span>
+              </div>
+            </>
+          )}
         </div>
 
         {/* View Area */}
@@ -950,44 +1009,103 @@ export const AppLayout: React.FC = () => {
 
       {/* Sticky Bottom Navigation Bar (Mobile View) */}
       <div className="mobile-nav-bar">
-        <button 
-          className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
-          onClick={() => handleTabChange('news')}
-        >
-          <Newspaper size={20} />
-          <span>Haberler</span>
-        </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
-          onClick={() => handleTabChange('messages')}
-          style={{ position: 'relative' }}
-        >
-          <MessageSquare size={20} />
-          <span>Sohbet</span>
-          {unreadMsgCount > 0 && (
-            <span style={{
-              position: 'absolute',
-              top: '4px',
-              right: 'calc(50% - 18px)',
-              backgroundColor: '#ef4444',
-              color: 'white',
-              fontSize: '0.62rem',
-              fontWeight: 800,
-              borderRadius: '50%',
-              padding: '2px 5px',
-              lineHeight: 1
-            }}>
-              {unreadMsgCount}
-            </span>
-          )}
-        </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => handleTabChange('profile')}
-        >
-          <User size={20} />
-          <span>Profil</span>
-        </button>
+        {activeWorkspace ? (
+          <>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'content_panel' ? 'active' : ''}`}
+              onClick={() => handleTabChange('content_panel')}
+            >
+              <LayoutDashboard size={20} />
+              <span>İçerik</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
+              onClick={() => handleTabChange('tasks')}
+            >
+              <CheckSquare size={20} />
+              <span>Görevler</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
+              onClick={() => handleTabChange('calendar')}
+            >
+              <CalendarDays size={20} />
+              <span>Takvim</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+              onClick={() => handleTabChange('messages')}
+              style={{ position: 'relative' }}
+            >
+              <MessageSquare size={20} />
+              <span>Sohbet</span>
+              {unreadMsgCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: 'calc(50% - 18px)',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  borderRadius: '50%',
+                  padding: '2px 5px',
+                  lineHeight: 1
+                }}>
+                  {unreadMsgCount}
+                </span>
+              )}
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleTabChange('profile')}
+            >
+              <User size={20} />
+              <span>Profilim</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
+              onClick={() => handleTabChange('news')}
+            >
+              <Newspaper size={20} />
+              <span>Haberler</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
+              onClick={() => handleTabChange('messages')}
+              style={{ position: 'relative' }}
+            >
+              <MessageSquare size={20} />
+              <span>Sohbet</span>
+              {unreadMsgCount > 0 && (
+                <span style={{
+                  position: 'absolute',
+                  top: '4px',
+                  right: 'calc(50% - 18px)',
+                  backgroundColor: '#ef4444',
+                  color: 'white',
+                  fontSize: '0.62rem',
+                  fontWeight: 800,
+                  borderRadius: '50%',
+                  padding: '2px 5px',
+                  lineHeight: 1
+                }}>
+                  {unreadMsgCount}
+                </span>
+              )}
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleTabChange('profile')}
+            >
+              <User size={20} />
+              <span>Profilim</span>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Mobile Navigation & Workspace Drawer */}
