@@ -134,15 +134,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const savedId = localStorage.getItem('kh_active_ws');
 
         setActiveWorkspace((prev) => {
-          // Mevcut seçim hâlâ geçerliyse koru (örn. kabul edilen davet sonrası)
+          // Mevcut seçim hâlâ geçerliyse koru
           if (prev?.id && formatted.some((w: any) => w.id === prev.id)) return prev;
           // localStorage'da kayıtlı ekip varsa ve listede mevcutsa ona dön
           if (savedId) {
             const saved = formatted.find((w: any) => w.id === savedId);
             if (saved) return saved;
           }
-          // Yoksa listedeki ilke ekip
-          return formatted[0];
+          // Varsayılan olarak Genel Mod (null)
+          return null;
         });
       } else {
         setActiveWorkspace(null);
@@ -297,6 +297,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const selectWorkspace = async (workspaceId: string) => {
+    if (!workspaceId) {
+      setActiveWorkspace(null);
+      localStorage.removeItem('kh_active_ws');
+      return;
+    }
     const ws = workspaces.find((w) => w.id === workspaceId);
     if (ws) {
       setActiveWorkspace(ws);
