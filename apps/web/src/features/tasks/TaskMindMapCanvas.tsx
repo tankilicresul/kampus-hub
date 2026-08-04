@@ -103,11 +103,12 @@ const bezierPathToPoint = (from: MindMapNode, pt: { x: number; y: number }): str
 /* ────────────────────── Edge Component ────────────────────── */
 const MindMapEdgeComp = memo(({ id, d, color, onDelete }: { id: string; d: string; color: string; onDelete: (id: string) => void }) => (
   <g className="mindmap-edge-group">
-    <path d={d} className="mindmap-edge-path" style={{ stroke: color }} />
+    <path d={d} className="mindmap-edge-path" fill="none" style={{ stroke: color, fill: 'none' }} />
     <path
       d={d}
       className="mindmap-edge-hit-area"
-      style={{ stroke: 'transparent', strokeWidth: 16, cursor: 'pointer' }}
+      fill="none"
+      style={{ stroke: 'transparent', strokeWidth: 18, fill: 'none', cursor: 'pointer' }}
       onClick={(e) => {
         e.stopPropagation();
         if (window.confirm('Bu ip bağlantısını silmek istediğinize emin misiniz?')) {
@@ -135,7 +136,7 @@ interface NodeProps {
   onClick: (e: React.MouseEvent, id: string) => void;
   onDoubleClick: (e: React.MouseEvent, id: string) => void;
   onAddNode: (parentId: string, dir: 'top' | 'right' | 'bottom' | 'left') => void;
-  onStartConnect: (id: string) => void;
+  onStartRopeDrag: (id: string, e: React.PointerEvent) => void;
   onTitleChange: (id: string, title: string) => void;
   onEditEnd: () => void;
   onDelete: (id: string) => void;
@@ -144,10 +145,9 @@ interface NodeProps {
 const MindMapNodeCard = memo<NodeProps>(({
   node, isSelected, isEditing, isConnectingSource, isConnectingTarget,
   onMouseDown, onClick, onDoubleClick,
-  onAddNode, onStartConnect, onTitleChange, onEditEnd, onDelete,
+  onAddNode, onStartRopeDrag, onTitleChange, onEditEnd, onDelete,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const clickTimers = useRef<Record<string, ReturnType<typeof setTimeout> | null>>({});
   const sc = STATUS_CONFIG[node.status];
   const sColor = sc.color;
 
@@ -158,24 +158,19 @@ const MindMapNodeCard = memo<NodeProps>(({
     }
   }, [isEditing]);
 
-  const handlePlusClick = (e: React.MouseEvent, dir: 'top' | 'right' | 'bottom' | 'left') => {
+  const handlePlusPointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
-    if (clickTimers.current[dir]) {
-      clearTimeout(clickTimers.current[dir]!);
-      clickTimers.current[dir] = null;
-      // Double click: start rope connecting mode!
-      onStartConnect(node.id);
-    } else {
-      clickTimers.current[dir] = setTimeout(() => {
-        clickTimers.current[dir] = null;
-        // Single click: add node in direction
-        onAddNode(node.id, dir);
-      }, 250);
-    }
+    onStartRopeDrag(node.id, e);
+  };
+
+  const handlePlusDoubleClick = (e: React.MouseEvent, dir: 'top' | 'right' | 'bottom' | 'left') => {
+    e.stopPropagation();
+    onAddNode(node.id, dir);
   };
 
   return (
     <div
+      data-node-id={node.id}
       className={`mindmap-node${isSelected ? ' selected' : ''}${node.id === 'root' ? ' root' : ''}${isConnectingSource ? ' connecting-source' : ''}${isConnectingTarget ? ' connecting-target' : ''}`}
       style={{
         left: node.x,
@@ -247,9 +242,9 @@ const MindMapNodeCard = memo<NodeProps>(({
         <button
           key={dir}
           className={`mindmap-plus-btn ${dir}`}
-          onClick={(e) => handlePlusClick(e, dir)}
-          onMouseDown={(e) => e.stopPropagation()}
-          title={dir === 'top' ? 'Tıkla: Yukarı ekle | Çift tıkla: İple bağla' : dir === 'right' ? 'Tıkla: Sağa ekle | Çift tıkla: İple bağla' : dir === 'bottom' ? 'Tıkla: Aşağı ekle | Çift tıkla: İple bağla' : 'Tıkla: Sola ekle | Çift tıkla: İple bağla'}
+          onPointerDown={(e) => handlePlusPointerDown(e)}
+          onDoubleClick={(e) => handlePlusDoubleClick(e, dir)}
+          title="Çift Tıkla: Yeni Görev Ekle | Basılı Tut Sürükle: İple Bağla"
         >
           <Plus size={14} strokeWidth={2.5} />
         </button>
@@ -566,14 +561,34 @@ export const TaskMindMapCanvas: React.FC = () => {
     }
   }, [connectingFromId]);
 
-  const handlePointerUp = useCallback(() => {
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (connectingFromId) {
+      const elem = document.elementFromPoint(e.clientX, e.clientY);
+      const nodeElem = elem?.closest('.mindmap-node');
+      if (nodeElem) {
+        const targetId = nodeElem.getAttribute('data-node-id');
+        if (targetId && targetId !== connectingFromId) {
+          const newEdgeId = `e_${connectingFromId}_${targetId}_${Date.now()}`;
+          setEdges((prev) => {
+            const exists = prev.some(
+              (edge) => (edge.from === connectingFromId && edge.to === targetId) || (edge.from === targetId && edge.to === connectingFromId)
+            );
+            if (exists) return prev;
+            return [...prev, { id: newEdgeId, from: connectingFromId, to: targetId }];
+          });
+        }
+      }
+      setConnectingFromId(null);
+      setMouseWorldPos(null);
+    }
+
     isPanningRef.current = false;
     if (isDraggingNodeRef.current && dragDistRef.current > 5) {
       wasDragRef.current = true;
     }
     isDraggingNodeRef.current = false;
     dragNodeIdRef.current = null;
-  }, []);
+  }, [connectingFromId]);
 
   /* ── node interactions ── */
   const handleNodeMouseDown = useCallback((e: React.MouseEvent, nodeId: string) => {
@@ -586,9 +601,12 @@ export const TaskMindMapCanvas: React.FC = () => {
     setSelectedId(nodeId);
   }, []);
 
-  const handleStartConnect = useCallback((nodeId: string) => {
+  const handleStartRopeDrag = useCallback((nodeId: string, e: React.PointerEvent) => {
     setConnectingFromId(nodeId);
     setSelectedId(nodeId);
+    const wx = (e.clientX - panRef.current.x) / zoomRef.current;
+    const wy = (e.clientY - panRef.current.y) / zoomRef.current;
+    setMouseWorldPos({ x: wx, y: wy });
   }, []);
 
   const deleteEdge = useCallback((edgeId: string) => {
@@ -598,16 +616,6 @@ export const TaskMindMapCanvas: React.FC = () => {
   const handleNodeClick = useCallback((e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
     if (connectingFromId) {
-      if (connectingFromId !== nodeId) {
-        const newEdgeId = `e_${connectingFromId}_${nodeId}_${Date.now()}`;
-        setEdges((prev) => {
-          const exists = prev.some(
-            (e) => (e.from === connectingFromId && e.to === nodeId) || (e.from === nodeId && e.to === connectingFromId)
-          );
-          if (exists) return prev;
-          return [...prev, { id: newEdgeId, from: connectingFromId, to: nodeId }];
-        });
-      }
       setConnectingFromId(null);
       setMouseWorldPos(null);
       return;
@@ -875,7 +883,7 @@ export const TaskMindMapCanvas: React.FC = () => {
             onClick={handleNodeClick}
             onDoubleClick={handleNodeDoubleClick}
             onAddNode={addNode}
-            onStartConnect={handleStartConnect}
+            onStartRopeDrag={handleStartRopeDrag}
             onTitleChange={handleTitleChange}
             onEditEnd={() => setEditingId(null)}
             onDelete={deleteNode}
