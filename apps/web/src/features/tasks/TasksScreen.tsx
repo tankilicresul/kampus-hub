@@ -109,7 +109,7 @@ const getContentFormatInfo = (type: string | null | undefined) => {
   switch (type) {
     case 'viral':
     case 'video':
-      return { label: 'Viral İçerik', emoji: '🔥', color: '#ff9f0a' };
+      return { label: 'Reels', emoji: '🎬', color: '#ff9f0a' };
     case 'post':
       return { label: 'Post', emoji: '🖼', color: '#0a84ff' };
     case 'reklam':
@@ -1135,7 +1135,7 @@ const TaskDetailModal: React.FC<{
               {/* Format selection */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
                 {[
-                  { key: 'viral', label: '🔥 Viral İçerik' },
+                  { key: 'viral', label: '🎬 Reels' },
                   { key: 'post', label: '🖼 Post' },
                   { key: 'reklam', label: '📢 Reklam' },
                   { key: 'yari_reklam', label: '⚡ Yarı Reklam' }
@@ -2823,35 +2823,14 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                       flexDirection: 'column',
                       gap: '14px'
                     }}>
-                      {/* Format selection */}
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
-                        {[
-                          { key: 'viral', label: '🔥 Viral İçerik' },
-                          { key: 'post', label: '🖼 Post' },
-                          { key: 'reklam', label: '📢 Reklam' },
-                          { key: 'yari_reklam', label: '⚡ Yarı Reklam' }
-                        ].map(f => (
-                          <button
-                            key={f.key}
-                            type="button"
-                            onClick={() => setNewContentType(f.key)}
-                            style={{
-                              flex: 1,
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              fontSize: '0.78rem',
-                              fontWeight: 700,
-                              border: '1.5px solid',
-                              borderColor: newContentType === f.key ? 'var(--accent-color)' : 'var(--border-glass)',
-                              backgroundColor: newContentType === f.key ? 'rgba(255,159,10,0.12)' : 'transparent',
-                              color: newContentType === f.key ? 'var(--accent-color)' : 'var(--text-secondary)',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s'
-                            }}
-                          >
-                            {f.label}
-                          </button>
-                        ))}
+                      {/* Format Header Indicator */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {newContentType === 'viral' && '🎬 Reels İçerik Formu'}
+                          {newContentType === 'reklam' && '📢 Reklam İçerik Formu'}
+                          {newContentType === 'yari_reklam' && '⚡ Yarı Reklam İçerik Formu'}
+                          {newContentType === 'post' && '🖼️ Post İçerik Formu'}
+                        </span>
                       </div>
 
                       {newContentType === 'post' ? (
