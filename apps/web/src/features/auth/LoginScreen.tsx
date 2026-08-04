@@ -74,14 +74,14 @@ export const LoginScreen: React.FC = () => {
         {/* Developer Attribution Card (Desktop) */}
         <div style={{ 
           marginTop: '36px', 
-          maxWidth: '420px',
+          maxWidth: '440px',
           width: '100%',
           padding: '24px', 
           borderRadius: '20px', 
-          backgroundColor: 'rgba(15, 23, 42, 0.45)', 
-          border: '1px solid rgba(255, 255, 255, 0.25)', 
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+          backgroundColor: 'rgba(255, 255, 255, 0.92)', 
+          border: '1px solid rgba(255, 255, 255, 0.6)', 
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04)',
           zIndex: 2,
           textAlign: 'center'
         }}>
@@ -89,25 +89,24 @@ export const LoginScreen: React.FC = () => {
             display: 'inline-flex', 
             alignItems: 'center', 
             gap: '6px', 
-            padding: '5px 14px', 
+            padding: '6px 16px', 
             borderRadius: '20px', 
-            backgroundColor: 'rgba(255, 255, 255, 0.18)', 
-            color: '#ffffff', 
-            fontSize: '0.75rem', 
+            backgroundColor: 'rgba(255, 159, 10, 0.12)', 
+            color: '#c2410c', 
+            fontSize: '0.78rem', 
             fontWeight: 800, 
-            letterSpacing: '0.06em', 
+            letterSpacing: '0.05em', 
             textTransform: 'uppercase', 
-            marginBottom: '12px' 
+            marginBottom: '14px' 
           }}>
-            <Sparkles size={14} /> TanCoreLab'in Geliştiricisi
+            <Sparkles size={14} style={{ color: '#ea580c' }} /> TanCoreLab'in Geliştiricisi
           </div>
           <p style={{ 
             fontSize: '0.95rem', 
-            color: '#ffffff', 
+            color: '#1e293b', 
             lineHeight: 1.6, 
-            fontWeight: 500, 
-            margin: '0 0 16px',
-            textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' 
+            fontWeight: 600, 
+            margin: '0 0 18px'
           }}>
             TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
           </p>
@@ -118,14 +117,14 @@ export const LoginScreen: React.FC = () => {
               alignItems: 'center', 
               justifyContent: 'center',
               gap: '8px', 
-              padding: '10px 22px',
+              padding: '11px 24px',
               borderRadius: '12px',
-              backgroundColor: '#ffffff',
-              color: '#0f172a',
+              backgroundColor: '#0f172a',
+              color: '#ffffff',
               fontWeight: 800,
               fontSize: '0.9rem',
               textDecoration: 'none', 
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.18)',
+              boxShadow: '0 6px 18px rgba(15, 23, 42, 0.2)',
               transition: 'all 0.2s ease' 
             }}
           >
@@ -285,11 +284,11 @@ export const LoginScreen: React.FC = () => {
             marginTop: '28px', 
             padding: '18px', 
             borderRadius: '14px', 
-            backgroundColor: 'rgba(255, 159, 10, 0.06)', 
-            border: '1px solid rgba(255, 159, 10, 0.2)',
+            backgroundColor: 'rgba(255, 159, 10, 0.08)', 
+            border: '1px solid rgba(255, 159, 10, 0.25)',
             textAlign: 'center' 
           }}>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.5, fontWeight: 500 }}>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: '0 0 10px', lineHeight: 1.5, fontWeight: 600 }}>
               TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
