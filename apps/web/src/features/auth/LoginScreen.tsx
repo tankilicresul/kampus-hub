@@ -87,19 +87,19 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           {/* Tab switchers */}
-          <div className="auth-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '28px' }}>
+          <div className="auth-tabs" style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: '16px' }}>
             <button 
               type="button"
               className={`auth-tab-btn ${isLoginTab ? 'active' : ''}`}
               style={{ 
                 flex: 1, 
-                padding: '12px', 
+                padding: '10px', 
                 background: 'none', 
                 border: 'none', 
                 color: isLoginTab ? 'var(--accent-color)' : 'var(--text-secondary)',
                 borderBottom: isLoginTab ? '3px solid var(--accent-color)' : 'none',
                 fontWeight: 'bold',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
@@ -112,13 +112,13 @@ export const LoginScreen: React.FC = () => {
               className={`auth-tab-btn ${!isLoginTab ? 'active' : ''}`}
               style={{ 
                 flex: 1, 
-                padding: '12px', 
+                padding: '10px', 
                 background: 'none', 
                 border: 'none', 
                 color: !isLoginTab ? 'var(--accent-color)' : 'var(--text-secondary)',
                 borderBottom: !isLoginTab ? '3px solid var(--accent-color)' : 'none',
                 fontWeight: 'bold',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
@@ -129,27 +129,27 @@ export const LoginScreen: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div className="alert alert-danger" style={{ marginBottom: '24px' }}>
+            <div className="alert alert-danger" style={{ marginBottom: '16px' }}>
               {errorMessage}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {/* Show First Name & Last Name field when Registering */}
             {!isLoginTab && (
               <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>
+                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '4px', display: 'block' }}>
                   Ad Soyad
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <User size={18} style={{ position: 'absolute', left: '14px', top: '16px', color: 'var(--text-muted)' }} />
+                  <User size={17} style={{ position: 'absolute', left: '14px', top: '13px', color: 'var(--text-muted)' }} />
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="form-input"
-                    style={{ paddingLeft: '44px', height: '48px', fontSize: '0.95rem' }}
+                    style={{ paddingLeft: '44px', height: '44px', fontSize: '0.9rem', borderRadius: '12px' }}
                     placeholder="Ahmet Yılmaz"
                   />
                 </div>
@@ -157,36 +157,36 @@ export const LoginScreen: React.FC = () => {
             )}
 
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>
+              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '4px', display: 'block' }}>
                 E-posta
               </label>
               <div style={{ position: 'relative' }}>
-                <Mail size={18} style={{ position: 'absolute', left: '14px', top: '16px', color: 'var(--text-muted)' }} />
+                <Mail size={17} style={{ position: 'absolute', left: '14px', top: '13px', color: 'var(--text-muted)' }} />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '44px', height: '48px', fontSize: '0.95rem' }}
+                  style={{ paddingLeft: '44px', height: '44px', fontSize: '0.9rem', borderRadius: '12px' }}
                   placeholder="isim@tancorelab.com"
                 />
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', display: 'block' }}>
+              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '4px', display: 'block' }}>
                 Şifre
               </label>
               <div style={{ position: 'relative' }}>
-                <Lock size={18} style={{ position: 'absolute', left: '14px', top: '16px', color: 'var(--text-muted)' }} />
+                <Lock size={17} style={{ position: 'absolute', left: '14px', top: '13px', color: 'var(--text-muted)' }} />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="form-input"
-                  style={{ paddingLeft: '44px', height: '48px', fontSize: '0.95rem' }}
+                  style={{ paddingLeft: '44px', height: '44px', fontSize: '0.9rem', borderRadius: '12px' }}
                   placeholder="••••••••"
                 />
               </div>
@@ -197,11 +197,11 @@ export const LoginScreen: React.FC = () => {
               className="btn btn-primary btn-block"
               disabled={status === 'checking'}
               style={{ 
-                marginTop: '10px', 
-                height: '52px', 
-                fontSize: '1rem', 
+                marginTop: '6px', 
+                height: '46px', 
+                fontSize: '0.95rem', 
                 fontWeight: 700,
-                borderRadius: 'var(--radius-md)',
+                borderRadius: '14px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -209,7 +209,7 @@ export const LoginScreen: React.FC = () => {
               }}
             >
               {status === 'checking' ? (
-                <RefreshCw className="animate-spin" size={20} />
+                <RefreshCw className="animate-spin" size={18} />
               ) : isLoginTab ? (
                 'Giriş Yap'
               ) : (
@@ -220,14 +220,14 @@ export const LoginScreen: React.FC = () => {
 
           {/* Developer Attribution & Link */}
           <div style={{ 
-            marginTop: '14px', 
-            padding: '10px 14px', 
-            borderRadius: '10px', 
+            marginTop: '10px', 
+            padding: '8px 12px', 
+            borderRadius: '14px', 
             backgroundColor: 'rgba(255, 159, 10, 0.07)', 
             border: '1px solid rgba(255, 159, 10, 0.2)',
             textAlign: 'center' 
           }}>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.18, fontWeight: 600, letterSpacing: '-0.01em' }}>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-primary)', margin: '0 0 3px', lineHeight: 1.15, fontWeight: 600, letterSpacing: '-0.01em' }}>
               TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -239,7 +239,7 @@ export const LoginScreen: React.FC = () => {
                   gap: '3px', 
                   color: 'var(--accent-color)', 
                   fontWeight: 800, 
-                  fontSize: '0.82rem',
+                  fontSize: '0.8rem',
                   textDecoration: 'none' 
                 }}
               >
