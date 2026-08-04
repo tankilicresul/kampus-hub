@@ -35,6 +35,8 @@ interface Task {
   start_date?: string | null;
   due_date?: string | null;
   completed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
   tags?: string[];
   recurrence?: string;
   category?: string | null;
@@ -2494,9 +2496,9 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="board-container">
+          <div className={`board-container ${isContentMode ? 'content-board' : ''}`}>
             {columns.map(col => {
-              const columnTasks = filteredTasks.filter(t => {
+              let columnTasks = filteredTasks.filter(t => {
                 if (isContentMode) {
                   return getTaskContentTypeKey(t) === col.key;
                 }
@@ -2505,6 +2507,11 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                 }
                 return t.status === col.key;
               });
+
+              if (isContentMode) {
+                columnTasks = [...columnTasks].sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+              }
+
               return (
                 <div key={col.key} className="board-column" id={col.key}>
                   <div className="column-header" style={isContentMode ? { display: 'flex', alignItems: 'center', justifyContent: 'center' } : {}}>
@@ -2563,17 +2570,46 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                   </div>
                   <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     <DroppableCardsArea id={col.key}>
-                      {columnTasks.map(task => (
-                        <SortableTaskCard
-                          key={task.id}
-                          task={task}
-                          members={members}
-                          comments={taskComments[task.id] || []}
-                          onDetailClick={setDetailTask}
-                          onUpdatePriority={handleUpdatePriority}
-                          onUpdateStage={handleUpdateStage}
-                        />
-                      ))}
+                      {columnTasks.length === 0 && isContentMode ? (
+                        <div 
+                          onClick={() => {
+                            setNewContentType(col.key);
+                            if (members.length === 1) setNewAssignee(members[0].user_id);
+                            else setNewAssignee('');
+                            setShowAddModal(true);
+                          }}
+                          style={{
+                            padding: '14px 12px',
+                            borderRadius: 'var(--radius-md)',
+                            border: '1px dashed var(--border-glass)',
+                            color: 'var(--text-muted)',
+                            fontSize: '0.8rem',
+                            fontWeight: 600,
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            width: '100%',
+                            backgroundColor: 'var(--bg-surface-accent)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <Plus size={14} /> Yeni {col.title} Ekle
+                        </div>
+                      ) : (
+                        columnTasks.map(task => (
+                          <SortableTaskCard
+                            key={task.id}
+                            task={task}
+                            members={members}
+                            comments={taskComments[task.id] || []}
+                            onDetailClick={setDetailTask}
+                            onUpdatePriority={handleUpdatePriority}
+                            onUpdateStage={handleUpdateStage}
+                          />
+                        ))
+                      )}
                     </DroppableCardsArea>
                   </SortableContext>
                 </div>

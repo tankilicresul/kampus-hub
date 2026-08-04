@@ -1043,6 +1043,52 @@ body {
     border-radius: var(--radius-lg);
     gap: 10px;
   }
+
+  /* Content Panel Mobile Stacking: 4 categories stacked vertically, cards scroll horizontally */
+  .board-container.content-board {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scroll-snap-type: none !important;
+    gap: 16px;
+    padding-bottom: 24px;
+    height: auto !important;
+    max-height: 100% !important;
+  }
+
+  .board-container.content-board .board-column {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    max-height: none !important;
+    scroll-snap-align: none !important;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .board-container.content-board .column-cards {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding: 4px 2px 8px 2px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .board-container.content-board .column-cards > * {
+    flex: 0 0 calc(100vw - 64px) !important;
+    max-width: 320px !important;
+    min-width: 250px !important;
+    scroll-snap-align: start !important;
+  }
+
   
 
   
