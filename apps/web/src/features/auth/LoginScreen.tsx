@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Lock, Mail, User } from 'lucide-react';
+import { RefreshCw, Lock, Mail, User, ArrowRight } from 'lucide-react';
+import { usePageMetadata, type PageMetadata } from '../../hooks/usePageMetadata';
 
 export const LoginScreen: React.FC = () => {
   const { signIn, signUp, errorMessage, status } = useAuth();
@@ -8,6 +10,42 @@ export const LoginScreen: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const homeMetadata: PageMetadata = useMemo(() => ({
+    title: 'TanCoreLab — Görev, CRM ve Ekip Yönetim Platformu',
+    description: 'TanCoreLab ile görevlerinizi takip edin, CRM süreçlerinizi yönetin, günlük raporlar oluşturun ve ekip operasyonlarını tek çalışma alanından yönetin.',
+    canonical: 'https://tancorelab.com/',
+    robots: 'index, follow',
+    ogType: 'website',
+    ogTitle: 'TanCoreLab — Görev, CRM ve Ekip Yönetim Platformu',
+    ogDescription: 'TanCoreLab ile görevlerinizi takip edin, CRM süreçlerinizi yönetin, günlük raporlar oluşturun ve ekip operasyonlarını tek çalışma alanından yönetin.',
+    ogUrl: 'https://tancorelab.com/',
+    twitterCard: 'summary',
+    twitterTitle: 'TanCoreLab — Görev, CRM ve Ekip Yönetim Platformu',
+    twitterDescription: 'TanCoreLab ile görevlerinizi takip edin, CRM süreçlerinizi yönetin, günlük raporlar oluşturun ve ekip operasyonlarını tek çalışma alanından yönetin.',
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        '@id': 'https://tancorelab.com/#website',
+        'url': 'https://tancorelab.com/',
+        'name': 'TanCoreLab',
+        'alternateName': ['TanCore Lab']
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        '@id': 'https://tancorelab.com/#webapp',
+        'url': 'https://tancorelab.com/',
+        'name': 'TanCoreLab',
+        'applicationCategory': 'BusinessApplication',
+        'operatingSystem': 'All',
+        'description': 'TanCoreLab ile görevlerinizi takip edin, CRM süreçlerinizi yönetin, günlük raporlar oluşturun ve ekip operasyonlarını tek çalışma alanından yönetin.'
+      }
+    ]
+  }), []);
+
+  usePageMetadata(homeMetadata);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +69,22 @@ export const LoginScreen: React.FC = () => {
         <div className="auth-brand-title">TanCoreLab</div>
         <div className="auth-brand-desc">
           Girişim ekosistemine katılın. Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
+        </div>
+
+        {/* Developer Attribution Card (Desktop) */}
+        <div style={{ marginTop: '40px', padding: '20px', borderRadius: '16px', backgroundColor: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(10px)' }}>
+          <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--accent-color, #ff9f0a)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+            TanCoreLab'in geliştiricisi
+          </div>
+          <p style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5, margin: '0 0 12px' }}>
+            TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
+          </p>
+          <Link
+            to="/resul-tankilic"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 700, color: '#ffffff', textDecoration: 'none', transition: 'gap 0.2s ease' }}
+          >
+            Resul Tankılıç hakkında <ArrowRight size={16} />
+          </Link>
         </div>
       </div>
 
@@ -179,6 +233,18 @@ export const LoginScreen: React.FC = () => {
               )}
             </button>
           </form>
+
+          {/* Developer Attribution (Mobile Only) & Footer Links */}
+          <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0 0 8px', lineHeight: 1.4 }}>
+              TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '0.85rem' }}>
+              <Link to="/resul-tankilic" style={{ color: 'var(--accent-color)', fontWeight: 700, textDecoration: 'none' }}>
+                Resul Tankılıç hakkında
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
