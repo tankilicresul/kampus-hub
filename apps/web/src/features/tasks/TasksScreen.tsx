@@ -2436,33 +2436,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
 
-      {/* Top Header Bar for Content Mode */}
-      {isContentMode && (
-        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>🎬</span> İçerik Paneli
-            </h3>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-surface-accent)', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
-              {tasks.length} İçerik
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
-              <RefreshCw size={16} />
-            </button>
-            <button className="btn btn-primary" onClick={() => {
-              setNewContentType('viral');
-              if (members.length === 1) setNewAssignee(members[0].user_id);
-              else setNewAssignee('');
-              setShowAddModal(true);
-            }}>
-              <Plus size={18} />
-              <span className="btn-text">Yeni İçerik Ekle</span>
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Search & Filter Header (Only shown in Görevler mode) */}
       {!isContentMode && (
