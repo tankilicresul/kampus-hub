@@ -1792,6 +1792,9 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   useEffect(() => {
     localStorage.setItem('kh_tasks_view_mode', viewMode);
   }, [viewMode]);
+
+  const activeViewMode = boardMode === 'content' ? 'kanban' : viewMode;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [showAllCompleted, setShowAllCompleted] = useState(false);
@@ -2464,19 +2467,19 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
 
       {/* Search & Filter Header (Only shown in Görevler mode, hidden in mindmap) */}
-      {!isContentMode && viewMode === 'mindmap' ? (
+      {!isContentMode && activeViewMode === 'mindmap' ? (
         /* Mindmap mode: only show view switcher */
         <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 4px' }}>
           <div className="view-switcher">
-            <button className={`view-switcher-btn ${(viewMode as string) === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+            <button className={`view-switcher-btn ${(activeViewMode as string) === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
               <List size={15} />
               <span className="btn-text">Liste</span>
             </button>
-            <button className={`view-switcher-btn ${(viewMode as string) === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
+            <button className={`view-switcher-btn ${(activeViewMode as string) === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
               <Kanban size={15} />
               <span className="btn-text">Pano</span>
             </button>
-            <button className={`view-switcher-btn ${(viewMode as string) === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
+            <button className={`view-switcher-btn ${(activeViewMode as string) === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
               <Share2 size={15} />
               <span className="btn-text">Harita</span>
             </button>
@@ -2498,15 +2501,15 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
               />
             </div>
             <div className="view-switcher">
-              <button className={`view-switcher-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+              <button className={`view-switcher-btn ${activeViewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
                 <List size={15} />
                 <span className="btn-text">Liste</span>
               </button>
-              <button className={`view-switcher-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
+              <button className={`view-switcher-btn ${activeViewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
                 <Kanban size={15} />
                 <span className="btn-text">Pano</span>
               </button>
-              <button className={`view-switcher-btn ${viewMode === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
+              <button className={`view-switcher-btn ${activeViewMode === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
                 <Share2 size={15} />
                 <span className="btn-text">Harita</span>
               </button>
@@ -2613,7 +2616,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
 
       {/* Board / List / Mindmap */}
-      {viewMode === 'mindmap' && !isContentMode ? (
+      {activeViewMode === 'mindmap' && !isContentMode ? (
         <TaskMindMapCanvas />
       ) : loading ? (
         <div style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -2625,7 +2628,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
           <h3 style={{ fontWeight: 700 }}>Görev Yok</h3>
           <p style={{ fontSize: '0.85rem' }}>Yeni görev ekleyerek başlayın</p>
         </div>
-      ) : viewMode === 'kanban' ? (
+      ) : activeViewMode === 'kanban' ? (
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
