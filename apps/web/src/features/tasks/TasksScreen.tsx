@@ -1251,83 +1251,105 @@ const TaskDetailModal: React.FC<{
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {/* Standard Hook to Loop Sections */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    {/* Hook */}
+                    {/* Hook / Giriş */}
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {contentType === 'youtube' ? 'Giriş & Hook' : 'Hook'}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>
+                          {contentType === 'youtube' ? 'İlk 30 Saniye' : 'İlk %10 Rasyon'}
+                        </span>
                       </div>
                       <AutoResizeTextarea
                         value={contentHook}
                         onChange={setContentHook}
-                        placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
+                        placeholder={contentType === 'youtube' ? "İzleyiciyi videoda tutacak ilk 30 saniyelik kanca..." : "Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."}
                       />
                     </div>
 
-                    {/* Kurulum / Vaat */}
+                    {/* Kurulum / Thumbnail */}
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kurulum / Vaat</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {contentType === 'youtube' ? 'Thumbnail & Kapak' : 'Kurulum / Vaat'}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {contentType === 'youtube' ? 'Görsel & Başlık Fikri' : '%10-20 Bölümü'}
+                        </span>
                       </div>
                       <AutoResizeTextarea
                         value={contentPromise}
                         onChange={setContentPromise}
-                        placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
+                        placeholder={contentType === 'youtube' ? "Kapak görseli fikri ve başlık alternatifleri..." : "İçeriğin amacı veya izleyiciye sunulan ana vaat..."}
                       />
                     </div>
 
-                    {/* Gelişme / Değer */}
+                    {/* Gelişme / Video Bölümleri */}
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gelişme / Değer</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-70 Bölümü</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {contentType === 'youtube' ? 'Video Bölümleri' : 'Gelişme / Değer'}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {contentType === 'youtube' ? 'Timestamps & Chapters' : '%20-70 Bölümü'}
+                        </span>
                       </div>
                       <AutoResizeTextarea
                         value={contentBody}
                         onChange={setContentBody}
-                        placeholder="Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."
+                        placeholder={contentType === 'youtube' ? "Videodaki ana konular ve zaman damgaları (00:00 Giriş, 02:15 Konu 1)..." : "Ana içerik, detaylı anlatım ve asıl faydalı bilgi..."}
                       />
                     </div>
 
-                    {/* Payoff / Sonuç */}
+                    {/* Payoff / SEO & Açıklama */}
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff / Sonuç</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%70-85 Bölümü</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {contentType === 'youtube' ? 'SEO & Açıklama' : 'Payoff / Sonuç'}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {contentType === 'youtube' ? 'Açıklama & Keywords' : '%70-85 Bölümü'}
+                        </span>
                       </div>
                       <AutoResizeTextarea
                         value={contentPayoff}
                         onChange={setContentPayoff}
-                        placeholder="Alınacak ana ders veya ulaşılan sonuç..."
+                        placeholder={contentType === 'youtube' ? "YouTube video açıklama metni, anahtar kelimeler ve bağlantılar..." : "Alınacak ana ders veya ulaşılan sonuç..."}
                       />
                     </div>
 
                     {/* CTA */}
                     <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA (Çağrı)</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%85-95 Bölümü</span>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                          {contentType === 'youtube' ? 'Kapanış & CTA' : 'CTA (Çağrı)'}
+                        </span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                          {contentType === 'youtube' ? 'End Screen & Kartlar' : '%85-95 Bölümü'}
+                        </span>
                       </div>
                       <AutoResizeTextarea
                         value={contentCta}
                         onChange={setContentCta}
-                        placeholder="Eyleme çağrı (takip et, kaydet vb.)..."
+                        placeholder={contentType === 'youtube' ? "Videonun sonundaki kartlar, oynatma listesi yönlendirmesi ve abone olma çağrısı..." : "Eyleme çağrı (takip et, kaydet vb.)..."}
                       />
                     </div>
 
-                    {/* Kapanış / Loop */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
-                        <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
+                    {/* Kapanış / Loop (Non-YouTube) */}
+                    {contentType !== 'youtube' && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '16px', alignItems: 'start' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                          <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Kapanış / Loop</span>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Son %5 / Döngü</span>
+                        </div>
+                        <AutoResizeTextarea
+                          value={contentLoop}
+                          onChange={setContentLoop}
+                          placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
+                        />
                       </div>
-                      <AutoResizeTextarea
-                        value={contentLoop}
-                        onChange={setContentLoop}
-                        placeholder="Video döngüsü (loop) veya son kapanış kelimeleri..."
-                      />
-                    </div>
+                    )}
                   </div>
 
                   {/* Date fields based on format */}
@@ -2935,81 +2957,108 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                           </div>
                         </div>
                       ) : (
-                        /* ── Video Layout (Reels / Reklam Videosu) ── */
+                        /* ── Video Layout (Reels / YouTube Uzun Videolar / Reklam Videosu) ── */
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            {/* Hook */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+                            {/* Hook / Giriş */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Hook</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>İlk %10 Rasyon</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {newContentType === 'youtube' ? 'Giriş & Hook' : 'Hook'}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>
+                                  {newContentType === 'youtube' ? 'İlk 30 Saniye' : 'İlk %10 Rasyon'}
+                                </span>
                               </div>
                               <AutoResizeTextarea
                                 value={newContentHook}
                                 onChange={setNewContentHook}
-                                placeholder="Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."
+                                placeholder={newContentType === 'youtube' ? "İzleyiciyi videoda tutacak ilk 30 saniyelik merak uyandırıcı kanca ve giriş metni..." : "Kullanıcının dikkatini çekecek ilk cümle veya görsel kanca..."}
                               />
                             </div>
-                            {/* Vaat */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+
+                            {/* Vaat / Thumbnail */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Vaat</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%10-20 Bölümü</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {newContentType === 'youtube' ? 'Thumbnail & Kapak' : 'Vaat'}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                                  {newContentType === 'youtube' ? 'Görsel & Başlık Fikri' : '%10-20 Bölümü'}
+                                </span>
                               </div>
                               <AutoResizeTextarea
                                 value={newContentPromise}
                                 onChange={setNewContentPromise}
-                                placeholder="İçeriğin amacı veya izleyiciye sunulan ana vaat..."
+                                placeholder={newContentType === 'youtube' ? "Kapak görseli fikri, kapak üzeri yazılar ve dikkat çekici başlık alternatifleri..." : "İçeriğin amacı veya izleyiciye sunulan ana vaat..."}
                               />
                             </div>
-                            {/* Gövde */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+
+                            {/* Gövde / Video Bölümleri */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Gövde</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%20-80 Bölümü</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {newContentType === 'youtube' ? 'Video Bölümleri' : 'Gövde'}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                                  {newContentType === 'youtube' ? 'Timestamps & Chapters' : '%20-80 Bölümü'}
+                                </span>
                               </div>
                               <AutoResizeTextarea
                                 value={newContentBody}
                                 onChange={setNewContentBody}
-                                placeholder="İçeriğin ana konusu, detayları ve kanıtlar..."
+                                placeholder={newContentType === 'youtube' ? "Videodaki ana konular ve zaman damgaları (Örn: 00:00 Giriş, 02:15 Konu 1, 08:30 Konu 2)..." : "İçeriğin ana konusu, detayları ve kanıtlar..."}
                               />
                             </div>
-                            {/* Payoff */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+
+                            {/* Payoff / SEO & Açıklama */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Payoff</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>%80-90 Bölümü</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {newContentType === 'youtube' ? 'SEO & Açıklama' : 'Payoff'}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                                  {newContentType === 'youtube' ? 'Açıklama & Keywords' : '%80-90 Bölümü'}
+                                </span>
                               </div>
                               <AutoResizeTextarea
                                 value={newContentPayoff}
                                 onChange={setNewContentPayoff}
-                                placeholder="İzleyicinin alacağı nihai fayda veya ders..."
+                                placeholder={newContentType === 'youtube' ? "YouTube video açıklama metni, anahtar kelimeler (keywords) ve ilgili bağlantılar..." : "İzleyicinin alacağı nihai fayda veya ders..."}
                               />
                             </div>
-                            {/* CTA */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
+
+                            {/* CTA / Kapanış & End Screen */}
+                            <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
                               <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>CTA</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>Eyleme Çağrı</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                  {newContentType === 'youtube' ? 'Kapanış & CTA' : 'CTA'}
+                                </span>
+                                <span style={{ fontSize: '0.68rem', color: 'var(--accent-color)', fontWeight: 700 }}>
+                                  {newContentType === 'youtube' ? 'End Screen & Kartlar' : 'Eyleme Çağrı'}
+                                </span>
                               </div>
                               <AutoResizeTextarea
                                 value={newContentCta}
                                 onChange={setNewContentCta}
-                                placeholder="İzleyiciyi yönlendireceğiniz eylem (Yorum yap, Kaydet vb.)..."
+                                placeholder={newContentType === 'youtube' ? "Videonun sonundaki kartlar, oynatma listesi yönlendirmesi ve abone olma çağrısı..." : "İzleyiciyi yönlendireceğiniz eylem (Yorum yap, Kaydet vb.)..."}
                               />
                             </div>
-                            {/* Loop */}
-                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '16px', alignItems: 'start' }}>
-                              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Loop</span>
-                                <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Döngü Cümlesi</span>
+
+                            {/* Loop (Only for non-YouTube short videos) */}
+                            {newContentType !== 'youtube' && (
+                              <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: '16px', alignItems: 'start' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '4px' }}>
+                                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-primary)' }}>Loop</span>
+                                  <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 600 }}>Döngü Cümlesi</span>
+                                </div>
+                                <AutoResizeTextarea
+                                  value={newContentLoop}
+                                  onChange={setNewContentLoop}
+                                  placeholder="İçeriğin başına kusursuz dönecek son cümle..."
+                                />
                               </div>
-                              <AutoResizeTextarea
-                                value={newContentLoop}
-                                onChange={setNewContentLoop}
-                                placeholder="İçeriğin başına kusursuz dönecek son cümle..."
-                              />
-                            </div>
+                            )}
                           </div>
                         </div>
                       )}
