@@ -666,7 +666,7 @@ body {
   justify-content: center;
   margin-bottom: 24px;
   z-index: 2;
-  animation: logoFloat 6s ease-in-out infinite;
+  animation: logoFloat 3.8s ease-in-out infinite;
 }
 
 .brand-logo-large img {
@@ -678,8 +678,8 @@ body {
 }
 
 @keyframes logoFloat {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-8px) rotate(1.5deg); }
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50% { transform: translateY(-20px) scale(1.03) rotate(1deg); }
 }
 
 .auth-brand-title {
