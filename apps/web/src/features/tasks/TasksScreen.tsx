@@ -2834,7 +2834,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                         </span>
                       </div>
 
-                      {/* Reklam Sub-Format Selector (Reklam Videosu vs Meta Reklam Postu) */}
+                      {/* Reklam Sub-Format Selector (Reklam Reels'i vs Reklam Postu) */}
                       {(newContentType === 'reklam' || newContentType === 'yari_reklam') && (
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
                           <button
@@ -2858,7 +2858,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                               gap: '6px'
                             }}
                           >
-                            <span>📹</span> Reklam Videosu
+                            <span>🎬</span> Reklam Reels'i
                           </button>
                           <button
                             type="button"
@@ -2881,7 +2881,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                               gap: '6px'
                             }}
                           >
-                            <span>🖼️</span> Meta Reklam Postu
+                            <span>🖼️</span> Reklam Postu
                           </button>
                         </div>
                       )}
