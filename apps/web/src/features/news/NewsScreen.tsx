@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, Cpu, Lightbulb, Zap, MessageSquare, Users, Sparkles, Rocket, Star, Bookmark } from 'lucide-react';
+import { TrendingUp, Cpu, Lightbulb, Zap, Sparkles, Rocket, Star, Bookmark } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface NewsScreenProps {
-  onNavigateToChat?: () => void;
   initialCategory?: 'all' | 'ai' | 'startup' | 'editors';
 }
 
-export const NewsScreen: React.FC<NewsScreenProps> = ({ onNavigateToChat, initialCategory = 'all' }) => {
+export const NewsScreen: React.FC<NewsScreenProps> = ({ initialCategory = 'all' }) => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Girişimci';
   const [activeFilter, setActiveFilter] = useState<'all' | 'ai' | 'startup' | 'editors'>(initialCategory);
@@ -187,94 +186,14 @@ export const NewsScreen: React.FC<NewsScreenProps> = ({ onNavigateToChat, initia
 
   return (
     <div className="news-container fade-in" style={{ maxWidth: '1200px', margin: '0 auto', paddingBottom: '40px' }}>
-      {/* Community & Chat Banner */}
-      <div style={{
-        padding: '16px 20px',
-        borderRadius: '16px',
-        background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.15) 0%, rgba(255, 107, 0, 0.08) 100%)',
-        border: '1px solid rgba(255, 159, 10, 0.3)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: '24px',
-        boxShadow: '0 4px 16px rgba(255, 159, 10, 0.08)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '42px', height: '42px', borderRadius: '12px',
-            backgroundColor: 'var(--accent-color)', color: '#fff',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 12px rgba(255, 159, 10, 0.3)'
-          }}>
-            <Users size={22} />
-          </div>
-          <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
-              TanCoreLab Topluluk Paneli & Herkesle Sohbet 💬
-            </h3>
-            <p style={{ fontSize: '0.82rem', margin: '2px 0 0', color: 'var(--text-secondary)' }}>
-              Tüm platform üyeleriyle anlık iletişim kurabilir, fikir alışverişinde bulunabilirsin.
-            </p>
-          </div>
-        </div>
-        {onNavigateToChat && (
-          <button 
-            className="btn btn-primary"
-            onClick={onNavigateToChat}
-            style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '10px' }}
-          >
-            <MessageSquare size={16} />
-            <span>Herkesle Sohbet Et</span>
-          </button>
-        )}
-      </div>
-
       {/* Header Section */}
-      <div className="news-header" style={{ marginBottom: '24px' }}>
+      <div className="news-header" style={{ marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.75rem', fontWeight: 900, letterSpacing: '-0.02em', marginBottom: '8px' }}>
           Girişimcilik & Teknoloji Dünyasından Haberler 🚀
         </h1>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
           Hoş geldin, <strong>{userName}</strong>. Yapay zeka gelişmelerini, ekosistem haberlerini ve editörlerimizin seçtiği özel rehberleri takip edebilirsin.
         </p>
-      </div>
-
-      {/* Category Filter Tabs */}
-      <div style={{
-        display: 'flex',
-        gap: '8px',
-        flexWrap: 'wrap',
-        marginBottom: '32px',
-        borderBottom: '1px solid var(--border-glass)',
-        paddingBottom: '12px'
-      }}>
-        {[
-          { key: 'all', label: 'Tüm Haberler ✨' },
-          { key: 'ai', label: '🤖 1- Yapay Zeka Gelişmeleri' },
-          { key: 'startup', label: '🚀 2- Girişimcilik Haberleri' },
-          { key: 'editors', label: '⭐ 3- Editörün Seçimleri' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveFilter(tab.key as any)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '10px',
-              fontSize: '0.84rem',
-              fontWeight: 800,
-              border: '1.5px solid',
-              borderColor: activeFilter === tab.key ? 'var(--accent-color)' : 'var(--border-glass)',
-              backgroundColor: activeFilter === tab.key ? 'rgba(255,159,10,0.12)' : 'transparent',
-              color: activeFilter === tab.key ? 'var(--accent-color)' : 'var(--text-secondary)',
-              cursor: 'pointer',
-              transition: 'all 0.15s'
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {/* SECTION 1: Yapay Zeka Gelişmeleri */}

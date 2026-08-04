@@ -982,9 +982,9 @@ export const AppLayout: React.FC = () => {
             </div>
           ) : (
             <>
-              {(activeTab === 'news' || activeTab === 'news_ai') && <NewsScreen initialCategory="ai" onNavigateToChat={() => handleTabChange('messages')} />}
-              {activeTab === 'news_startup' && <NewsScreen initialCategory="startup" onNavigateToChat={() => handleTabChange('messages')} />}
-              {activeTab === 'news_editors' && <NewsScreen initialCategory="editors" onNavigateToChat={() => handleTabChange('messages')} />}
+              {(activeTab === 'news' || activeTab === 'news_ai') && <NewsScreen initialCategory="ai" />}
+              {activeTab === 'news_startup' && <NewsScreen initialCategory="startup" />}
+              {activeTab === 'news_editors' && <NewsScreen initialCategory="editors" />}
               {activeTab === 'content_panel' && <TasksScreen boardMode="content" />}
               {activeTab === 'tasks' && <TasksScreen boardMode="tasks" />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
