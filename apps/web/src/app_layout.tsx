@@ -77,29 +77,45 @@ export const AppLayout: React.FC = () => {
   const [loadingMembers, setLoadingMembers] = useState(false);
 
   useEffect(() => {
-    if (!activeWorkspace?.id) {
-      setWorkspaceMembers([]);
-      setLoadingMembers(false);
-      return;
-    }
     setLoadingMembers(true);
-    supabase
-      .from('workspace_members')
-      .select('user_id, permission_role, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
-      .eq('workspace_id', activeWorkspace.id)
-      .then(({ data, error }) => {
-        setLoadingMembers(false);
-        if (!error && data) {
-          setWorkspaceMembers(
-            data.map((m: any) => ({
-              user_id: m.user_id,
-              full_name: m.profiles?.full_name || null,
-              avatar_url: m.profiles?.avatar_url || null,
-              permission_role: m.permission_role || null,
-            }))
-          );
-        }
-      });
+    if (activeWorkspace?.id) {
+      supabase
+        .from('workspace_members')
+        .select('user_id, permission_role, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
+        .eq('workspace_id', activeWorkspace.id)
+        .then(({ data, error }) => {
+          setLoadingMembers(false);
+          if (!error && data) {
+            setWorkspaceMembers(
+              data.map((m: any) => ({
+                user_id: m.user_id,
+                full_name: m.profiles?.full_name || null,
+                avatar_url: m.profiles?.avatar_url || null,
+                permission_role: m.permission_role || null,
+              }))
+            );
+          }
+        });
+    } else {
+      // General Platform Mode: Fetch all active profiles
+      supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url, role')
+        .limit(50)
+        .then(({ data, error }) => {
+          setLoadingMembers(false);
+          if (!error && data) {
+            setWorkspaceMembers(
+              data.map((p: any) => ({
+                user_id: p.id,
+                full_name: p.full_name || null,
+                avatar_url: p.avatar_url || null,
+                permission_role: p.role || 'member',
+              }))
+            );
+          }
+        });
+    }
   }, [activeWorkspace?.id]);
   
   const handleTabChange = (tab: 'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
@@ -113,10 +129,7 @@ export const AppLayout: React.FC = () => {
 
   const handleLogoClick = () => {
     if (navigator.vibrate) navigator.vibrate(10);
-    const communityWs = workspaces.find(w => w.id === 'a1111111-1111-1111-1111-111111111111' || w.name.includes('TanCoreLab Topluluğu'));
-    if (communityWs) {
-      selectWorkspace(communityWs.id);
-    }
+    selectWorkspace('');
     setActiveTab('news');
   };
 
@@ -259,13 +272,14 @@ export const AppLayout: React.FC = () => {
 
   const displayName = getUserDisplayName();
   const avatarUrl = user?.user_metadata?.avatar_url || null;
+  const userWorkspaces = workspaces.filter(ws => ws.id !== 'a1111111-1111-1111-1111-111111111111' && ws.id !== '00000000-0000-0000-0000-000000000000' && !ws.name.includes('TanCoreLab Topluluğu'));
 
   return (
     <div className="app-container">
       {/* Sidebar - Workspace switcher (Desktop only) */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <div className="brand-logo-panel" onClick={handleLogoClick} title="TanCoreLab Haberler'e Git" style={{ cursor: 'pointer' }}>
+          <div className="brand-logo-panel" onClick={handleLogoClick} title="TanCoreLab Haberler ve Genel Alan'a Git" style={{ cursor: 'pointer' }}>
             <img 
               src="/logo.svg" 
               alt="TanCoreLab Logo" 
@@ -277,7 +291,7 @@ export const AppLayout: React.FC = () => {
         
         <div className="workspace-list" style={{ flex: '0 0 auto', maxHeight: '220px' }}>
           <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>EKİPLER ({workspaces.length})</span>
+            <span>EKİPLER ({userWorkspaces.length})</span>
             <button 
               onClick={() => setShowWorkspaceModal(true)} 
               style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
@@ -287,7 +301,7 @@ export const AppLayout: React.FC = () => {
             </button>
           </div>
 
-          {workspaces.length === 0 ? (
+          {userWorkspaces.length === 0 ? (
             <div 
               onClick={() => setShowWorkspaceModal(true)}
               style={{ 
@@ -309,7 +323,7 @@ export const AppLayout: React.FC = () => {
               <span>İlk Ekibini Kur...</span>
             </div>
           ) : (
-            workspaces.map((ws) => (
+            userWorkspaces.map((ws) => (
               <div 
                 key={ws.id} 
                 className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
@@ -328,11 +342,6 @@ export const AppLayout: React.FC = () => {
                 <span style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
                   {ws.name}
                 </span>
-                {ws.id === 'a1111111-1111-1111-1111-111111111111' && (
-                  <span style={{ fontSize: '0.6rem', background: 'rgba(255,159,10,0.15)', color: '#ff9f0a', padding: '2px 6px', borderRadius: '6px', fontWeight: 800 }}>
-                    Genel
-                  </span>
-                )}
               </div>
             ))
           )}
@@ -552,7 +561,7 @@ export const AppLayout: React.FC = () => {
                 overflow: 'hidden',
               }}>
                 <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  {workspaces.map((ws) => (
+                  {userWorkspaces.map((ws) => (
                     <div
                       key={ws.id}
                       onClick={() => {
