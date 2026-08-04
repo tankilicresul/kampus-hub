@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import { 
-  Clock, ChevronLeft, ChevronRight, X
+  Calendar, Clock, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 
 interface CalendarTask {
@@ -346,51 +346,82 @@ export const CalendarScreen: React.FC = () => {
   const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '10px' : '16px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: isMobile ? '0px 0px 32px' : '16px 24px 48px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '10px' : '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: isMobile ? '0px 0px 32px' : '24px', paddingBottom: isMobile ? '32px' : '48px' }}>
       
-      {/* Header Controls — Ekip Görevleri / Benim Görevlerim Tek Satırda Merkezi */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0' }}>
-        <div style={{
-          display: 'inline-flex',
-          gap: '4px',
-          backgroundColor: 'var(--bg-surface)',
-          padding: '4px',
-          borderRadius: '14px',
-          border: '1px solid var(--border-glass)',
-          boxShadow: 'var(--shadow-sm)',
-        }}>
-          <button
-            className={`btn ${!onlyMine ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setOnlyMine(false)}
-            style={{
-              fontSize: '0.82rem',
-              padding: '8px 16px',
-              borderRadius: '10px',
-              fontWeight: 700,
-              border: 'none',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Ekip Görevleri
-          </button>
-          <button
-            className={`btn ${onlyMine ? 'btn-primary' : 'btn-secondary'}`}
-            onClick={() => setOnlyMine(true)}
-            style={{
-              fontSize: '0.82rem',
-              padding: '8px 16px',
-              borderRadius: '10px',
-              fontWeight: 700,
-              border: 'none',
-              transition: 'all 0.2s',
-              whiteSpace: 'nowrap'
-            }}
-          >
-            Benim Görevlerim
-          </button>
+      {/* Header Controls — Mobilde tek satırda merkezi, Masaüstünde başlık + filtreler */}
+      {isMobile ? (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0' }}>
+          <div style={{
+            display: 'inline-flex',
+            gap: '4px',
+            backgroundColor: 'var(--bg-surface)',
+            padding: '4px',
+            borderRadius: '14px',
+            border: '1px solid var(--border-glass)',
+            boxShadow: 'var(--shadow-sm)',
+          }}>
+            <button
+              className={`btn ${!onlyMine ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setOnlyMine(false)}
+              style={{
+                fontSize: '0.82rem',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                border: 'none',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Ekip Görevleri
+            </button>
+            <button
+              className={`btn ${onlyMine ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setOnlyMine(true)}
+              style={{
+                fontSize: '0.82rem',
+                padding: '8px 16px',
+                borderRadius: '10px',
+                fontWeight: 700,
+                border: 'none',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Benim Görevlerim
+            </button>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Calendar size={22} style={{ color: 'var(--accent-color)' }} />
+              Görev Takvimi
+            </h2>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+              Tüm içerik ve görev planlamalarınızı takvim üzerinde görüntüleyin.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              className={`btn ${!onlyMine ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setOnlyMine(false)}
+              style={{ fontSize: '0.8rem', padding: '6px 12px', borderRadius: '10px' }}
+            >
+              Tüm Görevler
+            </button>
+            <button
+              className={`btn ${onlyMine ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setOnlyMine(true)}
+              style={{ fontSize: '0.8rem', padding: '6px 12px', borderRadius: '10px' }}
+            >
+              Sadece Benim Görevlerim
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
@@ -450,7 +481,8 @@ export const CalendarScreen: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    aspectRatio: '1 / 1',
+                    minHeight: isMobile ? 'auto' : '100px',
+                    aspectRatio: isMobile ? '1 / 1' : 'auto',
                     borderRadius: isMobile ? '10px' : '12px',
                     border: isSelected
                       ? '2.5px solid var(--accent-color)'
@@ -461,8 +493,8 @@ export const CalendarScreen: React.FC = () => {
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    alignItems: isMobile ? 'center' : 'stretch',
+                    justifyContent: isMobile ? 'center' : 'flex-start',
                     backgroundColor: cellTasks.length === 0
                       ? (isToday ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : cell.isCurrentMonth ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)')
                       : (isSelected ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : 'transparent'),
@@ -476,6 +508,7 @@ export const CalendarScreen: React.FC = () => {
                     }
                   }}
                 >
+                  {/* Day number */}
                   <span style={{
                     position: isMobile && cellTasks.length === 0 ? 'static' : 'absolute',
                     top: isMobile ? (cellTasks.length > 0 ? '3px' : 'auto') : '6px',
@@ -508,9 +541,8 @@ export const CalendarScreen: React.FC = () => {
                       <div style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        height: '100%',
                         width: '100%',
-                        flex: 1,
+                        marginTop: '22px'
                       }}>
                         {cellTasks.map((t, ti) => {
                           const color = getStatusColor(t.status);
@@ -520,28 +552,22 @@ export const CalendarScreen: React.FC = () => {
                               onClick={(e) => { e.stopPropagation(); openTaskEdit(t); }}
                               title={t.title}
                               style={{
-                                flex: 1,
                                 backgroundColor: color,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '6px 20px 6px 8px',
+                                margin: '2px 4px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
                                 cursor: 'pointer',
-                                borderTop: ti > 0 ? '1.5px solid rgba(255,255,255,0.15)' : 'none',
                                 transition: 'opacity 0.1s'
                               }}
                             >
                               <span style={{
-                                fontSize: '0.75rem',
-                                fontWeight: 800,
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
                                 color: 'white',
-                                textAlign: 'center',
-                                textShadow: '0 1px -3px rgba(0,0,0,0.4)',
+                                whiteSpace: 'nowrap',
                                 overflow: 'hidden',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                lineHeight: 1.2,
+                                textOverflow: 'ellipsis',
+                                display: 'block'
                               }}>
                                 {t.title}
                               </span>
@@ -572,7 +598,9 @@ export const CalendarScreen: React.FC = () => {
             ))}
           </div>
         </div>
-        {selectedDate && (
+
+        {/* Selected date task details box - ONLY on mobile */}
+        {isMobile && selectedDate && (
           <div className="mobile-calendar-detail">
             <div className="mobile-calendar-detail-title">
               <span>{selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</span>
