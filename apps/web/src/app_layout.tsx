@@ -14,7 +14,7 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, CheckSquare, BarChart4, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays, ChevronDown, LayoutDashboard
+  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown, LayoutDashboard
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -74,15 +74,22 @@ export const AppLayout: React.FC = () => {
     permission_role: string | null;
   }
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
   useEffect(() => {
-    if (!activeWorkspace?.id) return;
+    if (!activeWorkspace?.id) {
+      setWorkspaceMembers([]);
+      setLoadingMembers(false);
+      return;
+    }
+    setLoadingMembers(true);
     supabase
       .from('workspace_members')
       .select('user_id, permission_role, profiles:profiles!workspace_members_user_id_fkey(full_name, avatar_url)')
       .eq('workspace_id', activeWorkspace.id)
-      .then(({ data }) => {
-        if (data) {
+      .then(({ data, error }) => {
+        setLoadingMembers(false);
+        if (!error && data) {
           setWorkspaceMembers(
             data.map((m: any) => ({
               user_id: m.user_id,
@@ -102,6 +109,15 @@ export const AppLayout: React.FC = () => {
       setUnreadMsgCount(0);
       localStorage.setItem('kh_last_messages_view_time', new Date().toISOString());
     }
+  };
+
+  const handleLogoClick = () => {
+    if (navigator.vibrate) navigator.vibrate(10);
+    const communityWs = workspaces.find(w => w.id === 'a1111111-1111-1111-1111-111111111111' || w.name.includes('TanCoreLab Topluluğu'));
+    if (communityWs) {
+      selectWorkspace(communityWs.id);
+    }
+    setActiveTab('news');
   };
 
   const handleStartDMFromModal = (targetUserId: string) => {
@@ -249,137 +265,225 @@ export const AppLayout: React.FC = () => {
       {/* Sidebar - Workspace switcher (Desktop only) */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <div className="brand-logo-panel">
+          <div className="brand-logo-panel" onClick={handleLogoClick} title="TanCoreLab Topluluğu & Haberler Hub'ına Git" style={{ cursor: 'pointer' }}>
             <img 
               src="/logo.svg" 
               alt="TanCoreLab Logo" 
               className="brand-logo-img" 
             />
-            <span className="brand-logo-text">TanCoreLab</span>
+            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+              <span className="brand-logo-text">TanCoreLab</span>
+              <span style={{ fontSize: '0.62rem', color: '#ff9f0a', fontWeight: 800, letterSpacing: '0.08em', marginTop: '-2px' }}>TOPLULUK HUB</span>
+            </div>
           </div>
         </div>
         
-        <div className="workspace-list" style={{ flex: '0 0 auto', maxHeight: '200px' }}>
-          <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
-            EKİPLER
-          </div>
-          {workspaces.length === 0 && (
-            <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-              Henüz ekip yok
-            </div>
-          )}
-          {workspaces.map((ws) => (
-            <div 
-              key={ws.id} 
-              className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
-              onClick={() => {
-                if (activeWorkspace?.id === ws.id) {
-                  setShowWsSettings(true);
-                } else {
-                  selectWorkspace(ws.id);
-                }
-              }}
-              title={activeWorkspace?.id === ws.id ? "Ekip Yönetimi ve Ayarları" : undefined}
+        <div className="workspace-list" style={{ flex: '0 0 auto', maxHeight: '220px' }}>
+          <div style={{ padding: '0 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>EKİPLER ({workspaces.length})</span>
+            <button 
+              onClick={() => setShowWorkspaceModal(true)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+              title="Yeni Ekip Oluştur"
             >
-              <div className="workspace-avatar">
-                {ws.name.substring(0, 2).toUpperCase()}
-              </div>
-              <span style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {ws.name}
-              </span>
+              <Plus size={14} />
+            </button>
+          </div>
+
+          {workspaces.length === 0 ? (
+            <div 
+              onClick={() => setShowWorkspaceModal(true)}
+              style={{ 
+                padding: '10px 12px', 
+                fontSize: '0.8rem', 
+                color: 'var(--text-sidebar)', 
+                background: 'rgba(255, 255, 255, 0.03)',
+                borderRadius: '10px',
+                border: '1px dashed var(--border-sidebar-glass)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                margin: '4px 0'
+              }}
+            >
+              <Plus size={14} style={{ color: 'var(--accent-color)' }} />
+              <span>İlk Ekibini Kur...</span>
             </div>
-          ))}
+          ) : (
+            workspaces.map((ws) => (
+              <div 
+                key={ws.id} 
+                className={`workspace-item ${activeWorkspace?.id === ws.id ? 'active' : ''}`}
+                onClick={() => {
+                  if (activeWorkspace?.id === ws.id) {
+                    setShowWsSettings(true);
+                  } else {
+                    selectWorkspace(ws.id);
+                  }
+                }}
+                title={activeWorkspace?.id === ws.id ? "Ekip Yönetimi ve Ayarları" : undefined}
+              >
+                <div className="workspace-avatar">
+                  {ws.name.substring(0, 2).toUpperCase()}
+                </div>
+                <span style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+                  {ws.name}
+                </span>
+                {ws.id === 'a1111111-1111-1111-1111-111111111111' && (
+                  <span style={{ fontSize: '0.6rem', background: 'rgba(255,159,10,0.15)', color: '#ff9f0a', padding: '2px 6px', borderRadius: '6px', fontWeight: 800 }}>
+                    Genel
+                  </span>
+                )}
+              </div>
+            ))
+          )}
         </div>
 
-        {/* Ekip Üyeleri (Desktop only, matches mobile drawer style) */}
+        {/* Ekip Üyeleri */}
         <div style={{ padding: '16px 12px 6px', fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-sidebar, #94a3b8)', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid var(--border-sidebar-glass, rgba(255, 255, 255, 0.15))' }}>
           <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
+          {activeWorkspace && (
+            <button 
+              onClick={() => setShowTeamModal(true)} 
+              style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', padding: 0 }}
+              title="Üye Davet Et"
+            >
+              <UserPlus size={14} />
+            </button>
+          )}
         </div>
 
-        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', maxHeight: '40vh' }}>
-          {workspaceMembers.length === 0 && (
-            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic' }}>
-              Yükleniyor...
+        <div className="workspace-members-list" style={{ flex: 1, overflowY: 'auto', padding: '0 12px', display: 'flex', flexDirection: 'column', maxHeight: '40vh', gap: '4px' }}>
+          {loadingMembers ? (
+            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>Üyeler yükleniyor...</span>
             </div>
-          )}
-          {workspaceMembers.map((member) => {
-            const name = member.full_name || 'İsimsiz Üye';
-            const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
-            const isMe = member.user_id === user?.id;
-            const isAdmin = member.permission_role === 'admin' || member.permission_role === 'owner';
-            return (
-              <div
-                key={member.user_id}
-                onClick={() => {
-                  if (isMe) {
-                    setProfileUserId(null);
-                  } else {
-                    setProfileUserId(member.user_id);
-                  }
-                  handleTabChange('profile');
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '8px 8px',
-                  borderRadius: 'var(--radius-md)',
-                  background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.04)' : 'transparent',
-                  border: isMe ? '1px solid rgba(var(--accent-rgb, 183,1,22), 0.15)' : '1px solid transparent',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
-                  cursor: 'pointer',
-                }}
+          ) : !activeWorkspace ? (
+            <div style={{ padding: '12px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic' }}>
+              Ekip seçilmedi
+            </div>
+          ) : workspaceMembers.length === 0 ? (
+            <div style={{ padding: '8px 0', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <span>Henüz üye yok</span>
+              <button 
+                className="btn btn-secondary btn-sm"
+                onClick={() => setShowTeamModal(true)}
+                style={{ fontSize: '0.75rem', padding: '4px 8px' }}
               >
-                {/* Avatar */}
-                <div style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  backgroundColor: isMe ? 'var(--accent-color)' : 'rgba(255, 255, 255, 0.1)',
-                  backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  color: isMe ? 'white' : 'var(--text-sidebar, #94a3b8)',
-                  fontWeight: 700,
-                  fontSize: '0.72rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                }}>
-                  {!member.avatar_url && initials}
-                </div>
-
-                {/* İsim + Rol */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <UserPlus size={12} /> Davet Gönder
+              </button>
+            </div>
+          ) : (
+            workspaceMembers.map((member) => {
+              const name = member.full_name || 'İsimsiz Üye';
+              const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
+              const isMe = member.user_id === user?.id;
+              const isAdmin = member.permission_role === 'admin' || member.permission_role === 'owner';
+              return (
+                <div
+                  key={member.user_id}
+                  onClick={() => {
+                    if (isMe) {
+                      setProfileUserId(null);
+                    } else {
+                      setProfileUserId(member.user_id);
+                    }
+                    handleTabChange('profile');
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '6px 8px',
+                    borderRadius: '8px',
+                    background: isMe ? 'rgba(var(--accent-rgb, 255,159,10), 0.08)' : 'transparent',
+                    border: isMe ? '1px solid rgba(var(--accent-rgb, 255,159,10), 0.2)' : '1px solid transparent',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {/* Avatar */}
                   <div style={{
-                    fontWeight: isMe ? 700 : 500,
-                    fontSize: '0.8rem',
-                    color: 'var(--text-sidebar-active, #ffffff)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    width: '26px',
+                    height: '26px',
+                    borderRadius: '50%',
+                    backgroundColor: isMe ? 'var(--accent-color)' : 'rgba(255, 255, 255, 0.1)',
+                    backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    color: isMe ? 'white' : 'var(--text-sidebar, #94a3b8)',
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    position: 'relative'
                   }}>
-                    {name}
+                    {!member.avatar_url && initials}
+                    {/* Status Dot */}
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '-1px',
+                      right: '-1px',
+                      width: '8px',
+                      height: '8px',
+                      borderRadius: '50%',
+                      backgroundColor: '#10b981',
+                      border: '1.5px solid var(--bg-sidebar, #0e1525)'
+                    }} />
                   </div>
-                </div>
 
-                {/* Admin ikonu */}
-                {isAdmin && <Crown size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />}
-              </div>
-            );
-          })}
+                  {/* İsim + Rol */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontWeight: isMe ? 700 : 500,
+                      fontSize: '0.8rem',
+                      color: 'var(--text-sidebar-active, #ffffff)',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {name} {isMe && '(Sen)'}
+                    </div>
+                  </div>
+
+                  {/* Quick DM Button */}
+                  {!isMe && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleStartDMFromModal(member.user_id);
+                      }}
+                      style={{
+                        background: 'none', border: 'none', color: 'var(--text-muted)',
+                        padding: '4px', cursor: 'pointer', borderRadius: '4px',
+                        display: 'flex', alignItems: 'center'
+                      }}
+                      title="Direkt Mesaj Gönder"
+                    >
+                      <MessageSquare size={13} />
+                    </button>
+                  )}
+
+                  {/* Admin ikonu */}
+                  {isAdmin && <Crown size={12} style={{ color: '#f59e0b', flexShrink: 0 }} />}
+                </div>
+              );
+            })
+          )}
         </div>
 
         <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <button className="btn btn-primary btn-block" onClick={() => setShowTeamModal(true)}>
             <UserPlus size={16} />
-            <span>Davet Et</span>
+            <span>Üye Davet Et</span>
           </button>
           <button className="btn btn-secondary btn-block" onClick={() => setShowWorkspaceModal(true)}>
             <Plus size={16} />
-            <span>Yeni Ekip</span>
+            <span>Yeni Ekip Oluştur</span>
           </button>
         </div>
       </div>
@@ -670,6 +774,13 @@ export const AppLayout: React.FC = () => {
         {/* Tab Navigation (Desktop view) */}
         <div className="nav-tabs">
           <div 
+            className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
+            onClick={() => handleTabChange('news')}
+          >
+            <Newspaper size={16} />
+            <span>Haberler</span>
+          </div>
+          <div 
             className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
             onClick={() => handleTabChange('content_panel')}
           >
@@ -741,16 +852,16 @@ export const AppLayout: React.FC = () => {
 
         {/* View Area */}
         <div className="view-area">
-          {!activeWorkspace ? (
+          {!activeWorkspace && ['content_panel', 'tasks', 'updates', 'calendar', 'crm', 'admin'].includes(activeTab) ? (
             <div className="zero-workspace-card">
               <div className="zero-workspace-icon">
                 <Users size={36} />
               </div>
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>
-                TanCoreLab'a Hoş Geldiniz!
+                TanCoreLab Ekip Paneline Hoş Geldiniz!
               </h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 24px' }}>
-                Henüz herhangi bir ekibe dahil değilsiniz. Kendi ekibinizi oluşturabilir veya başkalarının gönderdiği davetlere katılarak hemen çalışmaya başlayabilirsiniz.
+                Henüz özel bir ekibe dahil değilsiniz. Kendi ekibinizi oluşturabilir veya TanCoreLab Topluluğu'nda diğer üyelerle vakit geçirebilirsiniz.
               </p>
 
               {/* Pending invitations list in zero state */}
@@ -810,20 +921,24 @@ export const AppLayout: React.FC = () => {
                   gap: '8px'
                 }}>
                   <Bell size={16} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
-                  <span>Arkadaşınız size e-posta daveti gönderdiğinde ekranınızın üstünde bildirim belirecektir.</span>
+                  <span>Sol üstteki TanCoreLab paneline tıklayarak haberlere ve sohbet alanına ulaşabilirsiniz.</span>
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 <button className="btn btn-primary" style={{ padding: '12px 24px', fontSize: '0.95rem' }} onClick={() => setShowWorkspaceModal(true)}>
                   <Plus size={18} />
                   <span>Kendi Ekibini Oluştur</span>
+                </button>
+                <button className="btn btn-secondary" style={{ padding: '12px 20px', fontSize: '0.95rem' }} onClick={handleLogoClick}>
+                  <Users size={18} />
+                  <span>TanCoreLab Topluluğu'na Git</span>
                 </button>
               </div>
             </div>
           ) : (
             <>
-              {activeTab === 'news' && <NewsScreen />}
+              {activeTab === 'news' && <NewsScreen onNavigateToChat={() => handleTabChange('messages')} />}
               {activeTab === 'content_panel' && <TasksScreen boardMode="content" />}
               {activeTab === 'tasks' && <TasksScreen boardMode="tasks" />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}

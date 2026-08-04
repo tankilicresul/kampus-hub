@@ -1,8 +1,12 @@
 import React from 'react';
-import { ExternalLink, TrendingUp, Cpu, Lightbulb, Zap } from 'lucide-react';
+import { ExternalLink, TrendingUp, Cpu, Lightbulb, Zap, MessageSquare, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export const NewsScreen: React.FC = () => {
+interface NewsScreenProps {
+  onNavigateToChat?: () => void;
+}
+
+export const NewsScreen: React.FC<NewsScreenProps> = ({ onNavigateToChat }) => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Girişimci';
 
@@ -56,6 +60,50 @@ export const NewsScreen: React.FC = () => {
 
   return (
     <div className="news-container fade-in">
+      {/* Community & Chat Banner */}
+      <div style={{
+        padding: '16px 20px',
+        borderRadius: '16px',
+        background: 'linear-gradient(135deg, rgba(255, 159, 10, 0.15) 0%, rgba(255, 107, 0, 0.08) 100%)',
+        border: '1px solid rgba(255, 159, 10, 0.3)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
+        marginBottom: '20px',
+        boxShadow: '0 4px 16px rgba(255, 159, 10, 0.08)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: '42px', height: '42px', borderRadius: '12px',
+            backgroundColor: 'var(--accent-color)', color: '#fff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 12px rgba(255, 159, 10, 0.3)'
+          }}>
+            <Users size={22} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>
+              TanCoreLab Topluluk Paneli & Herkesle Sohbet 💬
+            </h3>
+            <p style={{ fontSize: '0.82rem', margin: '2px 0 0', color: 'var(--text-secondary)' }}>
+              Tüm platform üyeleriyle anlık iletişim kurabilir, fikir alışverişinde bulunabilirsin.
+            </p>
+          </div>
+        </div>
+        {onNavigateToChat && (
+          <button 
+            className="btn btn-primary"
+            onClick={onNavigateToChat}
+            style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '10px' }}
+          >
+            <MessageSquare size={16} />
+            <span>Herkesle Sohbet Et</span>
+          </button>
+        )}
+      </div>
+
       {/* Header Section */}
       <div className="news-header">
         <h1>Girişimcilik Dünyasından Haberler 🚀</h1>
