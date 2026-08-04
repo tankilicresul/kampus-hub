@@ -651,6 +651,7 @@ body {
   padding: 48px;
   position: relative;
   overflow: hidden;
+  text-align: center;
 }
 
 .auth-brand-panel::before {
@@ -664,7 +665,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
   z-index: 2;
   animation: logoFloat 3.8s ease-in-out infinite;
 }
@@ -690,6 +691,7 @@ body {
   letter-spacing: -0.04em;
   z-index: 2;
   text-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  text-align: center;
 }
 
 .auth-brand-desc {
