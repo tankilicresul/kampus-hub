@@ -2423,10 +2423,10 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   ] as const;
 
   const contentColumns = [
-    { key: 'viral', title: 'Viral İçerik', color: '#ff9f0a', emoji: '🔥' },
-    { key: 'post', title: 'Post', color: '#0a84ff', emoji: '🖼️' },
+    { key: 'viral', title: 'Reels', color: '#ff9f0a', emoji: '🎬' },
     { key: 'reklam', title: 'Reklam', color: '#30d158', emoji: '📢' },
     { key: 'yari_reklam', title: 'Yarı Reklam', color: '#bf5af2', emoji: '⚡' },
+    { key: 'post', title: 'Post', color: '#0a84ff', emoji: '🖼️' },
   ] as const;
 
   const columns = isContentMode ? contentColumns : processColumns;
@@ -2435,6 +2435,34 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '16px' }}>
+
+      {/* Top Header Bar for Content Mode */}
+      {isContentMode && (
+        <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🎬</span> İçerik Paneli
+            </h3>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', background: 'var(--bg-surface-accent)', padding: '2px 10px', borderRadius: '12px', fontWeight: 600 }}>
+              {tasks.length} İçerik
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
+              <RefreshCw size={16} />
+            </button>
+            <button className="btn btn-primary" onClick={() => {
+              setNewContentType('viral');
+              if (members.length === 1) setNewAssignee(members[0].user_id);
+              else setNewAssignee('');
+              setShowAddModal(true);
+            }}>
+              <Plus size={18} />
+              <span className="btn-text">Yeni İçerik Ekle</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter Header (Only shown in Görevler mode) */}
       {!isContentMode && (
@@ -2562,7 +2590,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
         <div style={{ display: 'flex', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <RefreshCw className="animate-spin" size={32} style={{ color: 'var(--accent-color)' }} />
         </div>
-      ) : filteredTasks.length === 0 ? (
+      ) : (filteredTasks.length === 0 && !isContentMode) ? (
         <div style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '12px', color: 'var(--text-muted)' }}>
           <AlertCircle size={48} style={{ opacity: 0.3 }} />
           <h3 style={{ fontWeight: 700 }}>Görev Yok</h3>
@@ -2578,6 +2606,9 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
           <div className="board-container">
             {columns.map(col => {
               const columnTasks = filteredTasks.filter(t => {
+                if (isContentMode) {
+                  return getTaskContentTypeKey(t) === col.key;
+                }
                 if (col.key === 'revision_required') {
                   return t.status === 'revision_required' || t.status === 'overdue';
                 }
