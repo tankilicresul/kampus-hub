@@ -2468,15 +2468,15 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
         /* Mindmap mode: only show view switcher */
         <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 4px' }}>
           <div className="view-switcher">
-            <button className={`view-switcher-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+            <button className={`view-switcher-btn ${(viewMode as string) === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
               <List size={15} />
               <span className="btn-text">Liste</span>
             </button>
-            <button className={`view-switcher-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
+            <button className={`view-switcher-btn ${(viewMode as string) === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
               <Kanban size={15} />
               <span className="btn-text">Pano</span>
             </button>
-            <button className={`view-switcher-btn ${viewMode === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
+            <button className={`view-switcher-btn ${(viewMode as string) === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
               <Share2 size={15} />
               <span className="btn-text">Harita</span>
             </button>
