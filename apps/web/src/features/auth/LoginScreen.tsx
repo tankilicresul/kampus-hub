@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { RefreshCw, Lock, Mail, User, ArrowRight, Sparkles } from 'lucide-react';
+import { RefreshCw, Lock, Mail, User, ArrowRight } from 'lucide-react';
 import { usePageMetadata, type PageMetadata } from '../../hooks/usePageMetadata';
 
 export const LoginScreen: React.FC = () => {
@@ -69,67 +69,6 @@ export const LoginScreen: React.FC = () => {
         <div className="auth-brand-title">TanCoreLab</div>
         <div className="auth-brand-desc">
           Girişim ekosistemine katılın. Tüm işlerinizi ve süreçlerinizi tek yerden yönetin.
-        </div>
-
-        {/* Developer Attribution Card (Desktop) */}
-        <div style={{ 
-          marginTop: '36px', 
-          maxWidth: '440px',
-          width: '100%',
-          padding: '24px', 
-          borderRadius: '20px', 
-          backgroundColor: 'rgba(255, 255, 255, 0.92)', 
-          border: '1px solid rgba(255, 255, 255, 0.6)', 
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04)',
-          zIndex: 2,
-          textAlign: 'center'
-        }}>
-          <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '6px', 
-            padding: '6px 16px', 
-            borderRadius: '20px', 
-            backgroundColor: 'rgba(255, 159, 10, 0.12)', 
-            color: '#c2410c', 
-            fontSize: '0.78rem', 
-            fontWeight: 800, 
-            letterSpacing: '0.05em', 
-            textTransform: 'uppercase', 
-            marginBottom: '14px' 
-          }}>
-            <Sparkles size={14} style={{ color: '#ea580c' }} /> TanCoreLab'in Geliştiricisi
-          </div>
-          <p style={{ 
-            fontSize: '0.95rem', 
-            color: '#1e293b', 
-            lineHeight: 1.6, 
-            fontWeight: 600, 
-            margin: '0 0 18px'
-          }}>
-            TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
-          </p>
-          <Link 
-            to="/resul-tankilic" 
-            style={{ 
-              display: 'inline-flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              gap: '8px', 
-              padding: '11px 24px',
-              borderRadius: '12px',
-              backgroundColor: '#0f172a',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.9rem',
-              textDecoration: 'none', 
-              boxShadow: '0 6px 18px rgba(15, 23, 42, 0.2)',
-              transition: 'all 0.2s ease' 
-            }}
-          >
-            Resul Tankılıç Hakkında <ArrowRight size={16} />
-          </Link>
         </div>
       </div>
 
