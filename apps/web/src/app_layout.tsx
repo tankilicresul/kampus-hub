@@ -14,7 +14,8 @@ import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
   LogOut, Plus, User, Crown, ArrowRight,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Newspaper, ChevronDown, LayoutDashboard, CheckSquare, CalendarDays
+  MessageSquare, ChevronDown, LayoutDashboard, CheckSquare, CalendarDays,
+  Cpu, Rocket, Star
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -33,10 +34,10 @@ export const AppLayout: React.FC = () => {
     refreshWorkspaces
   } = useAuth();
   
-  const [activeTab, setActiveTab] = useState<'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
+  const [activeTab, setActiveTab] = useState<'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news' | 'news_ai' | 'news_startup' | 'news_editors'>(() => {
     const saved = localStorage.getItem('kh_active_tab');
-    if (saved && ['news', 'messages', 'profile'].includes(saved)) return saved as any;
-    return 'news';
+    if (saved && ['news', 'news_ai', 'news_startup', 'news_editors', 'messages', 'profile'].includes(saved)) return saved as any;
+    return 'news_ai';
   });
 
   useEffect(() => {
@@ -44,7 +45,7 @@ export const AppLayout: React.FC = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeWorkspace && activeTab === 'news') {
+    if (activeWorkspace && ['news', 'news_ai', 'news_startup', 'news_editors'].includes(activeTab)) {
       setActiveTab('content_panel');
     }
   }, [activeWorkspace?.id]);
@@ -118,7 +119,7 @@ export const AppLayout: React.FC = () => {
     }
   }, [activeWorkspace?.id]);
   
-  const handleTabChange = (tab: 'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news') => {
+  const handleTabChange = (tab: any) => {
     if (navigator.vibrate) navigator.vibrate(10);
     setActiveTab(tab);
     if (tab === 'messages') {
@@ -130,7 +131,7 @@ export const AppLayout: React.FC = () => {
   const handleLogoClick = () => {
     if (navigator.vibrate) navigator.vibrate(10);
     selectWorkspace('');
-    setActiveTab('news');
+    setActiveTab('news_ai');
   };
 
   const handleStartDMFromModal = (targetUserId: string) => {
@@ -838,11 +839,25 @@ export const AppLayout: React.FC = () => {
           ) : (
             <>
               <div 
-                className={`nav-tab ${activeTab === 'news' ? 'active' : ''}`}
-                onClick={() => handleTabChange('news')}
+                className={`nav-tab ${activeTab === 'news_ai' ? 'active' : ''}`}
+                onClick={() => handleTabChange('news_ai')}
               >
-                <Newspaper size={16} />
-                <span>Haberler</span>
+                <Cpu size={16} />
+                <span>Yapay Zeka Gelişmeleri</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'news_startup' ? 'active' : ''}`}
+                onClick={() => handleTabChange('news_startup')}
+              >
+                <Rocket size={16} />
+                <span>Girişimcilik Haberleri</span>
+              </div>
+              <div 
+                className={`nav-tab ${activeTab === 'news_editors' ? 'active' : ''}`}
+                onClick={() => handleTabChange('news_editors')}
+              >
+                <Star size={16} />
+                <span>Editörün Seçimleri</span>
               </div>
               <div 
                 className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
@@ -967,7 +982,9 @@ export const AppLayout: React.FC = () => {
             </div>
           ) : (
             <>
-              {activeTab === 'news' && <NewsScreen onNavigateToChat={() => handleTabChange('messages')} />}
+              {(activeTab === 'news' || activeTab === 'news_ai') && <NewsScreen initialCategory="ai" onNavigateToChat={() => handleTabChange('messages')} />}
+              {activeTab === 'news_startup' && <NewsScreen initialCategory="startup" onNavigateToChat={() => handleTabChange('messages')} />}
+              {activeTab === 'news_editors' && <NewsScreen initialCategory="editors" onNavigateToChat={() => handleTabChange('messages')} />}
               {activeTab === 'content_panel' && <TasksScreen boardMode="content" />}
               {activeTab === 'tasks' && <TasksScreen boardMode="tasks" />}
               {activeTab === 'updates' && <DailyUpdatesScreen />}
@@ -1068,11 +1085,25 @@ export const AppLayout: React.FC = () => {
         ) : (
           <>
             <button 
-              className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
-              onClick={() => handleTabChange('news')}
+              className={`mobile-nav-item ${activeTab === 'news_ai' ? 'active' : ''}`}
+              onClick={() => handleTabChange('news_ai')}
             >
-              <Newspaper size={20} />
-              <span>Haberler</span>
+              <Cpu size={20} />
+              <span>Yapay Zeka</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'news_startup' ? 'active' : ''}`}
+              onClick={() => handleTabChange('news_startup')}
+            >
+              <Rocket size={20} />
+              <span>Girişimcilik</span>
+            </button>
+            <button 
+              className={`mobile-nav-item ${activeTab === 'news_editors' ? 'active' : ''}`}
+              onClick={() => handleTabChange('news_editors')}
+            >
+              <Star size={20} />
+              <span>Editör</span>
             </button>
             <button 
               className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}

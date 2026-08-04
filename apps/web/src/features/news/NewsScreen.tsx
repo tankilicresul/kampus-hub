@@ -1,15 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TrendingUp, Cpu, Lightbulb, Zap, MessageSquare, Users, Sparkles, Rocket, Star, Bookmark } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface NewsScreenProps {
   onNavigateToChat?: () => void;
+  initialCategory?: 'all' | 'ai' | 'startup' | 'editors';
 }
 
-export const NewsScreen: React.FC<NewsScreenProps> = ({ onNavigateToChat }) => {
+export const NewsScreen: React.FC<NewsScreenProps> = ({ onNavigateToChat, initialCategory = 'all' }) => {
   const { user } = useAuth();
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Girişimci';
-  const [activeFilter, setActiveFilter] = useState<'all' | 'ai' | 'startup' | 'editors'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'ai' | 'startup' | 'editors'>(initialCategory);
+
+  useEffect(() => {
+    if (initialCategory) {
+      setActiveFilter(initialCategory);
+    }
+  }, [initialCategory]);
 
   // Categorized News Data
   const aiNews = [
