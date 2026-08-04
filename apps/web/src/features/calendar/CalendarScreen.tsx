@@ -481,7 +481,7 @@ export const CalendarScreen: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    minHeight: isMobile ? 'auto' : '100px',
+                    minHeight: isMobile ? 'auto' : '72px',
                     aspectRatio: isMobile ? '1 / 1' : 'auto',
                     borderRadius: isMobile ? '10px' : '12px',
                     border: isSelected
