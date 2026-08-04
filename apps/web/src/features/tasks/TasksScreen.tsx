@@ -1793,7 +1793,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
     localStorage.setItem('kh_tasks_view_mode', viewMode);
   }, [viewMode]);
 
-  const activeViewMode = boardMode === 'content' ? 'kanban' : viewMode;
+  const activeViewMode = boardMode === 'content' ? 'kanban' : 'mindmap';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -2468,23 +2468,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
       {/* Search & Filter Header (Only shown in Görevler mode, hidden in mindmap) */}
       {!isContentMode && activeViewMode === 'mindmap' ? (
-        /* Mindmap mode: only show view switcher */
-        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 4px' }}>
-          <div className="view-switcher">
-            <button className={`view-switcher-btn ${(activeViewMode as string) === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
-              <List size={15} />
-              <span className="btn-text">Liste</span>
-            </button>
-            <button className={`view-switcher-btn ${(activeViewMode as string) === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
-              <Kanban size={15} />
-              <span className="btn-text">Pano</span>
-            </button>
-            <button className={`view-switcher-btn ${(activeViewMode as string) === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
-              <Share2 size={15} />
-              <span className="btn-text">Harita</span>
-            </button>
-          </div>
-        </div>
+        /* Mindmap mode: no header, full screen canvas */
+        null
       ) : !isContentMode && (
         <div style={{ backgroundColor: 'var(--bg-surface)', padding: '12px 20px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Row 1: Search + Action buttons */}
