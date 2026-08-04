@@ -180,8 +180,15 @@ body {
   background: linear-gradient(135deg, #d97706 0%, #ea580c 50%, #c2410c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  display: inline-block;
-  font-family: var(--font-family);
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.8));
+}
+
+.brand-logo-arrow {
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.brand-logo-panel:hover .brand-logo-arrow {
+  transform: translateX(4px);
 }
 
 .mobile-brand-panel {

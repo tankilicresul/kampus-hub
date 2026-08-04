@@ -12,7 +12,7 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
-  LogOut, Plus, User, Crown,
+  LogOut, Plus, User, Crown, ArrowRight,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
   MessageSquare, Newspaper, ChevronDown, LayoutDashboard, CheckSquare, CalendarDays
 } from 'lucide-react';
@@ -286,6 +286,7 @@ export const AppLayout: React.FC = () => {
               className="brand-logo-img" 
             />
             <span className="brand-logo-text">TanCoreLab</span>
+            <ArrowRight size={18} className="brand-logo-arrow" style={{ color: '#ea580c', marginLeft: 'auto', flexShrink: 0 }} />
           </div>
         </div>
         
@@ -1113,13 +1114,14 @@ export const AppLayout: React.FC = () => {
         <div className="mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
             <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-sidebar-glass)' }}>
-              <div className="brand-logo-panel mobile-brand-panel">
+              <div className="brand-logo-panel mobile-brand-panel" onClick={() => { handleLogoClick(); setIsMobileMenuOpen(false); }} style={{ cursor: 'pointer' }}>
                 <img 
                   src="/logo.svg" 
                   alt="TanCoreLab" 
                   className="brand-logo-img" 
                 />
                 <span className="brand-logo-text">TanCoreLab</span>
+                <ArrowRight size={18} className="brand-logo-arrow" style={{ color: '#ea580c', marginLeft: 'auto', flexShrink: 0 }} />
               </div>
               <button 
                 className="btn btn-secondary btn-icon-only" 
