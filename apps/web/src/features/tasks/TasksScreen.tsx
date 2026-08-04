@@ -3164,38 +3164,40 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                     )}
                   </div>
 
-                  {/* Tags (Common to both) */}
-                  <div className="form-group">
-                    <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />Etiketler (Enter ile ekle)</label>
-                    <input
-                      type="text"
-                      value={newTagInput}
-                      onChange={e => setNewTagInput(e.target.value)}
-                      onKeyDown={handleTagKeyDown}
-                      className="form-input"
-                      placeholder="#etiket yaz, Enter'a bas..."
-                      style={{ borderRadius: '10px', fontSize: '0.85rem' }}
-                    />
-                    {newTags.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                        {newTags.map(tag => (
-                          <span key={tag} style={{
-                            padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem',
-                            backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.08)', color: 'var(--accent-color)',
-                            border: '1px solid rgba(var(--accent-rgb, 255,159,10), 0.2)', display: 'flex', alignItems: 'center', gap: '4px',
-                            fontWeight: 600
-                          }}>
-                            #{tag}
-                            <button
-                              type="button"
-                              onClick={() => setNewTags(prev => prev.filter(t => t !== tag))}
-                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', padding: 0, lineHeight: 1 }}
-                            >×</button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  {/* Tags (Only for standard tasks) */}
+                  {!isNewSocial && (
+                    <div className="form-group">
+                      <label className="form-label"><Tag size={12} style={{ display: 'inline', marginRight: '4px' }} />Etiketler (Enter ile ekle)</label>
+                      <input
+                        type="text"
+                        value={newTagInput}
+                        onChange={e => setNewTagInput(e.target.value)}
+                        onKeyDown={handleTagKeyDown}
+                        className="form-input"
+                        placeholder="#etiket yaz, Enter'a bas..."
+                        style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                      />
+                      {newTags.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                          {newTags.map(tag => (
+                            <span key={tag} style={{
+                              padding: '2px 8px', borderRadius: '20px', fontSize: '0.72rem',
+                              backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.08)', color: 'var(--accent-color)',
+                              border: '1px solid rgba(var(--accent-rgb, 255,159,10), 0.2)', display: 'flex', alignItems: 'center', gap: '4px',
+                              fontWeight: 600
+                            }}>
+                              #{tag}
+                              <button
+                                type="button"
+                                onClick={() => setNewTags(prev => prev.filter(t => t !== tag))}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent-color)', padding: 0, lineHeight: 1 }}
+                              >×</button>
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Footer */}
