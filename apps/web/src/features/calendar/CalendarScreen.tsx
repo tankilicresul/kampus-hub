@@ -63,6 +63,62 @@ export const CalendarScreen: React.FC = () => {
   const [editTaskSharingDate, setEditTaskSharingDate] = useState('');
   const [editTaskDesignDate, setEditTaskDesignDate] = useState('');
 
+  // New Content Creation Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newDesc, setNewDesc] = useState('');
+  const [newContentType, setNewContentType] = useState<'reels' | 'post' | 'story' | 'reklam'>('reels');
+  const [newShootingDate, setNewShootingDate] = useState('');
+  const [newSharingDate, setNewSharingDate] = useState('');
+  const [newDesignDate, setNewDesignDate] = useState('');
+  const [newAssignee, setNewAssignee] = useState('');
+  const [newStatus, setNewStatus] = useState<CalendarTask['status']>('todo');
+
+  const openCreateModalForDate = (date: Date) => {
+    const formatted = getLocalDate(date);
+    setNewTitle('');
+    setNewDesc('');
+    setNewContentType('reels');
+    setNewShootingDate(formatted);
+    setNewSharingDate(formatted);
+    setNewDesignDate(formatted);
+    setNewAssignee(user?.id || '');
+    setNewStatus('todo');
+    setShowCreateModal(true);
+  };
+
+  const handleCreateContentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !activeWorkspace?.id) return;
+
+    try {
+      const payload: any = {
+        workspace_id: activeWorkspace.id,
+        created_by: user?.id || null,
+        title: newTitle.trim(),
+        description: newDesc.trim() || null,
+        category: 'Sosyal Medya',
+        content_type: newContentType,
+        status: newStatus,
+        priority: 'normal',
+        primary_assignee_id: newAssignee || null,
+        shooting_date: newShootingDate || null,
+        sharing_date: newSharingDate || null,
+        design_date: newDesignDate || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase.from('tasks').insert([payload]);
+      if (error) throw error;
+
+      setShowCreateModal(false);
+      loadCalendarData();
+    } catch (err) {
+      console.error('Create content task failed:', err);
+    }
+  };
+
   // Persist filter
   useEffect(() => {
     localStorage.setItem('kh_calendar_only_mine', String(onlyMine));
@@ -676,17 +732,34 @@ export const CalendarScreen: React.FC = () => {
           <div className="calendar-day-detail">
             <div className="calendar-day-detail-title">
               <span>{selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '2px 8px', borderRadius: '12px' }}>
-                {filteredTasks.filter(t => {
-                  const isSocial = isContentTask(t);
-                  const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
-                  const endDate = isSocial ? t.sharing_date : t.due_date;
-                  const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
-                  const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
-                  const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
-                  return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
-                }).length} Görev / İçerik Planlandı
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '3px 10px', borderRadius: '12px' }}>
+                  {filteredTasks.filter(t => {
+                    const isSocial = isContentTask(t);
+                    const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
+                    const endDate = isSocial ? t.sharing_date : t.due_date;
+                    const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
+                    const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
+                    const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+                    return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
+                  }).length} İçerik Planlandı
+                </span>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => openCreateModalForDate(selectedDate)}
+                  style={{
+                    fontSize: '0.78rem',
+                    padding: '6px 14px',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  + Bu Güne İçerik Ekle
+                </button>
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
               {filteredTasks.filter(t => {
@@ -698,8 +771,15 @@ export const CalendarScreen: React.FC = () => {
                 const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
                 return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
               }).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '20px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontStyle: 'italic', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-                  Seçilen tarihte yapılması gereken bir görev veya içerik bulunmuyor.
+                <div style={{ textAlign: 'center', padding: '24px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                  <span>Seçilen tarihte ({selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })}) henüz bir içerik planlanmamış.</span>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => openCreateModalForDate(selectedDate)}
+                    style={{ fontSize: '0.8rem', padding: '8px 16px', borderRadius: '10px', fontWeight: 700 }}
+                  >
+                    + Bu Güne Yeni İçerik Ekle
+                  </button>
                 </div>
               ) : (
                 filteredTasks.filter(t => {
@@ -711,7 +791,6 @@ export const CalendarScreen: React.FC = () => {
                   const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
                   return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
                 }).map((task) => {
-                  const isContent = isContentTask(task);
                   const taskColor = getTaskColor(task);
 
                   return (
@@ -740,7 +819,7 @@ export const CalendarScreen: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
                           <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {isContent ? '🎬 ' : '📋 '}{task.title}
+                            🎬 {task.title}
                           </span>
                           <span style={{
                             fontSize: '0.68rem',
@@ -752,7 +831,7 @@ export const CalendarScreen: React.FC = () => {
                             border: `1px solid ${taskColor}30`,
                             whiteSpace: 'nowrap'
                           }}>
-                            {isContent ? 'İçerik Paneli' : 'Görev Paneli'}
+                            İçerik Paneli
                           </span>
                         </div>
 
@@ -777,24 +856,14 @@ export const CalendarScreen: React.FC = () => {
                       )}
 
                       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                        {isContent ? (
-                          <>
-                            {task.content_type && (
-                              <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                                Tür: {task.content_type.toUpperCase()}
-                              </span>
-                            )}
-                            {task.shooting_date && <span>Çekim: {task.shooting_date.slice(0, 10)}</span>}
-                            {task.sharing_date && <span>Paylaşım: {task.sharing_date.slice(0, 10)}</span>}
-                            {task.design_date && <span>Tasarım: {task.design_date.slice(0, 10)}</span>}
-                          </>
-                        ) : (
-                          <>
-                            {task.start_date && <span>Başlangıç: {task.start_date.slice(0, 10)}</span>}
-                            {task.due_date && <span>Bitiş: {task.due_date.slice(0, 10)}</span>}
-                            {task.priority && <span>Öncelik: {task.priority.toUpperCase()}</span>}
-                          </>
+                        {task.content_type && (
+                          <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
+                            Tür: {task.content_type.toUpperCase()}
+                          </span>
                         )}
+                        {task.shooting_date && <span>Çekim: {task.shooting_date.slice(0, 10)}</span>}
+                        {task.sharing_date && <span>Paylaşım: {task.sharing_date.slice(0, 10)}</span>}
+                        {task.design_date && <span>Tasarım: {task.design_date.slice(0, 10)}</span>}
                       </div>
                     </div>
                   );
@@ -806,7 +875,7 @@ export const CalendarScreen: React.FC = () => {
       </>
     )}
 
-      {/* Task Edit / Detail Modal (Customized for İçerik Paneli vs Görev Paneli) */}
+      {/* Task Edit / Detail Modal */}
       {selectedTask && (
         <div className="modal-backdrop" onClick={() => setSelectedTask(null)}>
           <div className="modal-content" style={{ maxWidth: '540px', width: '95%', borderRadius: '16px' }} onClick={e => e.stopPropagation()}>
@@ -817,14 +886,14 @@ export const CalendarScreen: React.FC = () => {
                   backgroundColor: getTaskColor(selectedTask)
                 }} />
                 <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
-                  {isContentTask(selectedTask) ? '🎬 İçerik Detayları' : '📋 Görev Detayları'}
+                  🎬 İçerik Detayları
                 </span>
                 <span style={{
                   fontSize: '0.68rem', fontWeight: 700, padding: '2px 8px', borderRadius: '6px',
                   backgroundColor: `${getTaskColor(selectedTask)}15`, color: getTaskColor(selectedTask),
                   border: `1px solid ${getTaskColor(selectedTask)}30`
                 }}>
-                  {isContentTask(selectedTask) ? 'İçerik Paneli' : 'Görev Paneli'}
+                  İçerik Paneli
                 </span>
               </div>
               <button onClick={() => setSelectedTask(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
@@ -832,11 +901,11 @@ export const CalendarScreen: React.FC = () => {
 
             <form onSubmit={handleTaskEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '14px' }}>
               <div className="form-group">
-                <label className="form-label">{isContentTask(selectedTask) ? 'İçerik Adı *' : 'Görev Adı *'}</label>
+                <label className="form-label">İçerik Adı *</label>
                 <input
                   type="text"
                   required
-                  placeholder={isContentTask(selectedTask) ? 'İçerik başlığı...' : 'Görev adı...'}
+                  placeholder="İçerik başlığı..."
                   value={editTaskTitle}
                   onChange={e => setEditTaskTitle(e.target.value)}
                   className="form-input"
@@ -873,29 +942,12 @@ export const CalendarScreen: React.FC = () => {
                   </select>
                 </div>
 
-                {!isContentTask(selectedTask) ? (
-                  <div className="form-group">
-                    <label className="form-label">Öncelik</label>
-                    <select
-                      value={editTaskPriority}
-                      onChange={e => setEditTaskPriority(e.target.value as CalendarTask['priority'])}
-                      className="form-input"
-                      style={{ fontSize: '0.85rem' }}
-                    >
-                      <option value="critical">🔴 Acil</option>
-                      <option value="high">🟡 Önemli</option>
-                      <option value="normal">🔵 Normal</option>
-                      <option value="low">⚪ Acelesi Yok</option>
-                    </select>
+                <div className="form-group">
+                  <label className="form-label">İçerik Türü</label>
+                  <div className="form-input" style={{ fontSize: '0.85rem', backgroundColor: 'var(--bg-surface-accent)', display: 'flex', alignItems: 'center', fontWeight: 700 }}>
+                    {selectedTask.content_type ? selectedTask.content_type.toUpperCase() : 'REELS / SHORTS'}
                   </div>
-                ) : (
-                  <div className="form-group">
-                    <label className="form-label">İçerik Türü</label>
-                    <div className="form-input" style={{ fontSize: '0.85rem', backgroundColor: 'var(--bg-surface-accent)', display: 'flex', alignItems: 'center', fontWeight: 700 }}>
-                      {selectedTask.content_type ? selectedTask.content_type.toUpperCase() : 'Sosyal Medya İçeriği'}
-                    </div>
-                  </div>
-                )}
+                </div>
               </div>
 
               <div className="form-group">
@@ -915,59 +967,35 @@ export const CalendarScreen: React.FC = () => {
                 </select>
               </div>
 
-              {isContentTask(selectedTask) ? (
-                /* İçerik Paneli Tarihleri */
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="form-group">
-                    <label className="form-label">
-                      {selectedTask.content_type === 'post' ? 'Tasarım Tarihi' : 'Çekim Tarihi'}
-                    </label>
-                    <input
-                      type="date"
-                      value={selectedTask.content_type === 'post' ? editTaskDesignDate : editTaskShootingDate}
-                      onChange={e => {
-                        if (selectedTask.content_type === 'post') {
-                          setEditTaskDesignDate(e.target.value);
-                        } else {
-                          setEditTaskShootingDate(e.target.value);
-                        }
-                      }}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Paylaşım Günü</label>
-                    <input
-                      type="date"
-                      value={editTaskSharingDate}
-                      onChange={e => setEditTaskSharingDate(e.target.value)}
-                      className="form-input"
-                    />
-                  </div>
+              {/* İçerik Paneli Tarihleri */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">
+                    {selectedTask.content_type === 'post' ? 'Tasarım Tarihi' : 'Çekim Tarihi'}
+                  </label>
+                  <input
+                    type="date"
+                    value={selectedTask.content_type === 'post' ? editTaskDesignDate : editTaskShootingDate}
+                    onChange={e => {
+                      if (selectedTask.content_type === 'post') {
+                        setEditTaskDesignDate(e.target.value);
+                      } else {
+                        setEditTaskShootingDate(e.target.value);
+                      }
+                    }}
+                    className="form-input"
+                  />
                 </div>
-              ) : (
-                /* Görev Paneli Tarihleri */
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  <div className="form-group">
-                    <label className="form-label">Başlangıç Tarihi</label>
-                    <input
-                      type="date"
-                      value={editTaskStartDate}
-                      onChange={e => setEditTaskStartDate(e.target.value)}
-                      className="form-input"
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Bitiş Tarihi</label>
-                    <input
-                      type="date"
-                      value={editTaskDueDate}
-                      onChange={e => setEditTaskDueDate(e.target.value)}
-                      className="form-input"
-                    />
-                  </div>
+                <div className="form-group">
+                  <label className="form-label">Paylaşım Günü</label>
+                  <input
+                    type="date"
+                    value={editTaskSharingDate}
+                    onChange={e => setEditTaskSharingDate(e.target.value)}
+                    className="form-input"
+                  />
                 </div>
-              )}
+              </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginTop: '10px' }}>
                 <button
@@ -976,7 +1004,7 @@ export const CalendarScreen: React.FC = () => {
                   className="btn btn-secondary"
                   style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.2)' }}
                 >
-                  {isContentTask(selectedTask) ? 'İçeriği Sil' : 'Görevi Sil'}
+                  İçeriği Sil
                 </button>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button type="button" className="btn btn-secondary" onClick={() => setSelectedTask(null)}>
@@ -986,6 +1014,137 @@ export const CalendarScreen: React.FC = () => {
                     Kaydet
                   </button>
                 </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* New Content Creation Modal */}
+      {showCreateModal && (
+        <div className="modal-backdrop" onClick={() => setShowCreateModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '540px', width: '95%', borderRadius: '16px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-primary)' }}>
+                  🎬 Yeni İçerik Ekle
+                </span>
+                <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.15)', color: 'var(--accent-color)' }}>
+                  {selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} için
+                </span>
+              </div>
+              <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={handleCreateContentSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginTop: '14px' }}>
+              <div className="form-group">
+                <label className="form-label">İçerik Adı / Başlığı *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="İçerik başlığını girin..."
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  className="form-input"
+                  style={{ fontSize: '0.88rem' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Açıklama / Senaryo / Notlar</label>
+                <textarea
+                  placeholder="İçerik detayları veya notları..."
+                  value={newDesc}
+                  onChange={e => setNewDesc(e.target.value)}
+                  className="form-input"
+                  rows={3}
+                  style={{ fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">İçerik Türü</label>
+                  <select
+                    value={newContentType}
+                    onChange={e => setNewContentType(e.target.value as any)}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <option value="reels">🎬 Reels / Shorts</option>
+                    <option value="post">🖼️ Post / Görsel</option>
+                    <option value="story">⚡ Story / Hikaye</option>
+                    <option value="reklam">🚀 Reklam / Viral</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Durum</label>
+                  <select
+                    value={newStatus}
+                    onChange={e => setNewStatus(e.target.value as any)}
+                    className="form-input"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    <option value="todo">Yapılacak</option>
+                    <option value="in_progress">Sürüyor</option>
+                    <option value="waiting">Beklemede</option>
+                    <option value="completed">Bitti</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Sorumlu Kişi</label>
+                <select
+                  value={newAssignee}
+                  onChange={e => setNewAssignee(e.target.value)}
+                  className="form-input"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  <option value="">— Atanmamış —</option>
+                  {members.map(m => (
+                    <option key={m.user_id} value={m.user_id}>
+                      {m.full_name || 'Kullanıcı'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="form-group">
+                  <label className="form-label">Çekim / Tasarım Tarihi</label>
+                  <input
+                    type="date"
+                    value={newContentType === 'post' ? newDesignDate : newShootingDate}
+                    onChange={e => {
+                      if (newContentType === 'post') {
+                        setNewDesignDate(e.target.value);
+                      } else {
+                        setNewShootingDate(e.target.value);
+                      }
+                    }}
+                    className="form-input"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Paylaşım Tarihi</label>
+                  <input
+                    type="date"
+                    value={newSharingDate}
+                    onChange={e => setNewSharingDate(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>
+                  İptal
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '8px 20px', fontWeight: 700 }}>
+                  İçeriği Oluştur
+                </button>
               </div>
             </form>
           </div>
