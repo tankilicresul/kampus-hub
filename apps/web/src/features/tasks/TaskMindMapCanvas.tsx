@@ -1,13 +1,17 @@
 import React, { useState, useCallback, useRef, useEffect, memo } from 'react';
-import { Plus, ZoomIn, ZoomOut, Maximize2, Trash2, X } from 'lucide-react';
+import { Plus, ZoomIn, ZoomOut, Maximize2, X, Calendar, FileText, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
 
 /* ────────────────────── Types ────────────────────── */
+type TaskStatus = 'todo' | 'in_progress' | 'completed';
+
 interface MindMapNode {
   id: string;
   x: number;
   y: number;
   title: string;
-  color: string;
+  description: string;
+  dueDate: string;
+  status: TaskStatus;
   parentId: string | null;
 }
 
@@ -18,23 +22,37 @@ interface MindMapEdge {
 }
 
 /* ────────────────────── Constants ────────────────────── */
-const NODE_W = 170;
-const NODE_H = 100;
-const GAP_X = 260;
-const GAP_Y = 200;
+const NODE_W = 180;
+const NODE_H = 110;
+const GAP_X = 270;
+const GAP_Y = 210;
 
-const PALETTE = [
-  '#ff9f0a', '#6366f1', '#06b6d4', '#22c55e',
-  '#f43f5e', '#a855f7', '#ec4899', '#14b8a6',
-  '#f97316', '#8b5cf6', '#0ea5e9', '#84cc16',
-];
+const STATUS_CONFIG: Record<TaskStatus, { color: string; label: string; bg: string; icon: React.ReactNode }> = {
+  todo:        { color: '#ef4444', label: 'Yapılacak',     bg: 'rgba(239, 68, 68, 0.12)',  icon: <AlertTriangle size={14} /> },
+  in_progress: { color: '#ff9f0a', label: 'Devam Ediyor',  bg: 'rgba(255, 159, 10, 0.12)', icon: <Clock size={14} /> },
+  completed:   { color: '#22c55e', label: 'Tamamlandı',    bg: 'rgba(34, 197, 94, 0.12)',  icon: <CheckCircle2 size={14} /> },
+};
 
 /* ────────────────────── Helpers ────────────────────── */
 const uid = () => `n_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 
+const statusColor = (s: TaskStatus) => STATUS_CONFIG[s].color;
+
+const formatDate = (d: string) => {
+  if (!d) return '';
+  try {
+    return new Date(d).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch { return d; }
+};
+
+const isOverdue = (d: string) => {
+  if (!d) return false;
+  const now = new Date(); now.setHours(0, 0, 0, 0);
+  return new Date(d) < now;
+};
+
 /**
  * Cubic‑Bézier path from source‑node edge → target‑node edge.
- * Direction‑aware: exits through the nearest side.
  */
 const bezierPath = (from: MindMapNode, to: MindMapNode): string => {
   const fcx = from.x + NODE_W / 2;
@@ -48,40 +66,28 @@ const bezierPath = (from: MindMapNode, to: MindMapNode): string => {
   let sx: number, sy: number, ex: number, ey: number;
 
   if (Math.abs(dx) >= Math.abs(dy)) {
-    // horizontal‑dominant
-    if (dx >= 0) {
-      sx = from.x + NODE_W; sy = fcy;
-      ex = to.x;             ey = tcy;
-    } else {
-      sx = from.x;           sy = fcy;
-      ex = to.x + NODE_W;    ey = tcy;
-    }
+    if (dx >= 0) { sx = from.x + NODE_W; sy = fcy; ex = to.x; ey = tcy; }
+    else         { sx = from.x;           sy = fcy; ex = to.x + NODE_W; ey = tcy; }
     const cp = Math.max(Math.abs(dx) * 0.45, 40);
     return `M${sx},${sy} C${sx + Math.sign(dx) * cp},${sy} ${ex - Math.sign(dx) * cp},${ey} ${ex},${ey}`;
   } else {
-    // vertical‑dominant
-    if (dy >= 0) {
-      sx = fcx; sy = from.y + NODE_H;
-      ex = tcx; ey = to.y;
-    } else {
-      sx = fcx; sy = from.y;
-      ex = tcx; ey = to.y + NODE_H;
-    }
+    if (dy >= 0) { sx = fcx; sy = from.y + NODE_H; ex = tcx; ey = to.y; }
+    else         { sx = fcx; sy = from.y;           ex = tcx; ey = to.y + NODE_H; }
     const cp = Math.max(Math.abs(dy) * 0.45, 40);
     return `M${sx},${sy} C${sx},${sy + Math.sign(dy) * cp} ${ex},${ey - Math.sign(dy) * cp} ${ex},${ey}`;
   }
 };
 
 /* ────────────────────── Edge Component ────────────────────── */
-const MindMapEdge = memo(({ d }: { d: string }) => (
+const MindMapEdgeComp = memo(({ d, color }: { d: string; color: string }) => (
   <g>
-    <path d={d} className="mindmap-edge-path" />
-    <circle r="4" className="mindmap-flow-dot">
+    <path d={d} className="mindmap-edge-path" style={{ stroke: color }} />
+    <circle r="4" className="mindmap-flow-dot" style={{ fill: color }}>
       <animateMotion dur="2.8s" repeatCount="indefinite" path={d} />
     </circle>
   </g>
 ));
-MindMapEdge.displayName = 'MindMapEdge';
+MindMapEdgeComp.displayName = 'MindMapEdgeComp';
 
 /* ────────────────────── Node Component ────────────────────── */
 interface NodeProps {
@@ -103,6 +109,8 @@ const MindMapNodeCard = memo<NodeProps>(({
   onAddNode, onTitleChange, onEditEnd, onDelete,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const sc = STATUS_CONFIG[node.status];
+  const sColor = sc.color;
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -119,14 +127,15 @@ const MindMapNodeCard = memo<NodeProps>(({
         top: node.y,
         width: NODE_W,
         height: NODE_H,
-        '--node-color': node.color,
+        '--node-color': sColor,
+        borderColor: isSelected ? sColor : undefined,
       } as React.CSSProperties}
       onMouseDown={(e) => onMouseDown(e, node.id)}
       onClick={(e) => onClick(e, node.id)}
       onDoubleClick={(e) => onDoubleClick(e, node.id)}
     >
-      {/* Color bar top */}
-      <div className="mindmap-node-color-bar" style={{ background: node.color }} />
+      {/* Status color bar */}
+      <div className="mindmap-node-color-bar" style={{ background: sColor }} />
 
       {/* Content */}
       <div className="mindmap-node-content">
@@ -147,10 +156,24 @@ const MindMapNodeCard = memo<NodeProps>(({
             onMouseDown={(e) => e.stopPropagation()}
           />
         ) : (
-          <span className={`mindmap-node-title${!node.title ? ' placeholder' : ''}`}>
-            {node.title || 'Çift tıkla...'}
-          </span>
+          <div className="mindmap-node-info">
+            <span className={`mindmap-node-title${!node.title ? ' placeholder' : ''}`}>
+              {node.title || 'Tıkla ve düzenle'}
+            </span>
+            {node.dueDate && (
+              <span className={`mindmap-node-date${isOverdue(node.dueDate) && node.status !== 'completed' ? ' overdue' : ''}`}>
+                <Calendar size={10} />
+                {formatDate(node.dueDate)}
+              </span>
+            )}
+          </div>
         )}
+      </div>
+
+      {/* Status badge */}
+      <div className="mindmap-node-status-badge" style={{ background: sc.bg, color: sColor }}>
+        {sc.icon}
+        <span>{sc.label}</span>
       </div>
 
       {/* Delete button (non-root) */}
@@ -181,13 +204,153 @@ const MindMapNodeCard = memo<NodeProps>(({
 });
 MindMapNodeCard.displayName = 'MindMapNodeCard';
 
+/* ────────────────────── Task Detail Modal ────────────────────── */
+interface DetailModalProps {
+  node: MindMapNode;
+  onUpdate: (id: string, updates: Partial<MindMapNode>) => void;
+  onClose: () => void;
+  onDelete: (id: string) => void;
+}
+
+const TaskDetailModal: React.FC<DetailModalProps> = ({ node, onUpdate, onClose, onDelete }) => {
+  const [title, setTitle] = useState(node.title);
+  const [description, setDescription] = useState(node.description);
+  const [dueDate, setDueDate] = useState(node.dueDate);
+  const [status, setStatus] = useState<TaskStatus>(node.status);
+
+  // Sync when node changes externally
+  useEffect(() => {
+    setTitle(node.title);
+    setDescription(node.description);
+    setDueDate(node.dueDate);
+    setStatus(node.status);
+  }, [node.id, node.title, node.description, node.dueDate, node.status]);
+
+  const handleSave = () => {
+    onUpdate(node.id, { title, description, dueDate, status });
+    onClose();
+  };
+
+  const sc = STATUS_CONFIG[status];
+
+  return (
+    <div className="mindmap-modal-backdrop" onClick={onClose}>
+      <div className="mindmap-modal" onClick={(e) => e.stopPropagation()}>
+        {/* Status color top bar */}
+        <div className="mindmap-modal-status-bar" style={{ background: sc.color }} />
+
+        {/* Header */}
+        <div className="mindmap-modal-header">
+          <div className="mindmap-modal-header-left">
+            <FileText size={20} style={{ color: sc.color }} />
+            <span>Görev Detayı</span>
+          </div>
+          <button className="mindmap-modal-close" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="mindmap-modal-body">
+          {/* Title */}
+          <div className="mindmap-modal-field">
+            <label>Görev Adı</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Görev adını girin..."
+              className="mindmap-modal-input"
+              autoFocus
+            />
+          </div>
+
+          {/* Description */}
+          <div className="mindmap-modal-field">
+            <label>Görev Tanımı</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Görev açıklamasını yazın..."
+              className="mindmap-modal-textarea"
+              rows={4}
+            />
+          </div>
+
+          {/* Due Date */}
+          <div className="mindmap-modal-field">
+            <label>
+              <Calendar size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} />
+              Bitiş Tarihi (Deadline)
+            </label>
+            <input
+              type="date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              className="mindmap-modal-input"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="mindmap-modal-field">
+            <label>Durum</label>
+            <div className="mindmap-status-selector">
+              {(Object.keys(STATUS_CONFIG) as TaskStatus[]).map((s) => {
+                const cfg = STATUS_CONFIG[s];
+                const isActive = status === s;
+                return (
+                  <button
+                    key={s}
+                    className={`mindmap-status-btn${isActive ? ' active' : ''}`}
+                    style={{
+                      '--status-color': cfg.color,
+                      '--status-bg': cfg.bg,
+                      background: isActive ? cfg.bg : undefined,
+                      color: isActive ? cfg.color : undefined,
+                      borderColor: isActive ? cfg.color : undefined,
+                    } as React.CSSProperties}
+                    onClick={() => setStatus(s)}
+                  >
+                    {cfg.icon}
+                    <span>{cfg.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mindmap-modal-footer">
+          {node.id !== 'root' && (
+            <button
+              className="mindmap-modal-delete-btn"
+              onClick={() => { onDelete(node.id); onClose(); }}
+            >
+              <X size={14} />
+              Sil
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
+          <button className="mindmap-modal-cancel-btn" onClick={onClose}>
+            İptal
+          </button>
+          <button className="mindmap-modal-save-btn" onClick={handleSave}>
+            Kaydet
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ────────────────────── Main Canvas ────────────────────── */
 export const TaskMindMapCanvas: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   /* ── state ── */
   const [nodes, setNodes] = useState<MindMapNode[]>([
-    { id: 'root', x: 0, y: 0, title: 'Merkez Görev', color: '#ff9f0a', parentId: null },
+    { id: 'root', x: 0, y: 0, title: 'Merkez Görev', description: '', dueDate: '', status: 'in_progress', parentId: null },
   ]);
   const [edges, setEdges] = useState<MindMapEdge[]>([]);
 
@@ -196,6 +359,11 @@ export const TaskMindMapCanvas: React.FC = () => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailNodeId, setDetailNodeId] = useState<string | null>(null);
+
+  // drag tracking
+  const wasDragRef = useRef(false);
+  const dragDistRef = useRef(0);
 
   // interaction refs (avoid stale closures)
   const isPanningRef = useRef(false);
@@ -247,7 +415,6 @@ export const TaskMindMapCanvas: React.FC = () => {
   /* ── pointer handlers (pan + node‑drag) ── */
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     const target = e.target as HTMLElement;
-    // Only start canvas pan if clicking on canvas background
     if (
       target === containerRef.current ||
       target.classList.contains('mindmap-canvas-world') ||
@@ -272,6 +439,7 @@ export const TaskMindMapCanvas: React.FC = () => {
     if (isDraggingNodeRef.current && dragNodeIdRef.current) {
       const dx = (e.clientX - dragStartRef.current.x) / zoomRef.current;
       const dy = (e.clientY - dragStartRef.current.y) / zoomRef.current;
+      dragDistRef.current += Math.abs(dx) + Math.abs(dy);
       dragStartRef.current = { x: e.clientX, y: e.clientY };
       setNodes((prev) =>
         prev.map((n) =>
@@ -283,6 +451,9 @@ export const TaskMindMapCanvas: React.FC = () => {
 
   const handlePointerUp = useCallback(() => {
     isPanningRef.current = false;
+    if (isDraggingNodeRef.current && dragDistRef.current > 5) {
+      wasDragRef.current = true;
+    }
     isDraggingNodeRef.current = false;
     dragNodeIdRef.current = null;
   }, []);
@@ -293,11 +464,18 @@ export const TaskMindMapCanvas: React.FC = () => {
     isDraggingNodeRef.current = true;
     dragNodeIdRef.current = nodeId;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragDistRef.current = 0;
+    wasDragRef.current = false;
     setSelectedId(nodeId);
   }, []);
 
   const handleNodeClick = useCallback((e: React.MouseEvent, nodeId: string) => {
     e.stopPropagation();
+    // Only open detail modal if it wasn't a drag
+    if (!wasDragRef.current) {
+      setDetailNodeId(nodeId);
+    }
+    wasDragRef.current = false;
     setSelectedId(nodeId);
   }, []);
 
@@ -323,7 +501,6 @@ export const TaskMindMapCanvas: React.FC = () => {
           case 'top':    ny -= GAP_Y; break;
         }
 
-        // collision avoidance — push further in the same direction
         const tooClose = (x: number, y: number) =>
           prev.some((n) => Math.abs(n.x - x) < NODE_W + 30 && Math.abs(n.y - y) < NODE_H + 30);
 
@@ -344,35 +521,30 @@ export const TaskMindMapCanvas: React.FC = () => {
           x: nx,
           y: ny,
           title: '',
-          color: PALETTE[prev.length % PALETTE.length],
+          description: '',
+          dueDate: '',
+          status: 'todo',
           parentId,
         };
 
-        // schedule editing after render
+        // Open detail modal for new node
         setTimeout(() => {
-          setEditingId(newId);
+          setDetailNodeId(newId);
           setSelectedId(newId);
-        }, 50);
+        }, 80);
 
         return [...prev, newNode];
       });
 
-      setEdges((prev) => {
-        // we need the new id — reconstruct it (not ideal, but functional)
-        // Instead, let's compute it in a single setNodes + setEdges call
-        return prev;
-      });
-
-      // We'll handle edge creation via an effect
+      setEdges((prev) => prev);
     },
     [],
   );
 
-  // Sync edges when nodes change (simpler than coordinating two setState calls)
+  // Sync edges when nodes change
   const prevNodesLenRef = useRef(nodes.length);
   useEffect(() => {
     if (nodes.length > prevNodesLenRef.current) {
-      // New node(s) added — find nodes without edges
       const edgedNodes = new Set(edges.flatMap((e) => [e.from, e.to]));
       const orphans = nodes.filter((n) => n.parentId && !edgedNodes.has(n.id));
       if (orphans.length > 0) {
@@ -389,9 +561,13 @@ export const TaskMindMapCanvas: React.FC = () => {
     prevNodesLenRef.current = nodes.length;
   }, [nodes, edges]);
 
-  /* ── title change ── */
+  /* ── update node fields ── */
   const handleTitleChange = useCallback((id: string, title: string) => {
     setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, title } : n)));
+  }, []);
+
+  const handleNodeUpdate = useCallback((id: string, updates: Partial<MindMapNode>) => {
+    setNodes((prev) => prev.map((n) => (n.id === id ? { ...n, ...updates } : n)));
   }, []);
 
   /* ── delete node + descendants ── */
@@ -405,12 +581,9 @@ export const TaskMindMapCanvas: React.FC = () => {
       const del = new Set([nodeId, ...getDesc(nodeId)]);
       return prev.filter((n) => !del.has(n.id));
     });
-    setEdges((prev) => {
-      // Remove edges referencing deleted nodes
-      return prev; // will be cleaned in next effect cycle
-    });
     setSelectedId(null);
     setEditingId(null);
+    setDetailNodeId(null);
   }, []);
 
   // Clean stale edges
@@ -450,13 +623,16 @@ export const TaskMindMapCanvas: React.FC = () => {
   /* ── keyboard ── */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' && selectedId && selectedId !== 'root' && !editingId) {
+      if (e.key === 'Delete' && selectedId && selectedId !== 'root' && !editingId && !detailNodeId) {
         deleteNode(selectedId);
+      }
+      if (e.key === 'Escape' && detailNodeId) {
+        setDetailNodeId(null);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, editingId, deleteNode]);
+  }, [selectedId, editingId, detailNodeId, deleteNode]);
 
   /* ── cursor style ── */
   const cursorStyle = isPanningRef.current
@@ -464,6 +640,8 @@ export const TaskMindMapCanvas: React.FC = () => {
     : isDraggingNodeRef.current
       ? 'grabbing'
       : 'grab';
+
+  const detailNode = detailNodeId ? nodes.find((n) => n.id === detailNodeId) : null;
 
   /* ────────────────────── Render ────────────────────── */
   return (
@@ -476,7 +654,7 @@ export const TaskMindMapCanvas: React.FC = () => {
       onPointerLeave={handlePointerUp}
       style={{ cursor: cursorStyle }}
     >
-      {/* Dot‑grid background (stays fixed relative to container) */}
+      {/* Dot‑grid background */}
       <div className="mindmap-grid-pattern" />
 
       {/* Transformed world */}
@@ -493,7 +671,13 @@ export const TaskMindMapCanvas: React.FC = () => {
             const from = nodes.find((n) => n.id === edge.from);
             const to = nodes.find((n) => n.id === edge.to);
             if (!from || !to) return null;
-            return <MindMapEdge key={edge.id} d={bezierPath(from, to)} />;
+            return (
+              <MindMapEdgeComp
+                key={edge.id}
+                d={bezierPath(from, to)}
+                color={statusColor(to.status)}
+              />
+            );
           })}
         </svg>
 
@@ -563,8 +747,18 @@ export const TaskMindMapCanvas: React.FC = () => {
 
       {/* ── Hint ── */}
       <div className="mindmap-hint">
-        Tekerlek: Zoom • Sürükle: Hareket • Çift tıkla: Düzenle • Delete: Sil
+        Tıkla: Detay • Sürükle: Taşı • Tekerlek: Zoom • Delete: Sil
       </div>
+
+      {/* ── Task Detail Modal ── */}
+      {detailNode && (
+        <TaskDetailModal
+          node={detailNode}
+          onUpdate={handleNodeUpdate}
+          onClose={() => setDetailNodeId(null)}
+          onDelete={deleteNode}
+        />
+      )}
     </div>
   );
 };
