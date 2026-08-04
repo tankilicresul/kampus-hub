@@ -2,8 +2,9 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import {
   Search, Plus, List, Kanban, RefreshCw, AlertCircle, X,
-  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, Trash2, ChevronDown,
+  Calendar, Tag, User, Repeat, MessageSquare, Paperclip, Clock, Trash2, ChevronDown, Share2,
 } from 'lucide-react';
+import { TaskMindMapCanvas } from './TaskMindMapCanvas';
 import {
   DndContext,
   DragOverlay,
@@ -1784,8 +1785,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   const { activeWorkspace, user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>(() => {
-    return (localStorage.getItem('kh_tasks_view_mode') as 'kanban' | 'list') || 'kanban';
+  const [viewMode, setViewMode] = useState<'kanban' | 'list' | 'mindmap'>(() => {
+    return (localStorage.getItem('kh_tasks_view_mode') as 'kanban' | 'list' | 'mindmap') || 'kanban';
   });
 
   useEffect(() => {
@@ -2478,10 +2479,20 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                 style={{ paddingLeft: '44px' }}
               />
             </div>
-            <button className="btn btn-secondary" onClick={() => setViewMode(viewMode === 'kanban' ? 'list' : 'kanban')}>
-              {viewMode === 'kanban' ? <List size={18} /> : <Kanban size={18} />}
-              <span className="btn-text">{viewMode === 'kanban' ? 'Liste' : 'Pano'}</span>
-            </button>
+            <div className="view-switcher">
+              <button className={`view-switcher-btn ${viewMode === 'list' ? 'active' : ''}`} onClick={() => setViewMode('list')}>
+                <List size={15} />
+                <span className="btn-text">Liste</span>
+              </button>
+              <button className={`view-switcher-btn ${viewMode === 'kanban' ? 'active' : ''}`} onClick={() => setViewMode('kanban')}>
+                <Kanban size={15} />
+                <span className="btn-text">Pano</span>
+              </button>
+              <button className={`view-switcher-btn ${viewMode === 'mindmap' ? 'active' : ''}`} onClick={() => setViewMode('mindmap')}>
+                <Share2 size={15} />
+                <span className="btn-text">Harita</span>
+              </button>
+            </div>
             <button className="btn btn-secondary btn-icon-only" onClick={loadTasks} title="Yenile">
               <RefreshCw size={16} />
             </button>
@@ -2594,6 +2605,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
           <h3 style={{ fontWeight: 700 }}>Görev Yok</h3>
           <p style={{ fontSize: '0.85rem' }}>Yeni görev ekleyerek başlayın</p>
         </div>
+      ) : viewMode === 'mindmap' ? (
+        <TaskMindMapCanvas />
       ) : viewMode === 'kanban' ? (
         <DndContext
           sensors={sensors}
