@@ -12,9 +12,9 @@ import { PwaInstallPrompt } from './components/PwaInstallPrompt';
 import { NotificationBell } from './components/NotificationBell';
 import { WorkspaceSettingsModal } from './components/WorkspaceSettingsModal';
 import { 
-  LogOut, Plus, CheckSquare, BarChart4, User, Crown,
+  LogOut, Plus, User, Crown,
   Sun, Moon, UserPlus, Mail, Check, X, Download, Bell, Users, Menu,
-  MessageSquare, Shield, CalendarDays, Newspaper, ChevronDown, LayoutDashboard
+  MessageSquare, Newspaper, ChevronDown
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -35,8 +35,8 @@ export const AppLayout: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState<'content_panel' | 'tasks' | 'updates' | 'crm' | 'profile' | 'messages' | 'admin' | 'calendar' | 'news'>(() => {
     const saved = localStorage.getItem('kh_active_tab');
-    if (saved) return saved as any;
-    return 'content_panel';
+    if (saved && ['news', 'messages', 'profile'].includes(saved)) return saved as any;
+    return 'news';
   });
 
   useEffect(() => {
@@ -265,16 +265,13 @@ export const AppLayout: React.FC = () => {
       {/* Sidebar - Workspace switcher (Desktop only) */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <div className="brand-logo-panel" onClick={handleLogoClick} title="TanCoreLab Topluluğu & Haberler Hub'ına Git" style={{ cursor: 'pointer' }}>
+          <div className="brand-logo-panel" onClick={handleLogoClick} title="TanCoreLab Haberler'e Git" style={{ cursor: 'pointer' }}>
             <img 
               src="/logo.svg" 
               alt="TanCoreLab Logo" 
               className="brand-logo-img" 
             />
-            <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-              <span className="brand-logo-text">TanCoreLab</span>
-              <span style={{ fontSize: '0.62rem', color: '#ff9f0a', fontWeight: 800, letterSpacing: '0.08em', marginTop: '-2px' }}>TOPLULUK HUB</span>
-            </div>
+            <span className="brand-logo-text">TanCoreLab</span>
           </div>
         </div>
         
@@ -781,27 +778,6 @@ export const AppLayout: React.FC = () => {
             <span>Haberler</span>
           </div>
           <div 
-            className={`nav-tab ${activeTab === 'content_panel' ? 'active' : ''}`}
-            onClick={() => handleTabChange('content_panel')}
-          >
-            <LayoutDashboard size={16} />
-            <span>İçerik Panelim</span>
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'updates' ? 'active' : ''}`}
-            onClick={() => handleTabChange('updates')}
-          >
-            <CalendarDays size={16} />
-            <span>Güncellemeler</span>
-          </div>
-          <div 
-            className={`nav-tab ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => handleTabChange('crm')}
-          >
-            <BarChart4 size={16} />
-            <span>CRM</span>
-          </div>
-          <div 
             className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
             onClick={() => handleTabChange('messages')}
             style={{ position: 'relative' }}
@@ -825,22 +801,6 @@ export const AppLayout: React.FC = () => {
               </span>
             )}
           </div>
-          <div 
-            className={`nav-tab ${activeTab === 'tasks' ? 'active' : ''}`}
-            onClick={() => handleTabChange('tasks')}
-          >
-            <CheckSquare size={16} />
-            <span>Görevler</span>
-          </div>
-          {role && ['owner', 'admin'].includes(role) && (
-            <div 
-              className={`nav-tab ${activeTab === 'admin' ? 'active' : ''}`}
-              onClick={() => handleTabChange('admin')}
-            >
-              <Shield size={16} />
-              <span>Admin</span>
-            </div>
-          )}
           <div 
             className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
             onClick={() => handleTabChange('profile')}
@@ -982,28 +942,12 @@ export const AppLayout: React.FC = () => {
       {/* Sticky Bottom Navigation Bar (Mobile View) */}
       <div className="mobile-nav-bar">
         <button 
-          className={`mobile-nav-item ${activeTab === 'content_panel' ? 'active' : ''}`}
-          onClick={() => handleTabChange('content_panel')}
+          className={`mobile-nav-item ${activeTab === 'news' ? 'active' : ''}`}
+          onClick={() => handleTabChange('news')}
         >
-          <LayoutDashboard size={20} />
-          <span>İçerik</span>
+          <Newspaper size={20} />
+          <span>Haberler</span>
         </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'updates' ? 'active' : ''}`}
-          onClick={() => handleTabChange('updates')}
-        >
-          <CalendarDays size={20} />
-          <span>Rapor</span>
-        </button>
-        {role && ['owner', 'admin', 'manager'].includes(role) && (
-          <button 
-            className={`mobile-nav-item ${activeTab === 'crm' ? 'active' : ''}`}
-            onClick={() => handleTabChange('crm')}
-          >
-            <BarChart4 size={20} />
-            <span>CRM</span>
-          </button>
-        )}
         <button 
           className={`mobile-nav-item ${activeTab === 'messages' ? 'active' : ''}`}
           onClick={() => handleTabChange('messages')}
@@ -1028,22 +972,6 @@ export const AppLayout: React.FC = () => {
             </span>
           )}
         </button>
-        <button 
-          className={`mobile-nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
-          onClick={() => handleTabChange('tasks')}
-        >
-          <CheckSquare size={20} />
-          <span>Görevler</span>
-        </button>
-        {role && ['owner', 'admin'].includes(role) && (
-          <button 
-            className={`mobile-nav-item ${activeTab === 'admin' ? 'active' : ''}`}
-            onClick={() => handleTabChange('admin')}
-          >
-            <Shield size={20} />
-            <span>Admin</span>
-          </button>
-        )}
         <button 
           className={`mobile-nav-item ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => handleTabChange('profile')}
