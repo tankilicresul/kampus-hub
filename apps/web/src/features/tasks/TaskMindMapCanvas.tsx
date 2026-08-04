@@ -406,12 +406,38 @@ export const TaskMindMapCanvas: React.FC = () => {
     localStorage.setItem('kh_mindmap_edges', JSON.stringify(edges));
   }, [edges]);
 
-  /* ── center on mount ── */
+  /* ── center on mount (layout & size observer aware) ── */
   useEffect(() => {
-    if (containerRef.current) {
-      const r = containerRef.current.getBoundingClientRect();
-      setPan({ x: r.width / 2 - NODE_W / 2, y: r.height / 2 - NODE_H / 2 });
-    }
+    const el = containerRef.current;
+    if (!el) return;
+
+    let centered = false;
+
+    const center = () => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 100 && r.height > 100 && !centered) {
+        setPan({ x: r.width / 2 - NODE_W / 2, y: r.height / 2 - NODE_H / 2 });
+        setZoom(1);
+        centered = true;
+      }
+    };
+
+    center();
+
+    // Retries in case of layout animations/transitions
+    const timer1 = setTimeout(center, 80);
+    const timer2 = setTimeout(center, 250);
+
+    const observer = new ResizeObserver(() => {
+      center();
+    });
+    observer.observe(el);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      observer.disconnect();
+    };
   }, []);
 
   /* ── wheel zoom (non‑passive) ── */
