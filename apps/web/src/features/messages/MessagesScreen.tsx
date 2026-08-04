@@ -31,6 +31,15 @@ const getAvatarGradient = (userId: string) => {
   return gradients[hash % gradients.length];
 };
 
+const GENERAL_CHAT_WS_ID = '00000000-0000-0000-0000-000000000000';
+
+interface WorkspaceMember {
+  user_id: string;
+  full_name: string;
+  avatar_url: string | null;
+  role: string;
+}
+
 interface MessagesScreenProps {
   initialDMUserId?: string | null;
   onClearInitialDM?: () => void;
@@ -66,33 +75,48 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
   const [dmRooms, setDmRooms] = useState<any[]>([]); // DMs
   const [selectedRoom, setSelectedRoom] = useState<any | null>(null);
   const [pendingInvites, setPendingInvites] = useState<any[]>([]);
-  const [workspaceMembers, setWorkspaceMembers] = useState<any[]>([]);
   
-  // Modals & Forms
+  // Modals
   const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceMember[]>([]);
   
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load active workspace members
+  // Load active workspace or platform members
   const loadWorkspaceMembers = useCallback(async () => {
-    if (!activeWorkspace?.id) return;
     try {
-      const { data, error } = await supabase
-        .from('workspace_members')
-        .select('user_id, permission_role, profiles(full_name, avatar_url)')
-        .eq('workspace_id', activeWorkspace.id);
-        
-      if (error) throw error;
-      if (data) {
-        setWorkspaceMembers(data.map((m: any) => ({
-          user_id: m.user_id,
-          full_name: m.profiles?.full_name || 'İsimsiz Üye',
-          avatar_url: m.profiles?.avatar_url || null,
-          role: m.permission_role,
-        })));
+      if (activeWorkspace?.id) {
+        const { data, error } = await supabase
+          .from('workspace_members')
+          .select('user_id, permission_role, profiles(full_name, avatar_url)')
+          .eq('workspace_id', activeWorkspace.id);
+          
+        if (error) throw error;
+        if (data) {
+          setWorkspaceMembers(data.map((m: any) => ({
+            user_id: m.user_id,
+            full_name: m.profiles?.full_name || 'İsimsiz Üye',
+            avatar_url: m.profiles?.avatar_url || null,
+            role: m.permission_role,
+          })));
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, role')
+          .limit(100);
+
+        if (!error && data) {
+          setWorkspaceMembers(data.map((p: any) => ({
+            user_id: p.id,
+            full_name: p.full_name || 'İsimsiz Üye',
+            avatar_url: p.avatar_url || null,
+            role: p.role || 'member',
+          })));
+        }
       }
     } catch (err) {
       console.error('Load workspace members failed:', err);
@@ -101,7 +125,8 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
 
   // Load chat rooms (groups & DMs)
   const loadRooms = useCallback(async () => {
-    if (!activeWorkspace?.id || !user?.id) return;
+    if (!user?.id) return;
+    const wsId = activeWorkspace?.id || GENERAL_CHAT_WS_ID;
     try {
       const { data, error } = await supabase
         .from('chat_rooms')
@@ -109,7 +134,7 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
           *,
           members:chat_room_members(user_id, status, profile:profiles(full_name, avatar_url))
         `)
-        .eq('workspace_id', activeWorkspace.id);
+        .eq('workspace_id', wsId);
         
       if (error) throw error;
       
@@ -136,7 +161,7 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
 
   // Load messages for general chat or selected room
   const loadMessages = useCallback(async () => {
-    if (!activeWorkspace?.id) return;
+    const wsId = activeWorkspace?.id || GENERAL_CHAT_WS_ID;
     setLoading(true);
     try {
       let query = supabase
@@ -146,7 +171,7 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
           profile:profiles!workspace_messages_user_id_fkey(full_name, avatar_url),
           reply_to:reply_to_id(content, profile:profiles!workspace_messages_user_id_fkey(full_name))
         `)
-        .eq('workspace_id', activeWorkspace.id)
+        .eq('workspace_id', wsId)
         .is('deleted_at', null)
         .order('created_at', { ascending: true })
         .limit(200);
@@ -192,16 +217,16 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
 
   // Real-time message subscription
   useEffect(() => {
-    if (!activeWorkspace?.id) return;
+    const wsId = activeWorkspace?.id || GENERAL_CHAT_WS_ID;
     const channel = supabase
-      .channel(`ws-messages-${activeWorkspace.id}`)
+      .channel(`ws-messages-${wsId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'workspace_messages',
-          filter: `workspace_id=eq.${activeWorkspace.id}`,
+          filter: `workspace_id=eq.${wsId}`,
         },
         (payload: any) => {
           const newMsg = payload.new;
@@ -218,9 +243,10 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
 
   // Real-time rooms / membership subscription
   useEffect(() => {
-    if (!activeWorkspace?.id || !user?.id) return;
+    if (!user?.id) return;
+    const wsId = activeWorkspace?.id || GENERAL_CHAT_WS_ID;
     const channel = supabase
-      .channel(`ws-rooms-${activeWorkspace.id}`)
+      .channel(`ws-rooms-${wsId}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'chat_room_members' },
@@ -228,7 +254,7 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_rooms', filter: `workspace_id=eq.${activeWorkspace.id}` },
+        { event: '*', schema: 'public', table: 'chat_rooms', filter: `workspace_id=eq.${wsId}` },
         () => { loadRooms(); }
       )
       .subscribe();
@@ -241,11 +267,12 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
 
   // Send Message
   const handleSend = async () => {
-    if (!content.trim() || !activeWorkspace?.id || !user?.id) return;
+    if (!content.trim() || !user?.id) return;
+    const wsId = activeWorkspace?.id || GENERAL_CHAT_WS_ID;
     setSending(true);
     try {
       const { error } = await supabase.from('workspace_messages').insert({
-        workspace_id: activeWorkspace.id,
+        workspace_id: wsId,
         user_id: user.id,
         content: content.trim(),
         reply_to_id: replyTo?.id || null,
@@ -750,7 +777,7 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <h2 style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {chatTab === 'general' ? `${activeWorkspace?.name || 'Ekip'} Grubu` : chatTab === 'groups' ? selectedRoom.name : getDMName(selectedRoom)}
+                      {chatTab === 'general' ? (activeWorkspace ? `${activeWorkspace.name} Ekip Sohbeti` : 'TanCoreLab Genel Sohbet 💬') : chatTab === 'groups' ? selectedRoom.name : getDMName(selectedRoom)}
                     </span>
                     {messages.length > 0 && (
                       <span style={{
@@ -763,10 +790,10 @@ export const MessagesScreen: React.FC<MessagesScreenProps> = ({
                   </h2>
                   <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {chatTab === 'general' 
-                      ? 'Tüm ekip üyeleri bu kanalı görüntüleyebilir' 
+                      ? (activeWorkspace ? 'Tüm ekip üyeleri bu kanalı görüntüleyebilir' : 'TanCoreLab\'e kayıt olan herkesin mesajlaşabildiği ortak sohbet alanı')
                       : chatTab === 'groups' 
-                        ? `${selectedRoom.members?.length || 0} üye bu grupta`
-                        : 'Birebir özel mesajlaşma'
+                        ? `${selectedRoom?.members?.length || 0} üye` 
+                        : 'Birebir Özel Sohbet'
                     }
                   </p>
                 </div>
