@@ -346,10 +346,10 @@ export const CalendarScreen: React.FC = () => {
   const dayNames = ['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '24px', paddingBottom: '48px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '10px' : '16px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: isMobile ? '0px 0px 32px' : '16px 24px 48px' }}>
       
       {/* Header Controls — Ekip Görevleri / Benim Görevlerim Tek Satırda Merkezi */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '4px 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '0' }}>
         <div style={{
           display: 'inline-flex',
           gap: '4px',
@@ -398,9 +398,9 @@ export const CalendarScreen: React.FC = () => {
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '10px' : '14px', backgroundColor: 'var(--bg-surface)', border: '1px solid var(--border-glass)', borderRadius: '16px', padding: isMobile ? '12px 10px' : '20px' }}>
           {/* Calendar Navigation */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
             <button
               className="btn btn-secondary"
               style={{ padding: '8px 12px', borderRadius: '10px' }}
@@ -408,7 +408,7 @@ export const CalendarScreen: React.FC = () => {
             >
               <ChevronLeft size={18} />
             </button>
-            <span style={{ fontWeight: 800, fontSize: '1.15rem', color: 'var(--text-primary)' }}>
+            <span style={{ fontWeight: 800, fontSize: isMobile ? '1rem' : '1.15rem', color: 'var(--text-primary)' }}>
               {monthNames[month]} {year}
             </span>
             <button
@@ -421,16 +421,16 @@ export const CalendarScreen: React.FC = () => {
           </div>
 
           {/* Day Names Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '4px' : '6px' }}>
             {dayNames.map(d => (
-              <div key={d} style={{ textAlign: 'center', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', padding: '6px 0' }}>
+              <div key={d} style={{ textAlign: 'center', fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)', padding: '4px 0' }}>
                 {d}
               </div>
             ))}
           </div>
 
           {/* Calendar Cells Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: isMobile ? '4px' : '6px' }}>
             {cells.map((cell, idx) => {
               const cellDateStr = getLocalDate(cell.date);
               const cellTasks = filteredTasks.filter(t => {
@@ -450,8 +450,8 @@ export const CalendarScreen: React.FC = () => {
                 <div
                   key={idx}
                   style={{
-                    minHeight: isMobile ? '52px' : '100px',
-                    borderRadius: '12px',
+                    aspectRatio: '1 / 1',
+                    borderRadius: isMobile ? '10px' : '12px',
                     border: isSelected
                       ? '2.5px solid var(--accent-color)'
                       : (isToday
@@ -461,6 +461,8 @@ export const CalendarScreen: React.FC = () => {
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     backgroundColor: cellTasks.length === 0
                       ? (isToday ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : cell.isCurrentMonth ? 'rgba(255,255,255,0.01)' : 'rgba(255,255,255,0.03)')
                       : (isSelected ? 'rgba(var(--accent-rgb, 255,159,10), 0.05)' : 'transparent'),
@@ -474,12 +476,11 @@ export const CalendarScreen: React.FC = () => {
                     }
                   }}
                 >
-                  {/* Day number */}
                   <span style={{
-                    position: 'absolute',
-                    top: isMobile ? '4px' : '6px',
-                    right: isMobile ? '6px' : '8px',
-                    fontSize: isMobile ? '0.7rem' : '0.75rem',
+                    position: isMobile && cellTasks.length === 0 ? 'static' : 'absolute',
+                    top: isMobile ? (cellTasks.length > 0 ? '3px' : 'auto') : '6px',
+                    right: isMobile ? 'auto' : '8px',
+                    fontSize: isMobile ? '0.78rem' : '0.75rem',
                     fontWeight: (isToday || isSelected) ? 900 : 700,
                     color: isToday ? 'var(--accent-color)' : (cell.isCurrentMonth ? 'var(--text-primary)' : 'var(--text-muted)'),
                     zIndex: 2,

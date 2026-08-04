@@ -991,8 +991,8 @@ body {
   }
 
   .view-area {
-    padding: 12px 10px;
-    padding-bottom: 96px; /* Safe padding for bottom navigation */
+    padding: 6px 10px;
+    padding-bottom: 84px; /* Safe padding for bottom navigation */
   }
 
   .mobile-nav-bar {
