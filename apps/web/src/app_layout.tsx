@@ -1144,8 +1144,8 @@ export const AppLayout: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="mobile-drawer-backdrop" onClick={() => setIsMobileMenuOpen(false)}>
           <div className="mobile-drawer" onClick={(e) => e.stopPropagation()}>
-            <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', borderBottom: '1px solid var(--border-sidebar-glass)' }}>
-              <div className="brand-logo-panel mobile-brand-panel" onClick={() => { handleLogoClick(); setIsMobileMenuOpen(false); }} style={{ cursor: 'pointer' }}>
+            <div className="mobile-drawer-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 14px', borderBottom: '1px solid var(--border-sidebar-glass)' }}>
+              <div className="brand-logo-panel mobile-brand-panel" onClick={() => { handleLogoClick(); setIsMobileMenuOpen(false); }} style={{ cursor: 'pointer', flex: 1, marginRight: '10px' }}>
                 <img 
                   src="/logo.svg" 
                   alt="TanCoreLab" 
@@ -1157,7 +1157,7 @@ export const AppLayout: React.FC = () => {
               <button 
                 className="btn btn-secondary btn-icon-only" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                style={{ padding: '6px' }}
+                style={{ padding: '8px', background: 'rgba(255, 255, 255, 0.08)', color: '#ffffff', border: '1px solid var(--border-sidebar-glass)', borderRadius: '10px', flexShrink: 0 }}
               >
                 <X size={18} />
               </button>
@@ -1171,14 +1171,15 @@ export const AppLayout: React.FC = () => {
               }}
               style={{
                 padding: '12px 14px',
-                backgroundColor: 'var(--bg-surface-accent)',
-                borderRadius: 'var(--radius-md)',
-                margin: '12px 16px 4px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                margin: '12px 14px 4px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                border: '1px solid var(--border-glass)',
-                cursor: 'pointer'
+                border: '1px solid var(--border-sidebar-glass)',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
               title="Profilim Sayfasına Git"
             >
@@ -1196,23 +1197,24 @@ export const AppLayout: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                flexShrink: 0
+                flexShrink: 0,
+                border: '2px solid rgba(255, 255, 255, 0.15)'
               }}>
                 {!avatarUrl && displayName.substring(0, 2).toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 800, fontSize: '0.9rem', color: 'var(--text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#ffffff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {displayName}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-sidebar, #94a3b8)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {user?.email}
                 </div>
               </div>
             </div>
 
-            <div style={{ padding: '16px', flex: 1, overflowY: 'auto' }}>
+            <div style={{ padding: '14px', flex: 1, overflowY: 'auto' }}>
               {/* Ekip Üyeleri */}
-              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-sidebar, #94a3b8)', letterSpacing: '0.05em', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <span>EKİP ÜYELERİ{workspaceMembers.length > 0 ? ` (${workspaceMembers.length})` : ''}</span>
                 {activeWorkspace && (
                   <span 
@@ -1228,7 +1230,7 @@ export const AppLayout: React.FC = () => {
                 )}
               </div>
               {workspaceMembers.length === 0 && (
-                <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                <div style={{ padding: '12px', fontSize: '0.8rem', color: 'var(--text-sidebar, #94a3b8)', fontStyle: 'italic' }}>
                   Yükleniyor...
                 </div>
               )}
@@ -1251,40 +1253,52 @@ export const AppLayout: React.FC = () => {
                       alignItems: 'center',
                       gap: '12px',
                       padding: '10px 12px',
-                      borderRadius: 'var(--radius-md)',
-                      marginBottom: '4px',
-                      background: isMe ? 'rgba(var(--accent-rgb, 183,1,22), 0.08)' : 'var(--bg-surface-accent)',
-                      border: `1px solid ${isMe ? 'var(--accent-color)' : 'var(--border-glass)'}`,
+                      borderRadius: '10px',
+                      marginBottom: '6px',
+                      background: isMe ? 'rgba(var(--accent-rgb, 255,159,10), 0.12)' : 'rgba(255, 255, 255, 0.04)',
+                      border: `1px solid ${isMe ? 'rgba(var(--accent-rgb, 255,159,10), 0.3)' : 'var(--border-sidebar-glass)'}`,
                       cursor: isMe ? 'pointer' : 'default',
+                      transition: 'all 0.2s'
                     }}
                   >
                     {/* Avatar */}
                     <div style={{
-                      width: '36px',
-                      height: '36px',
+                      width: '34px',
+                      height: '34px',
                       borderRadius: '50%',
-                      backgroundColor: isMe ? 'var(--accent-color)' : 'var(--bg-card)',
+                      backgroundColor: isMe ? 'var(--accent-color)' : 'rgba(255, 255, 255, 0.1)',
                       backgroundImage: member.avatar_url ? `url(${member.avatar_url})` : undefined,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
-                      color: isMe ? 'white' : 'var(--text-secondary)',
+                      color: isMe ? 'white' : 'var(--text-sidebar, #94a3b8)',
                       fontWeight: 800,
                       fontSize: '0.8rem',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       flexShrink: 0,
-                      border: '2px solid var(--border-glass)',
+                      border: '1.5px solid var(--border-sidebar-glass)',
+                      position: 'relative'
                     }}>
                       {!member.avatar_url && initials}
+                      <span style={{
+                        position: 'absolute',
+                        bottom: '-1px',
+                        right: '-1px',
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#10b981',
+                        border: '1.5px solid #090e17'
+                      }} />
                     </div>
 
                     {/* İsim + Rol */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{
                         fontWeight: isMe ? 700 : 500,
-                        fontSize: '0.88rem',
-                        color: 'var(--text-primary)',
+                        fontSize: '0.85rem',
+                        color: '#ffffff',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -1293,12 +1307,30 @@ export const AppLayout: React.FC = () => {
                         gap: '5px',
                       }}>
                         {name}
-                        {isMe && <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', fontWeight: 700 }}>Sen</span>}
+                        {isMe && <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', fontWeight: 700 }}>(Sen)</span>}
                       </div>
-                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-sidebar, #94a3b8)' }}>
                         {isAdmin ? 'Yönetici' : 'Üye'}
                       </div>
                     </div>
+
+                    {!isMe && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMobileMenuOpen(false);
+                          handleStartDMFromModal(member.user_id);
+                        }}
+                        style={{
+                          background: 'none', border: 'none', color: 'var(--text-sidebar, #94a3b8)',
+                          padding: '4px', cursor: 'pointer', borderRadius: '4px',
+                          display: 'flex', alignItems: 'center'
+                        }}
+                        title="Direkt Mesaj Gönder"
+                      >
+                        <MessageSquare size={14} />
+                      </button>
+                    )}
 
                     {/* Admin ikonu */}
                     {isAdmin && <Crown size={14} style={{ color: '#f59e0b', flexShrink: 0 }} />}
@@ -1307,13 +1339,14 @@ export const AppLayout: React.FC = () => {
               })}
             </div>
 
-            <div className="mobile-drawer-footer" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px', borderTop: '1px solid var(--border-sidebar-glass)' }}>
+            <div className="mobile-drawer-footer" style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: '8px', borderTop: '1px solid var(--border-sidebar-glass)' }}>
               <button 
                 className="btn btn-primary btn-block" 
                 onClick={() => {
                   setIsMobileMenuOpen(false);
                   setShowTeamModal(true);
                 }}
+                style={{ padding: '10px 14px', fontSize: '0.85rem', fontWeight: 700, borderRadius: '10px' }}
               >
                 <UserPlus size={16} />
                 <span>Üye Davet Et</span>
@@ -1324,17 +1357,18 @@ export const AppLayout: React.FC = () => {
                   setIsMobileMenuOpen(false);
                   setShowWorkspaceModal(true);
                 }}
+                style={{ padding: '10px 14px', fontSize: '0.85rem', fontWeight: 700, borderRadius: '10px', background: 'rgba(255, 255, 255, 0.06)', color: '#ffffff', border: '1px solid var(--border-sidebar-glass)' }}
               >
                 <Plus size={16} />
                 <span>Yeni Ekip Oluştur</span>
               </button>
 
-              <div style={{ height: '1px', backgroundColor: 'var(--border-sidebar-glass)', margin: '4px 0' }} />
+              <div style={{ height: '1px', backgroundColor: 'var(--border-sidebar-glass)', margin: '2px 0' }} />
 
               <button 
                 className="btn btn-secondary btn-block" 
                 onClick={toggleTheme}
-                style={{ justifyContent: 'flex-start', gap: '10px' }}
+                style={{ justifyContent: 'flex-start', gap: '10px', padding: '10px 14px', background: 'transparent', color: 'var(--text-sidebar, #94a3b8)', border: 'none' }}
               >
                 {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                 <span>{theme === 'dark' ? 'Açık Mod' : 'Koyu Mod'}</span>
@@ -1346,7 +1380,7 @@ export const AppLayout: React.FC = () => {
                   setIsMobileMenuOpen(false);
                   logOut();
                 }}
-                style={{ justifyContent: 'flex-start', gap: '10px' }}
+                style={{ justifyContent: 'flex-start', gap: '10px', padding: '10px 14px', background: 'transparent', color: '#ef4444', border: 'none' }}
               >
                 <LogOut size={16} />
                 <span>Çıkış Yap</span>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth, supabase } from '../../context/AuthContext';
 import { 
-  Calendar, Clock, ChevronLeft, ChevronRight, X
+  Clock, ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 
 interface CalendarTask {
@@ -348,33 +348,46 @@ export const CalendarScreen: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', maxWidth: '100%', boxSizing: 'border-box', padding: '24px', paddingBottom: '48px' }}>
       
-      {/* Header and Toggle Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Calendar size={22} style={{ color: 'var(--accent-color)' }} />
-            Görev Takvimi
-          </h2>
-          <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-            Tüm içerik ve görev planlamalarınızı takvim üzerinde görüntüleyin.
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+      {/* Header Controls — Ekip Görevleri / Benim Görevlerim Tek Satırda Merkezi */}
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '4px 0' }}>
+        <div style={{
+          display: 'inline-flex',
+          gap: '4px',
+          backgroundColor: 'var(--bg-surface)',
+          padding: '4px',
+          borderRadius: '14px',
+          border: '1px solid var(--border-glass)',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
           <button
             className={`btn ${!onlyMine ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setOnlyMine(false)}
-            style={{ fontSize: '0.8rem', padding: '6px 12px', borderRadius: '10px' }}
+            style={{
+              fontSize: '0.82rem',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontWeight: 700,
+              border: 'none',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap'
+            }}
           >
-            Tüm Görevler
+            Ekip Görevleri
           </button>
           <button
             className={`btn ${onlyMine ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => setOnlyMine(true)}
-            style={{ fontSize: '0.8rem', padding: '6px 12px', borderRadius: '10px' }}
+            style={{
+              fontSize: '0.82rem',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              fontWeight: 700,
+              border: 'none',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap'
+            }}
           >
-            Sadece Benim Görevlerim
+            Benim Görevlerim
           </button>
         </div>
       </div>
@@ -558,11 +571,11 @@ export const CalendarScreen: React.FC = () => {
             ))}
           </div>
         </div>
-        {isMobile && selectedDate && (
+        {selectedDate && (
           <div className="mobile-calendar-detail">
             <div className="mobile-calendar-detail-title">
               <span>{selectedDate.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })}</span>
-              <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--accent-color)', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.1)', padding: '2px 8px', borderRadius: '12px' }}>
                 {filteredTasks.filter(t => {
                   const isSocial = t.category ? ['sosyal medya', 'reklam', 'post', 'viral', 'içerik'].some(word => t.category!.toLowerCase().includes(word)) : false;
                   const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
@@ -571,10 +584,10 @@ export const CalendarScreen: React.FC = () => {
                   const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
                   const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
                   return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
-                }).length} Görev
+                }).length} Görev Planlandı
               </span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
               {filteredTasks.filter(t => {
                 const isSocial = t.category ? ['sosyal medya', 'reklam', 'post', 'viral', 'içerik'].some(word => t.category!.toLowerCase().includes(word)) : false;
                 const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
@@ -584,8 +597,8 @@ export const CalendarScreen: React.FC = () => {
                 const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
                 return dueDateFormatted === getLocalDate(selectedDate) || startDateFormatted === getLocalDate(selectedDate) || (!dueDateFormatted && !startDateFormatted && fallbackDate === getLocalDate(selectedDate));
               }).length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '16px', color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                  Bugün için planlanmış bir görev bulunmuyor.
+                <div style={{ textAlign: 'center', padding: '20px 16px', color: 'var(--text-muted)', fontSize: '0.82rem', fontStyle: 'italic', backgroundColor: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
+                  Seçilen tarihte yapılması gereken bir görev bulunmuyor.
                 </div>
               ) : (
                 filteredTasks.filter(t => {
@@ -602,30 +615,49 @@ export const CalendarScreen: React.FC = () => {
                     onClick={() => openTaskEdit(task)}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '12px',
-                      borderRadius: '8px',
+                      flexDirection: 'column',
+                      gap: '6px',
+                      padding: '14px',
+                      borderRadius: '12px',
                       backgroundColor: 'var(--bg-card)',
                       border: '1px solid var(--border-glass)',
-                      cursor: 'pointer'
+                      boxShadow: 'var(--shadow-sm)',
+                      cursor: 'pointer',
+                      transition: 'transform 0.15s, border-color 0.15s'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getStatusColor(task.status) }} />
-                      <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{task.title}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                        <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getStatusColor(task.status), flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.title}</span>
+                      </div>
+                      <span style={{
+                        fontSize: '0.7rem',
+                        padding: '4px 10px',
+                        borderRadius: '12px',
+                        backgroundColor: 'var(--bg-surface-accent)',
+                        color: getStatusColor(task.status),
+                        fontWeight: 700,
+                        border: `1px solid ${getStatusColor(task.status)}30`,
+                        flexShrink: 0
+                      }}>
+                        {task.status === 'completed' ? 'Tamamlandı' : task.status === 'in_progress' ? 'Sürüyor' : task.status === 'revision_required' ? 'Tekrar Yapılmalı' : 'Yapılacak'}
+                      </span>
                     </div>
-                    <span style={{
-                      fontSize: '0.7rem',
-                      padding: '3px 8px',
-                      borderRadius: '12px',
-                      backgroundColor: 'var(--bg-surface-accent)',
-                      color: getStatusColor(task.status),
-                      fontWeight: 700,
-                      border: `1px solid ${getStatusColor(task.status)}30`
-                    }}>
-                      {task.status === 'completed' ? 'Tamamlandı' : task.status === 'in_progress' ? 'Sürüyor' : task.status === 'revision_required' ? 'Tekrar Yapılmalı' : 'Yapılacak'}
-                    </span>
+
+                    {task.description && (
+                      <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {task.description}
+                      </p>
+                    )}
+
+                    {task.category && (
+                      <div style={{ display: 'flex', gap: '6px', marginTop: '2px' }}>
+                        <span style={{ fontSize: '0.68rem', padding: '2px 8px', borderRadius: '6px', backgroundColor: 'rgba(var(--accent-rgb, 255,159,10), 0.08)', color: 'var(--accent-color)', fontWeight: 600 }}>
+                          {task.category}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))
               )}
