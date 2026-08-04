@@ -515,12 +515,18 @@ export const CalendarScreen: React.FC = () => {
               const cellDateStr = getLocalDate(cell.date);
               const cellTasks = filteredTasks.filter(t => {
                 const isSocial = isContentTask(t);
-                const startDate = isSocial ? (t.content_type === 'post' ? t.design_date : t.shooting_date) : t.start_date;
-                const endDate = isSocial ? t.sharing_date : t.due_date;
+                const startDate = isSocial 
+                  ? (t.content_type === 'post' ? (t.design_date || t.shooting_date || t.start_date) : (t.shooting_date || t.design_date || t.start_date)) 
+                  : t.start_date;
+                const endDate = isSocial ? (t.sharing_date || t.due_date) : t.due_date;
                 
                 const dueDateFormatted = endDate ? endDate.slice(0, 10) : null;
                 const startDateFormatted = startDate ? startDate.slice(0, 10) : null;
                 const fallbackDate = t.created_at ? t.created_at.slice(0, 10) : null;
+
+                if (startDateFormatted && dueDateFormatted) {
+                  return cellDateStr >= startDateFormatted && cellDateStr <= dueDateFormatted;
+                }
                 return dueDateFormatted === cellDateStr || startDateFormatted === cellDateStr || (!dueDateFormatted && !startDateFormatted && fallbackDate === cellDateStr);
               });
               const isToday = cellDateStr === todayStr;

@@ -1050,8 +1050,8 @@ body {
     overflow-x: hidden !important;
     overflow-y: auto !important;
     scroll-snap-type: none !important;
-    gap: 16px;
-    padding-bottom: 24px;
+    gap: 12px !important;
+    padding-bottom: 32px;
     height: auto !important;
     max-height: 100% !important;
   }
@@ -1065,8 +1065,9 @@ body {
     background-color: var(--bg-surface);
     border: 1px solid var(--border-glass);
     border-radius: var(--radius-lg);
-    padding: 12px;
-    gap: 10px;
+    padding: 10px 12px !important;
+    gap: 4px !important;
+    box-sizing: border-box !important;
   }
 
   .board-container.content-board .column-cards {
@@ -1077,9 +1078,14 @@ body {
     scroll-snap-type: x mandatory !important;
     -webkit-overflow-scrolling: touch;
     gap: 12px;
-    padding: 4px 2px 8px 2px;
+    padding: 0px 2px 4px 2px;
     width: 100%;
     box-sizing: border-box;
+    min-height: 0 !important;
+  }
+
+  .board-container.content-board .column-cards:empty {
+    display: none !important;
   }
 
   .board-container.content-board .column-cards > * {

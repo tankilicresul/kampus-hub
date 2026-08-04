@@ -1795,6 +1795,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   }, [viewMode]);
 
   const activeViewMode = boardMode === 'content' ? 'kanban' : 'mindmap';
+  const isContentMode = boardMode === 'content';
 
   const [searchQuery] = useState('');
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -1844,6 +1845,26 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
       localStorage.setItem('kh_tasks_active_category', activeCategory);
     }
   }, [activeCategory]);
+
+  useEffect(() => {
+    const handleTriggerAddTask = () => {
+      if (isContentMode) {
+        setNewCategory('Sosyal Medya');
+        setNewContentType('viral');
+        if (members.length === 1) setNewAssignee(members[0].user_id);
+        else setNewAssignee('');
+        setShowAddModal(true);
+      } else {
+        setNewCategory('');
+        if (members.length === 1) setNewAssignee(members[0].user_id);
+        else setNewAssignee('');
+        setShowAddModal(true);
+      }
+    };
+
+    window.addEventListener('trigger-add-task', handleTriggerAddTask);
+    return () => window.removeEventListener('trigger-add-task', handleTriggerAddTask);
+  }, [isContentMode, members]);
 
   const categorySensors = useSensors(
     useSensor(MouseSensor, {
@@ -2227,7 +2248,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
         created_by: user?.id || null,
         primary_assignee_id: newAssignee || (members.length === 1 ? members[0].user_id : null),
         tags: newTags.length > 0 ? newTags : [],
-        category: newCategory || activeCategory || null,
+        category: newCategory || (isContentMode ? 'Sosyal Medya' : (activeCategory || null)),
         order_index: newOrderIdx,
       };
 
@@ -2246,6 +2267,8 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
         taskPayload.ad_cost = newAdCost || null;
         taskPayload.ad_duration = newAdDuration || null;
         taskPayload.post_items = newPostItems || null;
+        taskPayload.start_date = newShootingDate || newDesignDate || newStartDate || null;
+        taskPayload.due_date = newSharingDate || newDueDate || null;
       } else {
         taskPayload.start_date = newStartDate || null;
         taskPayload.due_date = newDueDate || null;
@@ -2448,8 +2471,6 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
     }
   };
 
-  const isContentMode = boardMode === 'content';
-
   const processColumns = [
     { key: 'in_progress', title: 'Sürüyor', color: '#f59e0b', emoji: '' },
     { key: 'todo', title: 'Yapılacak', color: '#38bdf8', emoji: '' },
@@ -2524,6 +2545,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                           type="button"
                           onClick={() => {
                             setNewContentType(col.key);
+                            setNewCategory('Sosyal Medya');
                             if (members.length === 1) setNewAssignee(members[0].user_id);
                             else setNewAssignee('');
                             setShowAddModal(true);
@@ -2570,46 +2592,17 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                   </div>
                   <SortableContext items={columnTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
                     <DroppableCardsArea id={col.key}>
-                      {columnTasks.length === 0 && isContentMode ? (
-                        <div 
-                          onClick={() => {
-                            setNewContentType(col.key);
-                            if (members.length === 1) setNewAssignee(members[0].user_id);
-                            else setNewAssignee('');
-                            setShowAddModal(true);
-                          }}
-                          style={{
-                            padding: '14px 12px',
-                            borderRadius: 'var(--radius-md)',
-                            border: '1px dashed var(--border-glass)',
-                            color: 'var(--text-muted)',
-                            fontSize: '0.8rem',
-                            fontWeight: 600,
-                            textAlign: 'center',
-                            cursor: 'pointer',
-                            width: '100%',
-                            backgroundColor: 'var(--bg-surface-accent)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px'
-                          }}
-                        >
-                          <Plus size={14} /> Yeni {col.title} Ekle
-                        </div>
-                      ) : (
-                        columnTasks.map(task => (
-                          <SortableTaskCard
-                            key={task.id}
-                            task={task}
-                            members={members}
-                            comments={taskComments[task.id] || []}
-                            onDetailClick={setDetailTask}
-                            onUpdatePriority={handleUpdatePriority}
-                            onUpdateStage={handleUpdateStage}
-                          />
-                        ))
-                      )}
+                      {columnTasks.map(task => (
+                        <SortableTaskCard
+                          key={task.id}
+                          task={task}
+                          members={members}
+                          comments={taskComments[task.id] || []}
+                          onDetailClick={setDetailTask}
+                          onUpdatePriority={handleUpdatePriority}
+                          onUpdateStage={handleUpdateStage}
+                        />
+                      ))}
                     </DroppableCardsArea>
                   </SortableContext>
                 </div>
