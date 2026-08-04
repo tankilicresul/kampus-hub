@@ -3112,37 +3112,39 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>İŞ TANIMI</label>
-                        <select 
-                          value={newCategory} 
-                          onChange={e => setNewCategory(e.target.value)} 
-                          className="form-input"
-                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
-                        >
-                          <option value="">— Kategori Seçin —</option>
-                          {categories.map(c => (
-                            <option key={c.id} value={c.name}>{c.name}</option>
-                          ))}
-                        </select>
-                      </div>
+                    {!isNewSocial && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>İŞ TANIMI</label>
+                          <select 
+                            value={newCategory} 
+                            onChange={e => setNewCategory(e.target.value)} 
+                            className="form-input"
+                            style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                          >
+                            <option value="">— Kategori Seçin —</option>
+                            {categories.map(c => (
+                              <option key={c.id} value={c.name}>{c.name}</option>
+                            ))}
+                          </select>
+                        </div>
 
-                      <div className="form-group">
-                        <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>ATANAN KİŞİ</label>
-                        <select 
-                          value={newAssignee} 
-                          onChange={e => setNewAssignee(e.target.value)} 
-                          className="form-input"
-                          style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
-                        >
-                          <option value="">— Atanmamış —</option>
-                          {members.map(m => (
-                            <option key={m.user_id} value={m.user_id}>{m.full_name || 'Kullanıcı'}</option>
-                          ))}
-                        </select>
+                        <div className="form-group">
+                          <label className="form-label" style={{ fontSize: '0.68rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-muted)' }}>ATANAN KİŞİ</label>
+                          <select 
+                            value={newAssignee} 
+                            onChange={e => setNewAssignee(e.target.value)} 
+                            className="form-input"
+                            style={{ borderRadius: '10px', fontSize: '0.85rem', width: '100%', padding: '9px 12px' }}
+                          >
+                            <option value="">— Atanmamış —</option>
+                            {members.map(m => (
+                              <option key={m.user_id} value={m.user_id}>{m.full_name || 'Kullanıcı'}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
-                    </div>
+                    )}
                     
                     {!isNewSocial && (
                       <div className="form-group">
