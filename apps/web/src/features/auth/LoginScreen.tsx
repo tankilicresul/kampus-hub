@@ -220,14 +220,14 @@ export const LoginScreen: React.FC = () => {
 
           {/* Developer Attribution & Link */}
           <div style={{ 
-            marginTop: '22px', 
-            padding: '14px 16px', 
-            borderRadius: '12px', 
+            marginTop: '14px', 
+            padding: '10px 14px', 
+            borderRadius: '10px', 
             backgroundColor: 'rgba(255, 159, 10, 0.07)', 
             border: '1px solid rgba(255, 159, 10, 0.2)',
             textAlign: 'center' 
           }}>
-            <p style={{ fontSize: '0.86rem', color: 'var(--text-primary)', margin: '0 0 6px', lineHeight: 1.3, fontWeight: 600 }}>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-primary)', margin: '0 0 4px', lineHeight: 1.18, fontWeight: 600, letterSpacing: '-0.01em' }}>
               TanCoreLab, Resul Tankılıç tarafından geliştirilen görev, CRM, ekip ve operasyon yönetim platformudur.
             </p>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -236,14 +236,14 @@ export const LoginScreen: React.FC = () => {
                 style={{ 
                   display: 'inline-flex', 
                   alignItems: 'center', 
-                  gap: '4px', 
+                  gap: '3px', 
                   color: 'var(--accent-color)', 
                   fontWeight: 800, 
-                  fontSize: '0.85rem',
+                  fontSize: '0.82rem',
                   textDecoration: 'none' 
                 }}
               >
-                Resul Tankılıç hakkında <ArrowRight size={14} />
+                Resul Tankılıç hakkında <ArrowRight size={13} />
               </Link>
             </div>
           </div>
