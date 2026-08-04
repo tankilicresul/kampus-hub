@@ -459,7 +459,7 @@ export const TaskMindMapCanvas: React.FC = () => {
       setZoom((prev) => {
         const next = Math.min(3, Math.max(0.15, prev * factor));
         const ratio = next / prev;
-        setPan((p) => ({
+        setPan((p: { x: number; y: number }) => ({
           x: mx - (mx - p.x) * ratio,
           y: my - (my - p.y) * ratio,
         }));
@@ -769,7 +769,7 @@ export const TaskMindMapCanvas: React.FC = () => {
               const mx = r.width / 2;
               const my = r.height / 2;
               const ratio = next / prev;
-              setPan((p) => ({ x: mx - (mx - p.x) * ratio, y: my - (my - p.y) * ratio }));
+              setPan((p: { x: number; y: number }) => ({ x: mx - (mx - p.x) * ratio, y: my - (my - p.y) * ratio }));
             }
             return next;
           });
@@ -786,7 +786,7 @@ export const TaskMindMapCanvas: React.FC = () => {
               const mx = r.width / 2;
               const my = r.height / 2;
               const ratio = next / prev;
-              setPan((p) => ({ x: mx - (mx - p.x) * ratio, y: my - (my - p.y) * ratio }));
+              setPan((p: { x: number; y: number }) => ({ x: mx - (mx - p.x) * ratio, y: my - (my - p.y) * ratio }));
             }
             return next;
           });
