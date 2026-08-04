@@ -109,13 +109,14 @@ const getContentFormatInfo = (type: string | null | undefined) => {
   switch (type) {
     case 'viral':
     case 'video':
-      return { label: 'Reels', emoji: '🎬', color: '#ff9f0a' };
-    case 'post':
-      return { label: 'Post', emoji: '🖼', color: '#0a84ff' };
+    case 'reels':
+      return { label: 'Reels-Shorts Videoları', emoji: '🎬', color: '#ff9f0a' };
     case 'reklam':
-      return { label: 'Reklam', emoji: '📢', color: '#30d158' };
-    case 'yari_reklam':
-      return { label: 'Yarı Reklam', emoji: '⚡', color: '#bf5af2' };
+      return { label: 'Reklam İçerikleri', emoji: '📢', color: '#30d158' };
+    case 'post':
+      return { label: 'Post-Hikayeler', emoji: '🖼️', color: '#0a84ff' };
+    case 'youtube':
+      return { label: 'YouTube Uzun Videolar', emoji: '🔴', color: '#ef4444' };
     default:
       return null;
   }
@@ -327,7 +328,7 @@ const renderCardDateMeta = (task: Task) => {
 
   // Ad duration details
   let durationText = '';
-  if ((task.content_type === 'reklam' || task.content_type === 'yari_reklam') && task.ad_duration) {
+  if (task.content_type === 'reklam' && task.ad_duration) {
     const rawDur = task.ad_duration.trim();
     if (rawDur) {
       const numericVal = parseInt(rawDur);
@@ -1135,10 +1136,10 @@ const TaskDetailModal: React.FC<{
               {/* Format selection */}
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
                 {[
-                  { key: 'viral', label: '🎬 Reels' },
-                  { key: 'post', label: '🖼 Post' },
-                  { key: 'reklam', label: '📢 Reklam' },
-                  { key: 'yari_reklam', label: '⚡ Yarı Reklam' }
+                  { key: 'viral', label: '🎬 Reels-Shorts Videoları' },
+                  { key: 'reklam', label: '📢 Reklam İçerikleri' },
+                  { key: 'post', label: '🖼️ Post-Hikayeler' },
+                  { key: 'youtube', label: '🔴 YouTube Uzun Videolar' }
                 ].map(f => (
                   <button
                     key={f.key}
@@ -1426,7 +1427,7 @@ const TaskDetailModal: React.FC<{
             </div>
           )}
 
-          {isSocial && (contentType === 'reklam' || contentType === 'yari_reklam') && (
+          {isSocial && contentType === 'reklam' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', border: '1px solid var(--border-glass)', borderRadius: '12px', padding: '16px', backgroundColor: 'rgba(255,255,255,0.01)' }}>
               <div style={{
                 fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -2239,9 +2240,9 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
   // Helper to map task content type for Content Panel mode
   const getTaskContentTypeKey = (t: Task): string => {
-    if (t.content_type === 'viral' || t.content_type === 'video') return 'viral';
+    if (t.content_type === 'youtube') return 'youtube';
+    if (t.content_type === 'viral' || t.content_type === 'video' || t.content_type === 'reels') return 'viral';
     if (t.content_type === 'reklam') return 'reklam';
-    if (t.content_type === 'yari_reklam') return 'yari_reklam';
     return 'post';
   };
 
@@ -2253,7 +2254,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
 
     const isContentMode = boardMode === 'content';
     const validColKeys = isContentMode 
-      ? ['viral', 'post', 'reklam', 'yari_reklam']
+      ? ['viral', 'reklam', 'post', 'youtube']
       : ['todo', 'in_progress', 'completed', 'revision_required'];
 
     let targetCol: string | null = null;
@@ -2424,10 +2425,10 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
   ] as const;
 
   const contentColumns = [
-    { key: 'viral', title: 'Reels', color: '#ff9f0a', emoji: '🎬' },
-    { key: 'reklam', title: 'Reklam', color: '#30d158', emoji: '📢' },
-    { key: 'yari_reklam', title: 'Yarı Reklam', color: '#bf5af2', emoji: '⚡' },
-    { key: 'post', title: 'Post', color: '#0a84ff', emoji: '🖼️' },
+    { key: 'viral', title: 'Reels-Shorts Videoları', color: '#ff9f0a', emoji: '🎬' },
+    { key: 'reklam', title: 'Reklam İçerikleri', color: '#30d158', emoji: '📢' },
+    { key: 'post', title: 'Post-Hikayeler', color: '#0a84ff', emoji: '🖼️' },
+    { key: 'youtube', title: 'YouTube Uzun Videolar', color: '#ef4444', emoji: '🔴' },
   ] as const;
 
   const columns = isContentMode ? contentColumns : processColumns;
@@ -2827,15 +2828,15 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                       {/* Format Header Indicator */}
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border-glass)', paddingBottom: '12px' }}>
                         <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--accent-color)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          {newContentType === 'viral' && '🎬 Reels İçerik Formu'}
-                          {newContentType === 'reklam' && '📢 Reklam İçerik Formu'}
-                          {newContentType === 'yari_reklam' && '⚡ Yarı Reklam İçerik Formu'}
-                          {newContentType === 'post' && '🖼️ Post İçerik Formu'}
+                          {newContentType === 'viral' && '🎬 Reels-Shorts Videoları Formu'}
+                          {newContentType === 'reklam' && '📢 Reklam İçerikleri Formu'}
+                          {newContentType === 'post' && '🖼️ Post-Hikayeler Formu'}
+                          {newContentType === 'youtube' && '🔴 YouTube Uzun Videolar Formu'}
                         </span>
                       </div>
 
                       {/* Reklam Sub-Format Selector (Reklam Reels'i vs Reklam Postu) */}
-                      {(newContentType === 'reklam' || newContentType === 'yari_reklam') && (
+                      {newContentType === 'reklam' && (
                         <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
                           <button
                             type="button"
@@ -2886,7 +2887,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                         </div>
                       )}
 
-                      {(newContentType === 'post' || ((newContentType === 'reklam' || newContentType === 'yari_reklam') && newAdFormat === 'post')) ? (
+                      {(newContentType === 'post' || (newContentType === 'reklam' && newAdFormat === 'post')) ? (
                         /* ── Post Layout ── */
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -3044,7 +3045,7 @@ export const TasksScreen: React.FC<TasksScreenProps> = ({ boardMode = 'content' 
                       </div>
 
                       {/* Reklam details */}
-                      {(newContentType === 'reklam' || newContentType === 'yari_reklam') && (
+                      {newContentType === 'reklam' && (
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', borderTop: '1px solid var(--border-glass)', paddingTop: '12px' }}>
                           <div className="form-group">
                             <label className="form-label" style={{ fontSize: '0.72rem', fontWeight: 700 }}>💵 Reklam Bütçesi</label>
